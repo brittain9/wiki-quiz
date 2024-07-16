@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.LLM", "WikiQuizGenerator.LLM\WikiQuizGenerator.LLM.csproj", "{8428A687-6DE8-4721-83C5-34E5669A271B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.Data", "WikiQuizGenerator.Data\WikiQuizGenerator.Data.csproj", "{733DEFA8-F316-44DD-8D49-48614871225F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.Core", "WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj", "{64C95BED-BAAF-48FC-8EDE-CF1E63E22337}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.Api", "WikiQuizGenerator.Api\WikiQuizGenerator.Api.csproj", "{A43C6645-113E-40E2-B22A-9851C168D893}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8428A687-6DE8-4721-83C5-34E5669A271B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8428A687-6DE8-4721-83C5-34E5669A271B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8428A687-6DE8-4721-83C5-34E5669A271B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8428A687-6DE8-4721-83C5-34E5669A271B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{733DEFA8-F316-44DD-8D49-48614871225F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{733DEFA8-F316-44DD-8D49-48614871225F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{733DEFA8-F316-44DD-8D49-48614871225F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{733DEFA8-F316-44DD-8D49-48614871225F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64C95BED-BAAF-48FC-8EDE-CF1E63E22337}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64C95BED-BAAF-48FC-8EDE-CF1E63E22337}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64C95BED-BAAF-48FC-8EDE-CF1E63E22337}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64C95BED-BAAF-48FC-8EDE-CF1E63E22337}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A43C6645-113E-40E2-B22A-9851C168D893}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A43C6645-113E-40E2-B22A-9851C168D893}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A43C6645-113E-40E2-B22A-9851C168D893}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A43C6645-113E-40E2-B22A-9851C168D893}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

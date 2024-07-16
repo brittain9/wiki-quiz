@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.16.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj" />
+    <ProjectReference Include="..\WikiQuizGenerator.Data\WikiQuizGenerator.Data.csproj" />
+    <ProjectReference Include="..\WikiQuizGenerator.LLM\WikiQuizGenerator.LLM.csproj" />
+  </ItemGroup>
+
+</Project>
