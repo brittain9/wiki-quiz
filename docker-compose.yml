@@ -10,6 +10,7 @@ services:
     depends_on:
       - db
     environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
       - ASPNETCORE_URLS=http://+:80

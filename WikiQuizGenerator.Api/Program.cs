@@ -10,16 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Get API key
+// TODO: This is not throwing an error. The error happens during a request.
+string openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") 
+    ?? throw new InvalidOperationException("OpenAI API key not found in environment variables. Please configure the .env file");
+
 // Configure Semantic Kernel
 builder.Services.AddSingleton(sp =>
 {
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    var openAiApiKey = configuration["OpenAI:ApiKey"];
-
-    if(string.IsNullOrEmpty(openAiApiKey)){
-        throw new InvalidOperationException("OpenAI API key not configured in appsettings.json");
-    }
-    
     var kernelBuilder = Kernel.CreateBuilder()
         .AddOpenAIChatCompletion("gpt-3.5-turbo", openAiApiKey);
     
