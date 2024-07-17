@@ -1,8 +1,10 @@
 namespace WikiQuizGenerator.Core.Models;
 
-public class QuizQuestion
+public class Question
 {
-    public string Question { get; set; }
+    public int Id { get; set; }
+    public string Text { get; set; }
     public List<string> Options { get; set; }
     public int CorrectAnswerIndex { get; set; }
+    public Quiz Quiz { get; set; } 
 }

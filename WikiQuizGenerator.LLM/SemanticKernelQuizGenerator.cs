@@ -14,7 +14,7 @@ namespace WikiQuizGenerator.LLM
             _kernel = kernel;
         }
 
-        public async Task<List<QuizQuestion>> GenerateQuizQuestionsAsync(string text, int numberOfQuestions)
+        public async Task<List<Question>> GenerateQuizQuestionsAsync(string text, int numberOfQuestions)
         {
             var prompt = @"Generate {{$numberOfQuestions}} quiz questions based on the following text. 
                            Each question should be multiple-choice with 4 options. 
