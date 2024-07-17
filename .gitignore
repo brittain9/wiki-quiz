@@ -1,3 +1,4 @@
+# Contains the OpenAI API key.
 WikiQuizGenerator.Api/appsettings.json
 
 ## Ignore Visual Studio temporary files, build results, and

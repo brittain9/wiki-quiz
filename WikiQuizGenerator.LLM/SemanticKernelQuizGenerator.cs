@@ -35,7 +35,19 @@ namespace WikiQuizGenerator.LLM
 
             var jsonResult = result.GetValue<string>()?.Trim() ?? "[]";
 
+            // TODO: Add error checking
             return JsonSerializer.Deserialize<List<QuizQuestion>>(jsonResult) ?? new List<QuizQuestion>();
+        }
+
+        public async Task<string> TestQuery(string text)
+        {   
+            var prompt = text;
+
+            var function = _kernel.CreateFunctionFromPrompt(prompt);
+
+            var result = await function.InvokeAsync(_kernel);
+
+            return result.GetValue<string>()?.Trim() ?? "[]";
         }
     }
 }

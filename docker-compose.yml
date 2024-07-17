@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: WikiQuizGenerator.Api/Dockerfile
+    ports:
+      - "5000:80"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
+      - ASPNETCORE_URLS=http://+:80
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=WikiQuizGenerator
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=YourStrongPassword!
+    ports:
+      - "5432:5432"
+    volumes:
+      - wiki-quiz-data:/var/lib/postgresql/data
+
+volumes:
+  wiki-quiz-data:

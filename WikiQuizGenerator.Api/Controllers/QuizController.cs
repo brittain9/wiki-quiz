@@ -21,4 +21,12 @@ public class QuizController : ControllerBase
         var questions = await _quizGenerator.GenerateQuizQuestionsAsync(articleContent, numberOfQuestions);
         return Ok(questions);
     }
+
+    [HttpGet("test")]
+    public async Task<IActionResult> TestQuery()
+    {
+        var articleContent = await _wikipediaRepository.GetRandomArticleContentAsync();
+        var response = await _quizGenerator.TestQuery(articleContent);
+        return Ok(response);
+    }
 }
