@@ -15,17 +15,17 @@ public class QuizController : ControllerBase
     }
 
     [HttpGet("generate")]
-    public async Task<IActionResult> GenerateQuiz([FromQuery] int numberOfQuestions = 5)
+    public async Task<IActionResult> GenerateQuiz(string topic, [FromQuery] int numberOfQuestions = 5)
     {
-        var articleContent = await _wikipediaRepository.GetRandomArticleContentAsync();
+        var articleContent = _wikipediaRepository.GetArticleContent(topic);
         var questions = await _quizGenerator.GenerateQuizQuestionsAsync(articleContent, numberOfQuestions);
         return Ok(questions);
     }
 
     [HttpGet("test")]
-    public async Task<IActionResult> TestQuery()
+    public async Task<IActionResult> TestQuery(string topic)
     {
-        var articleContent = await _wikipediaRepository.GetRandomArticleContentAsync();
+        var articleContent = _wikipediaRepository.GetArticleContent(topic);
         var response = await _quizGenerator.TestQuery(articleContent);
         return Ok(response);
     }

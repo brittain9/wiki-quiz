@@ -1,6 +1,5 @@
-# Use the .NET SDK image to build the project
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /app
 
 # Copy csproj files and restore dependencies
 COPY ["WikiQuizGenerator.Api/WikiQuizGenerator.Api.csproj", "WikiQuizGenerator.Api/"]
@@ -12,16 +11,11 @@ RUN dotnet restore "WikiQuizGenerator.Api/WikiQuizGenerator.Api.csproj"
 # Copy the rest of the code
 COPY . .
 
-# Build the project
-WORKDIR "/src/WikiQuizGenerator.Api"
-RUN dotnet build "WikiQuizGenerator.Api.csproj" -c Release -o /app/build
+# Install the debugger
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
 
-# Publish the project
-FROM build AS publish
-RUN dotnet publish "WikiQuizGenerator.Api.csproj" -c Release -o /app/publish
-
-# Build the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "WikiQuizGenerator.Api.dll"]
+WORKDIR "/app/WikiQuizGenerator.Api"
+ENTRYPOINT ["dotnet", "run", "--no-launch-profile", "--no-restore", "--urls", "http://+:80"]

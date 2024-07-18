@@ -7,13 +7,18 @@ services:
       dockerfile: WikiQuizGenerator.Api/Dockerfile
     ports:
       - "5000:80"
-    depends_on:
-      - db
+      - "5001:5001"  # Remote debugger port
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
       - ASPNETCORE_URLS=http://+:80
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+    volumes:
+      - .:/app
+      - ~/.nuget/packages:/root/.nuget/packages:ro
+    depends_on:
+      - db
 
   db:
     image: postgres:latest

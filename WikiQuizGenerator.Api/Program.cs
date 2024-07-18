@@ -1,5 +1,4 @@
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.LLM;
 using WikiQuizGenerator.Data;
@@ -25,9 +24,10 @@ builder.Services.AddSingleton(sp =>
     return kernelBuilder.Build();
 });
 
+
 // Register services
+builder.Services.AddDataServices(builder.Configuration);
 builder.Services.AddSingleton<IQuizGenerator, SemanticKernelQuizGenerator>();
-builder.Services.AddSingleton<IWikipediaRepository, WikipediaRepository>();
 
 var app = builder.Build();
 

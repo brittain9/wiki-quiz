@@ -36,7 +36,7 @@ namespace WikiQuizGenerator.LLM
             var jsonResult = result.GetValue<string>()?.Trim() ?? "[]";
 
             // TODO: Add error checking
-            return JsonSerializer.Deserialize<List<QuizQuestion>>(jsonResult) ?? new List<QuizQuestion>();
+            return JsonSerializer.Deserialize<List<Question>>(jsonResult) ?? new List<Question>();
         }
 
         public async Task<string> TestQuery(string text)
