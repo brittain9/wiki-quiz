@@ -13,10 +13,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
       - ASPNETCORE_URLS=http://+:80
-      - DOTNET_USE_POLLING_FILE_WATCHER=1
     volumes:
-      - .:/app
-      - ~/.nuget/packages:/root/.nuget/packages:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
     depends_on:
       - db
 
