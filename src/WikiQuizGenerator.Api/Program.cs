@@ -1,4 +1,3 @@
-using Microsoft.SemanticKernel;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.LLM;
 using WikiQuizGenerator.Data;
@@ -10,22 +9,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Get API key
-// TODO: This is not throwing an error. The error happens during a request.
-string openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY") 
-    ?? throw new InvalidOperationException("OpenAI API key not found in environment variables. Please configure the .env file");
-
-// Configure Semantic Kernel
-builder.Services.AddSingleton(sp =>
-{
-    var kernelBuilder = Kernel.CreateBuilder()
-        .AddOpenAIChatCompletion("gpt-3.5-turbo", openAiApiKey);
-    
-    return kernelBuilder.Build();
-});
-
-
 // Register services
+builder.Services.AddLLMService(builder.Configuration);
 builder.Services.AddDataServices(builder.Configuration);
 builder.Services.AddSingleton<IQuizGenerator, SemanticKernelQuizGenerator>();
 

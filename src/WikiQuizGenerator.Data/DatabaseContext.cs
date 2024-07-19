@@ -12,8 +12,6 @@ namespace WikiQuizGenerator.Data
 
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<Question> Questions { get; set; }
-        public DbSet<CachedWikipediaData> CachedWikipediaData { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Configure your entity relationships here if needed
