@@ -15,9 +15,8 @@ public class QuizController : ControllerBase
     [HttpGet("generate")]
     public async Task<IActionResult> GenerateQuiz(string topic, [FromQuery] int numberOfQuestions = 5)
     {
-        // var articleContent = _wikipediaRepository.GetArticleContent(topic);
-        var articleContent = "test";
-        var questions = await _quizGenerator.GenerateQuizQuestionsAsync(articleContent, numberOfQuestions);
+        var wikiPage = await WikipediaContent.GetWikipediaPage(topic);
+        var questions = await _quizGenerator.GenerateQuizQuestionsAsync(wikiPage.Extract, numberOfQuestions);
         return Ok(questions);
     }
 

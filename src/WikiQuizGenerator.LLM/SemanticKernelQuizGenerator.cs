@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.SemanticKernel;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
@@ -34,10 +35,52 @@ namespace WikiQuizGenerator.LLM
                 ["numberOfQuestions"] = numberOfQuestions.ToString()
             });
 
-            var jsonResult = result.GetValue<string>()?.Trim() ?? "[]";
+            var jsonResult = result.GetValue<string>() ?? "[]";
 
-            // TODO: Add error checking
-            return JsonSerializer.Deserialize<List<Question>>(jsonResult) ?? new List<Question>();
+            return ExtractQuestionsFromResult(jsonResult);
+        }
+
+        private List<Question> ExtractQuestionsFromResult(string result)
+        {
+            // Remove code fences, extra brackets, and whitespace using regex
+            var cleanedResult = CleanJsonString(result);
+
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };                
+
+                var questions = JsonSerializer.Deserialize<List<Question>>(cleanedResult, options);
+
+                return questions ?? new List<Question>();
+            }
+            catch (JsonException ex)
+            {
+                // Log the exception or handle it as appropriate for your application
+                Console.WriteLine($"Error parsing JSON: {ex.Message}");
+                Console.WriteLine($"Cleaned JSON string: {cleanedResult}");
+                return new List<Question>();
+            }
+        }
+
+        private string CleanJsonString(string input)
+        {
+            // Remove code fences
+            var withoutCodeFences = Regex.Replace(input, @"^\s*```(?:json)?\s*|\s*```\s*$", "", RegexOptions.Multiline);
+
+            // Remove extra brackets at the start and end
+            var withoutExtraBrackets = Regex.Replace(withoutCodeFences, @"^\s*\[?\s*|\s*\]?\s*$", "");
+
+            // Trim whitespace and ensure the string is wrapped in brackets
+            var trimmed = withoutExtraBrackets.Trim();
+            if (!trimmed.StartsWith("["))
+                trimmed = "[" + trimmed;
+            if (!trimmed.EndsWith("]"))
+                trimmed = trimmed + "]";
+
+            return trimmed;
         }
 
         public async Task<string> TestQuery(string text)
