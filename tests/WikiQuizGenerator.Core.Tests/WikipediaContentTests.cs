@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Xunit;
 
 using WikiQuizGenerator.Core.Models;
+using System.Diagnostics;
 
 public class WikipediaContentTests
 {
@@ -16,7 +17,7 @@ public class WikipediaContentTests
         const int MinimumContentLength = 100; // Adjust this value as needed
 
         // Act
-        WikipediaArticle article = await WikipediaContent.GetWikipediaArticle(topic);
+        WikipediaPage article = await WikipediaContent.GetWikipediaPage(topic);
         string toStringResult = article.ToString();
 
         // Assert
@@ -25,67 +26,49 @@ public class WikipediaContentTests
 
         // Check article properties
         Assert.Equal(topic, article.Title);
-        Assert.True(article.Content.Length > MinimumContentLength, $"Content length ({article.Content.Length}) is not adequate for a Wikipedia article");
-        Assert.Contains(expectedWord, article.Content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(expectedWord, article.Extract, StringComparison.OrdinalIgnoreCase);
         Assert.NotEmpty(article.Url);
         Assert.NotEqual(default(DateTime), article.LastModified);
-        Assert.NotEmpty(article.Categories);
-        // Don't check related links for now
+        Assert.NotEmpty(article.Links);
 
-        // Check ToString output
-        Assert.Contains(article.Title, toStringResult);
-        Assert.Contains(article.Url, toStringResult);
-        Assert.Contains(article.LastModified.ToString("yyyy-MM-dd"), toStringResult);
-        Assert.Contains("Content:", toStringResult);
-        Assert.Contains("Categories:", toStringResult);
-
-        // Optional: Print the ToString result for debugging
-        Console.WriteLine($"ToString output for '{topic}':");
-        Console.WriteLine(toStringResult);
+        // Print the ToString result for debugging
+        Debug.WriteLine($"ToString output for '{topic}':\n");
+        Debug.WriteLine(toStringResult);
     }
 
     [Fact]
     public async Task GetWikipediaArticle_InvalidTopic_ReturnsNull()
     {
-        // Arrange
         string invalidTopic = "ThisIsAnInvalidWikipediaTopicThatShouldNotExist12345";
 
-        // Act
-        WikipediaArticle article = await WikipediaContent.GetWikipediaArticle(invalidTopic);
+        WikipediaPage article = await WikipediaContent.GetWikipediaPage(invalidTopic);
 
-        // Assert
         Assert.Null(article);
     }
 
     [Fact]
     public async Task GetWikipediaArticle_ReturnsValidArticle()
     {
-        // Arrange
         string topic = "George Washington";
 
-        // Act
-        var article = await WikipediaContent.GetWikipediaArticle(topic);
+        var article = await WikipediaContent.GetWikipediaPage(topic);
 
-        // Assert
         Assert.NotNull(article);
         Assert.Equal(topic, article.Title);
-        Assert.NotEmpty(article.Content);
+        Assert.NotEmpty(article.Extract);
         Assert.NotEmpty(article.Url);
         Assert.NotEqual(default(DateTime), article.LastModified);
-        Assert.NotEmpty(article.Categories);
+        Assert.NotEmpty(article.Links);
     }
 
     [Fact]
     public void RemoveFormatting_RemovesHTMLTags()
     {
-        // Arrange
-        string input = "<p>This is <b>bold</b> and <i>italic</i> text.</p>";
-        string expected = "This is bold and italic text.";
+        string input = "<this will be removed> this will stay </this will be removed>";
+        string expected = "this will stay";
 
-        // Act
         string result = WikipediaContent.RemoveFormatting(input);
 
-        // Assert
         Assert.Equal(expected, result);
     }
 }

@@ -23,8 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj" />
-    <ProjectReference Include="..\src\WikiQuizGenerator.Data\WikiQuizGenerator.Data.csproj" />
+    <ProjectReference Include="..\..\src\WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj" />
+    <ProjectReference Include="..\..\src\WikiQuizGenerator.Data\WikiQuizGenerator.Data.csproj" />
   </ItemGroup>
 
 </Project>

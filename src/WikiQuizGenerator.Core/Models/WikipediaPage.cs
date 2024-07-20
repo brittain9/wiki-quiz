@@ -4,19 +4,20 @@ using System.Text;
 
 namespace WikiQuizGenerator.Core.Models;
 
-public class WikipediaArticle
+// Stores the info from specific query in GetWikipediaPage
+public class WikipediaPage
 {
-    public string Title { get; set; }
-    public string Content { get; set; }
-    public string Url { get; set; }
-    public DateTime LastModified { get; set; }
-    public List<string> Categories { get; set; }
-    public List<string> RelatedLinks { get; set; }
+    public int Id { get; set; } // pageid
+    public string Title { get; set; } // title
+    public string Extract { get; set; } // extract
+    public DateTime LastModified { get; set; }  // touched
+    public string Url { get; set; } // fullurl
+    public int Length { get; set; } // length, seems to be response char count
+    public List<string> Links { get; set; } // links
 
-    public WikipediaArticle()
+    public WikipediaPage()
     {
-        Categories = new List<string>();
-        RelatedLinks = new List<string>();
+        Links = new List<string>();
     }
 
     public override string ToString()
@@ -31,24 +32,20 @@ public class WikipediaArticle
 
         sb.AppendLine("\nContent:");
         sb.AppendLine(new string('-', 8)); // Underline "Content:"
-        sb.AppendLine(Content.Length > 500 ? Content.Substring(0, 500) + "..." : Content);
+        sb.AppendLine(Extract.Length > 100 ? Extract.Substring(0, 100) + "..." : Extract);
 
         sb.AppendLine("\nCategories:");
         sb.AppendLine(new string('-', 11)); // Underline "Categories:"
-        foreach (var category in Categories)
-        {
-            sb.AppendLine($"- {category}");
-        }
 
         sb.AppendLine("\nRelated Links:");
         sb.AppendLine(new string('-', 14)); // Underline "Related Links:"
-        foreach (var link in RelatedLinks.Take(10)) // Limit to first 10 related links
+        foreach (var link in Links.Take(10)) // Limit to first 10 related links
         {
             sb.AppendLine($"- {link}");
         }
-        if (RelatedLinks.Count > 10)
+        if (Links.Count > 10)
         {
-            sb.AppendLine($"... and {RelatedLinks.Count - 10} more");
+            sb.AppendLine($"... and {Links.Count - 10} more");
         }
 
         return sb.ToString();

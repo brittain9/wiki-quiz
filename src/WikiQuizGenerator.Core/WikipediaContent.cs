@@ -25,9 +25,6 @@ public class WikipediaContent
             return input;
         }
 
-        // Remove <p class="mw-empty-elt"></p>
-        input = Regex.Replace(input, @"<p\s+class=""mw-empty-elt""\s*>\s*</p>", string.Empty);
-
         // Remove all HTML tags
         input = Regex.Replace(input, @"<[^>]+>", string.Empty);
 
@@ -37,7 +34,7 @@ public class WikipediaContent
         // Decode HTML entities
         input = System.Net.WebUtility.HtmlDecode(input);
 
-        return input.Trim();
+        return input.Trim();   
     }
 
     /// <summary>
@@ -45,10 +42,12 @@ public class WikipediaContent
     /// </summary>
     /// <param name="topic">The topic to search for on Wikipedia.</param>
     /// <returns>A WikipediaArticle object containing the article information.</returns>
-    public static async Task<WikipediaArticle> GetWikipediaArticle(string topic)
+    public static async Task<WikipediaPage> GetWikipediaPage(string topic)
     {
         var query = HttpUtility.UrlEncode(topic);
-        var url = $"{API_ENDPOINT}?action=query&format=json&prop=extracts|categories|info&exintro=true&redirects=1&inprop=url|displaytitle&titles={query}";
+        // query properties full extract, info (url and page info), up to 500 links
+        // links are in alphabetically ordered. Query lots of them and we can randomly select.
+        var url = $"{API_ENDPOINT}?action=query&format=json&prop=extracts|info|links&redirects=1&inprop=url|displaytitle&pllimit=100&titles={query}";
 
         try
         {
@@ -56,25 +55,28 @@ public class WikipediaContent
             var jsonDoc = JsonDocument.Parse(response);
             var pages = jsonDoc.RootElement.GetProperty("query").GetProperty("pages");
 
+            // get the first valid page of our query
             foreach (var page in pages.EnumerateObject())
             {
-                var article = new WikipediaArticle
+                var wikiPage = new WikipediaPage
                 {
+                    Id = page.Value.GetProperty("pageid").GetInt32(),
                     Title = page.Value.GetProperty("title").GetString(),
-                    Content = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
+                    Extract = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
                     Url = page.Value.GetProperty("fullurl").GetString(),
                     LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString())
                 };
 
-                if (page.Value.TryGetProperty("categories", out var categories))
+                if (page.Value.TryGetProperty("links", out var links))
                 {
-                    foreach (var category in categories.EnumerateArray())
+                    foreach (var link in links.EnumerateArray())
                     {
-                        article.Categories.Add(category.GetProperty("title").GetString());
+                        // could do every other link to reduce size
+                        wikiPage.Links.Add(link.GetProperty("title").GetString());
                     }
                 }
 
-                return article;
+                return wikiPage;
             }
 
             return null;
@@ -83,42 +85,6 @@ public class WikipediaContent
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
             return null;
-        }
-    }
-
-    /// <summary>
-    /// Fetches related links for a given Wikipedia article.
-    /// </summary>
-    /// <param name="article">The WikipediaArticle to find related links for.</param>
-    /// <returns>The updated WikipediaArticle with related links.</returns>
-    public static async Task<WikipediaArticle> GetRelatedLinks(WikipediaArticle article)
-    {
-        var query = HttpUtility.UrlEncode(article.Title);
-        var url = $"{API_ENDPOINT}?action=query&titles={query}&prop=links&pllimit=50&format=json";
-
-        try
-        {
-            var response = await client.GetStringAsync(url);
-            var jsonDoc = JsonDocument.Parse(response);
-            var pages = jsonDoc.RootElement.GetProperty("query").GetProperty("pages");
-
-            foreach (var page in pages.EnumerateObject())
-            {
-                if (page.Value.TryGetProperty("links", out var linksProperty))
-                {
-                    foreach (var link in linksProperty.EnumerateArray())
-                    {
-                        article.RelatedLinks.Add(link.GetProperty("title").GetString());
-                    }
-                }
-            }
-
-            return article;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"An error occurred while fetching related links: {ex.Message}");
-            return article;
         }
     }
 }

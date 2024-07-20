@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5481E23F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.Data.Tests", "tests\WikiQuizGenerator.Data.Tests\WikiQuizGenerator.Data.Tests.csproj", "{C559FC54-0735-4DED-86E8-9E330DCE30D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.Core.Tests", "tests\WikiQuizGenerator.Core.Tests\WikiQuizGenerator.Core.Tests.csproj", "{361B93AD-A5B1-44B9-B757-5A8A4AE43045}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{97A6B757-608B-4325-B2C0-6C689D63037A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97A6B757-608B-4325-B2C0-6C689D63037A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97A6B757-608B-4325-B2C0-6C689D63037A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{361B93AD-A5B1-44B9-B757-5A8A4AE43045}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{361B93AD-A5B1-44B9-B757-5A8A4AE43045}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{361B93AD-A5B1-44B9-B757-5A8A4AE43045}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{361B93AD-A5B1-44B9-B757-5A8A4AE43045}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C559FC54-0735-4DED-86E8-9E330DCE30D8} = {5481E23F-4A0B-4A0B-BCAD-E597DD55F331}
@@ -52,5 +58,6 @@ Global
 		{17D5559D-D1FB-4246-89B3-CCFDD249E435} = {1B0CC631-DA79-48CC-8546-E6593E03AE2E}
 		{BCBF04F3-C17B-47E4-B841-AEB7E0923552} = {1B0CC631-DA79-48CC-8546-E6593E03AE2E}
 		{97A6B757-608B-4325-B2C0-6C689D63037A} = {1B0CC631-DA79-48CC-8546-E6593E03AE2E}
+		{361B93AD-A5B1-44B9-B757-5A8A4AE43045} = {5481E23F-4A0B-4A0B-BCAD-E597DD55F331}
 	EndGlobalSection
 EndGlobal
