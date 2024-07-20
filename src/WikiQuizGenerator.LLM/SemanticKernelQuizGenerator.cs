@@ -82,16 +82,5 @@ namespace WikiQuizGenerator.LLM
 
             return trimmed;
         }
-
-        public async Task<string> TestQuery(string text)
-        {   
-            var prompt = text;
-
-            var function = _kernel.CreateFunctionFromPrompt(prompt);
-
-            var result = await function.InvokeAsync(_kernel);
-
-            return result.GetValue<string>()?.Trim() ?? "[]";
-        }
     }
 }
