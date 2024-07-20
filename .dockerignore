@@ -1,58 +1,30 @@
-# Ignore .git and .cache directories
-.git
-.cache
-
-# Ignore all markdown files
-*.md
-
-# Ignore all log files
-*.log
-
-# Ignore all build output directories
-**/[Bb]in/
-**/[Oo]bj/
-**/[Oo]ut/
-
-# Ignore Visual Studio files
-.vs/
-**/*.user
-**/*.userosscache
-**/*.sln.docstates
-
-# Ignore NuGet packages
-**/[Pp]ackages/*
-
-# Ignore test results
-[Tt]est[Rr]esult*/
-[Bb]uild[Ll]og.*
-
-# Ignore Visual Studio Code settings
-.vscode/
-
-# Ignore Rider settings
-.idea/
-
-# Ignore user-specific files
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Ignore .NET Core build results
-project.lock.json
-project.fragment.lock.json
-artifacts/
-
-# Ignore StyleCop
-StyleCopReport.xml
-
-# Ignore Resharper
-_ReSharper*/
-*.[Rr]e[Ss]harper
-*.DotSettings.user
-
-# Ignore publish output
-**/publish/
-
-# Ignore Azure deployment settings
-*.PublishSettings
+**/.classpath
+**/.dockerignore
+**/.env
+**/.git
+**/.gitignore
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+**/azds.yaml
+**/bin
+**/charts
+**/docker-compose*
+**/Dockerfile*
+**/node_modules
+**/npm-debug.log
+**/obj
+**/secrets.dev.yaml
+**/values.dev.yaml
+LICENSE
+README.md
+!**/.gitignore
+!.git/HEAD
+!.git/config
+!.git/packed-refs
+!.git/refs/heads/**

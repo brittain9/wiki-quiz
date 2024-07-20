@@ -10,7 +10,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register services
-builder.Services.AddLLMService(builder.Configuration);
+builder.Services.AddOpenAIService(builder.Configuration);
 builder.Services.AddDataServices(builder.Configuration);
 builder.Services.AddSingleton<IQuizGenerator, SemanticKernelQuizGenerator>();
 

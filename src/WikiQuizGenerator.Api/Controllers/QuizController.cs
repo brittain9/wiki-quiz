@@ -24,9 +24,15 @@ public class QuizController : ControllerBase
     [HttpGet("test")]
     public async Task<IActionResult> TestQuery(string topic)
     {
-        // var articleContent = _wikipediaRepository.GetArticleContent(topic);
-        var articleContent = "test";
-        var response = await _quizGenerator.TestQuery(articleContent);
+        var wikiPage = await WikipediaContent.GetWikipediaPage(topic);
+
+        string response;
+
+        if (wikiPage != null)
+            response = await _quizGenerator.TestQuery(wikiPage.Extract.Substring(0, 100));
+        else
+            response = "Wiki Page was null";
+
         return Ok(response);
     }
 }

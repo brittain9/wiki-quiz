@@ -1,34 +1,28 @@
+#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER app
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-
-# Copy csproj files and restore dependencies
-COPY ["WikiQuizGenerator.Api/WikiQuizGenerator.Api.csproj", "WikiQuizGenerator.Api/"]
-COPY ["WikiQuizGenerator.Core/WikiQuizGenerator.Core.csproj", "WikiQuizGenerator.Core/"]
-COPY ["WikiQuizGenerator.Data/WikiQuizGenerator.Data.csproj", "WikiQuizGenerator.Data/"]
-COPY ["WikiQuizGenerator.LLM/WikiQuizGenerator.LLM.csproj", "WikiQuizGenerator.LLM/"]
-
-# Set the fallback folder to a Linux path
-ENV NUGET_PACKAGES=/root/.nuget/packages
-RUN dotnet restore "WikiQuizGenerator.Api/WikiQuizGenerator.Api.csproj"
-
-# Copy the rest of the code
+COPY ["src/WikiQuizGenerator.Api/WikiQuizGenerator.Api.csproj", "src/WikiQuizGenerator.Api/"]
+COPY ["src/WikiQuizGenerator.Core/WikiQuizGenerator.Core.csproj", "src/WikiQuizGenerator.Core/"]
+COPY ["src/WikiQuizGenerator.Data/WikiQuizGenerator.Data.csproj", "src/WikiQuizGenerator.Data/"]
+COPY ["src/WikiQuizGenerator.LLM/WikiQuizGenerator.LLM.csproj", "src/WikiQuizGenerator.LLM/"]
+RUN dotnet restore "./src/WikiQuizGenerator.Api/WikiQuizGenerator.Api.csproj"
 COPY . .
-
-WORKDIR "/src/WikiQuizGenerator.Api"
-RUN dotnet build "WikiQuizGenerator.Api.csproj" -c Debug -o /app/build
+WORKDIR "/src/src/WikiQuizGenerator.Api"
+RUN dotnet build "./WikiQuizGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "WikiQuizGenerator.Api.csproj" -c Debug -o /app/publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./WikiQuizGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
-# Install the debugger
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends unzip curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /vsdbg
-
-ENV ASPNETCORE_URLS=http://+:80
 ENTRYPOINT ["dotnet", "WikiQuizGenerator.Api.dll"]

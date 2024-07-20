@@ -63,8 +63,9 @@ public class WikipediaContent
                     Id = page.Value.GetProperty("pageid").GetInt32(),
                     Title = page.Value.GetProperty("title").GetString(),
                     Extract = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
+                    LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString()),
                     Url = page.Value.GetProperty("fullurl").GetString(),
-                    LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString())
+                    Length = page.Value.GetProperty("length").GetInt32()
                 };
 
                 if (page.Value.TryGetProperty("links", out var links))
