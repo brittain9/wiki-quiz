@@ -6,9 +6,8 @@ namespace WikiQuizGenerator.LLM;
 
 public static class SemanticKernelServiceExtensions
 {
-    public static IServiceCollection AddOpenAIService(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddOpenAIService(this IServiceCollection services, IConfiguration configuration, string modelId="gpt-4o-mini")
     {
-        string modelId = "gpt-4o-mini";
         string? openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
 
         if(string.IsNullOrEmpty(openAiApiKey))

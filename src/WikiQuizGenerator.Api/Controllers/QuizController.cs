@@ -5,18 +5,18 @@ using WikiQuizGenerator.Core.Interfaces;
 [Route("[controller]")]
 public class QuizController : ControllerBase
 {
-    private readonly IQuizGenerator _quizGenerator;
+    private readonly IQuestionGenerator _questionGenerator;
 
-    public QuizController(IQuizGenerator quizGenerator)
+    public QuizController(IQuestionGenerator questionGenerator)
     {
-        _quizGenerator = quizGenerator;
+        _questionGenerator = questionGenerator;
     }
 
     [HttpGet("generate")]
-    public async Task<IActionResult> GenerateQuiz(string topic, [FromQuery] int numberOfQuestions = 2)
+    public async Task<IActionResult> GenerateQuiz(string topic, [FromQuery] int numberOfQuestions = 2, [FromQuery] int textSubstringLength = 500)
     {
         var wikiPage = await WikipediaContent.GetWikipediaPage(topic);
-        var questions = await _quizGenerator.GenerateQuizQuestionsAsync(wikiPage.Extract, numberOfQuestions);
+        var questions = await _questionGenerator.GenerateQuestionsAsync(wikiPage.Extract, numberOfQuestions, textSubstringLength);
         return Ok(questions);
     }
 }

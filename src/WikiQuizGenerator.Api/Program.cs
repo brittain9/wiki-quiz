@@ -1,3 +1,4 @@
+using System.Net;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.LLM;
 using WikiQuizGenerator.Data;
@@ -9,10 +10,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register services
 builder.Services.AddOpenAIService(builder.Configuration);
+builder.Services.AddSingleton<IQuestionGenerator, SemanticKernelQuestionGenerator>();
 builder.Services.AddDataServices(builder.Configuration);
-builder.Services.AddSingleton<IQuizGenerator, SemanticKernelQuizGenerator>();
 
 var app = builder.Build();
 
@@ -23,6 +23,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Dev cert is annoying to set up on Ubuntu and adds more requirements for now
 // app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
