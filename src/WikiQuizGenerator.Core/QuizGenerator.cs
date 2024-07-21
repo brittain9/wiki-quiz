@@ -18,16 +18,18 @@ public class QuizGenerator : IQuizGenerator
 
     public async Task<Quiz> GeneratorBasicQuizAsync(string topic)
     {
+        topic = topic.ToTitleCase();
+
         WikipediaPage page = await WikipediaContent.GetWikipediaPage(topic);
         if(page == null)
-        {
+        { 
             // The topic was not found.
             return null; // In web app, this will fail fast, and ill indicate in text box that the topic is invalid
         }
 
         Quiz quiz = new Quiz();
 
-        quiz.Title = topic.ToTitleCase();
+        quiz.Title = topic;
 
         var questionsResponse = await _questionGenerator.GenerateQuestionsAsync(page, 10);
         quiz.QuestionResponses.Add(questionsResponse);
