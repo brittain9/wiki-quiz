@@ -2,6 +2,7 @@ using System.Net;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.LLM;
 using WikiQuizGenerator.Data;
+using WikiQuizGenerator.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddOpenAIService(builder.Configuration);
 builder.Services.AddSingleton<IQuestionGenerator, SemanticKernelQuestionGenerator>();
+builder.Services.AddSingleton<IQuizGenerator, QuizGenerator>();
 builder.Services.AddDataServices(builder.Configuration);
 
 var app = builder.Build();
