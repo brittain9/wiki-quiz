@@ -30,7 +30,7 @@ public class QuizGenerator : IQuizGenerator
         quiz.Title = topic.ToTitleCase();
 
         var questionsResponse = await _questionGenerator.GenerateQuestionsAsync(page, 10);
-        quiz.QuestionsResponses.Add(questionsResponse);
+        quiz.QuestionResponses.Add(questionsResponse);
 
         return quiz;
     }
