@@ -16,6 +16,15 @@ builder.Services.AddSingleton<IQuestionGenerator, SemanticKernelQuestionGenerato
 builder.Services.AddSingleton<IQuizGenerator, QuizGenerator>();
 builder.Services.AddDataServices(builder.Configuration);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        builder => builder
+            .WithOrigins("http://localhost:3000") // React app's URL
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,9 +34,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Dev cert is annoying to set up on Ubuntu and adds more requirements for now
 // app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+app.UseCors("AllowReactApp");
 
 app.Run();

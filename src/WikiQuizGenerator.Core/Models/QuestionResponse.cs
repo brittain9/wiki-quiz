@@ -19,4 +19,9 @@ public class QuestionResponse
     {
         Questions = new List<Question>();
     }
+
+    // make into property
+    public int GetTotalTokens(){
+        return PromptTokenUsage + CompletionTokenUsage;
+    }
 }

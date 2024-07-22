@@ -56,10 +56,11 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
             Ensure that:
             1. Questions are diverse and cover different aspects of the given content.
             2. Questions are clear, concise, and unambiguous.
-            3. All options are plausible, with only one correct answer.
-            4. The correct answer is not always in the same position.
-            5. Questions test understanding rather than just memorization.
-            6. Grammar and spelling are correct in both questions and options.
+            3. Questions are fun and engaging.
+            4. All options are plausible, with only one correct answer.
+            5. The correct answer is not always in the same position.
+            6. Questions test understanding rather than just memorization.
+            7. Grammar and spelling are correct in both questions and options.
 
             Content to base questions on:
             {{$inputContent}}
