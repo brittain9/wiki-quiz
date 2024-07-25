@@ -46,33 +46,36 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
         if (numQuestions < 0) numQuestions = 1;
         if (numQuestions > 35) numQuestions = 35; // limit 35, ive only tested with 20 so far. Maybe do this in the api but this works for now
 
-        var prompt = @"Generate {{$numberOfQuestions}} questions based on the following content. 
-            Each question should be multiple-choice with 4 options. 
-            Format the output as a JSON array of objects, where each object has the following properties:
-            - 'Text': The question text (string)
-            - 'Options': An array of 4 strings representing the possible answers
-            - 'CorrectAnswerIndex': The zero-based index of the correct answer in the Options array (integer)
+string prompt = @"You are an AI quiz generator. Your primary task is to create a JSON array of quiz questions based on this Wikipedia snippet: {{ $text }}
 
-            Ensure that:
-            1. Questions are diverse and cover different aspects of the given content.
-            2. Questions are clear, concise, and unambiguous.
-            3. Questions are fun and engaging.
-            4. All options are plausible, with only one correct answer.
-            5. The correct answer is not always in the same position.
-            6. Questions test understanding rather than just memorization.
-            7. Grammar and spelling are correct in both questions and options.
+IMPORTANT: Your entire response must be valid JSON. Do not include any text before or after the JSON array.
 
-            Content to base questions on:
-            {{$inputContent}}
+Generate {{ $number_of_questions }} engaging questions. Format your output strictly as follows:
 
-            Output the JSON array of Question objects:";
+[
+  {
+    ""Text"": ""Question text here"",
+    ""Options"": [""Option 1"", ""Option 2"", ""Option 3"", ""Option 4""],
+    ""CorrectAnswerIndex"": 0
+  },
+  // More questions...
+]
 
+Guidelines for creating an engaging quiz:
+1. Make questions standalone, not requiring the original text.
+2. Use varied question types (multiple choice, scenarios, etc.).
+3. Focus on fascinating insights, unexpected twists, and 'aha!' moments.
+4. Challenge players to think creatively or apply knowledge in fun ways.
+5. Ensure all 4 options are plausible, with entertaining wrong answers.
+6. Vary difficulty naturally, including both easy and challenging questions.
+
+Remember: Your entire output must be a valid JSON array of question objects. Do not include any explanations or additional text outside the JSON structure.";
         var function = _kernel.CreateFunctionFromPrompt(prompt);
 
         var result = await function.InvokeAsync(_kernel, new KernelArguments
         {
-            ["inputContent"] = shortenedText,
-            ["numberOfQuestions"] = numQuestions.ToString()
+            ["text"] = shortenedText,
+            ["number_of_questions"] = numQuestions.ToString()
         });
 
         var jsonResult = result.GetValue<string>() ?? "[]";

@@ -31,7 +31,7 @@ public class QuizGenerator : IQuizGenerator
 
         quiz.Title = topic;
 
-        var questionsResponse = await _questionGenerator.GenerateQuestionsAsync(page, 10, 2000);
+        var questionsResponse = await _questionGenerator.GenerateQuestionsAsync(page, 5, 5000);
         quiz.QuestionResponses.Add(questionsResponse);
 
         return quiz;
