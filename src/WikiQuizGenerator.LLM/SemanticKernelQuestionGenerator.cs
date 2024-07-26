@@ -3,6 +3,9 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Azure.AI.OpenAI;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.Services;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
@@ -11,10 +14,14 @@ namespace WikiQuizGenerator.LLM;
 public class SemanticKernelQuestionGenerator : IQuestionGenerator
 {
     private readonly Kernel _kernel;
+    private readonly IChatCompletionService _chatCompletionService; // so I can use message history
 
+    // We create the kernel in the service extension method and inject it
     public SemanticKernelQuestionGenerator(Kernel kernel)
     {
         _kernel = kernel;
+        _chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+
     }
 
     /// <summary>
@@ -38,56 +45,81 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
     ///   
     /// - GPT-4o mini costs 15 cents per 1M input tokens and 60 cents per 1M output tokens.
     /// </remarks>
-    public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, int numQuestions, int extractSubstringLength = 500)
+    public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, int numQuestions, int extractSubstringLength)
     {
-        var text = page.Extract;
-        var shortenedText= text.Length > extractSubstringLength ? text.Substring(0, extractSubstringLength) : text;
+        // Shorten the extract the user defined length; default 500
+        var shortenedText = page.Extract.Length > extractSubstringLength ? 
+            page.Extract.Substring(0, extractSubstringLength) : page.Extract;
 
+        // Limit the number of questions
         if (numQuestions < 0) numQuestions = 1;
-        if (numQuestions > 35) numQuestions = 35; // limit 35, ive only tested with 20 so far. Maybe do this in the api but this works for now
+        if (numQuestions > 35) numQuestions = 35;
 
-string prompt = @"You are an AI quiz generator. Your primary task is to create a JSON array of quiz questions based on this Wikipedia snippet: {{ $text }}
+        ChatHistory chatMessages = new ChatHistory();
 
-IMPORTANT: Your entire response must be valid JSON. Do not include any text before or after the JSON array.
+        chatMessages.AddSystemMessage($"""
+            You are an expert quiz creator. Your task is to create a quiz based on the given content. The quiz should be engaging, informative, and avoid trivial details like specific dates or names of lesser-known individuals.
+            
+            Content: {shortenedText}
+            
+            Number of questions: {numQuestions}
+            
+            Instructions:
+            1. Create {numQuestions} multiple-choice questions based on the provided content.
+            2. Each question should be independent and not require knowledge from other questions.
+            3. Focus on key concepts, interesting facts, and important ideas from the content.
+            4. Avoid questions about specific dates or names of people who are not well-known.
+            5. For each question, provide four options, with only one correct answer.
+            6. Output each question in an array in JSON format, following this structure:
+            
+            "Text": string,
+            "Options": string[],
+            "CorrectAnswerIndex": number
+            
+            Ensure that the JSON is valid and follows the structure provided above.
+            """);
 
-Generate {{ $number_of_questions }} engaging questions. Format your output strictly as follows:
+        chatMessages.AddUserMessage("Generate the question JSON now: ");
 
-[
-  {
-    ""Text"": ""Question text here"",
-    ""Options"": [""Option 1"", ""Option 2"", ""Option 3"", ""Option 4""],
-    ""CorrectAnswerIndex"": 0
-  },
-  // More questions...
-]
+        var timer = new Stopwatch();
+        timer.Start();
 
-Guidelines for creating an engaging quiz:
-1. Make questions standalone, not requiring the original text.
-2. Use varied question types (multiple choice, scenarios, etc.).
-3. Focus on fascinating insights, unexpected twists, and 'aha!' moments.
-4. Challenge players to think creatively or apply knowledge in fun ways.
-5. Ensure all 4 options are plausible, with entertaining wrong answers.
-6. Vary difficulty naturally, including both easy and challenging questions.
+        var response = new ChatMessageContent();
+        var questions = new List<Question>();
 
-Remember: Your entire output must be a valid JSON array of question objects. Do not include any explanations or additional text outside the JSON structure.";
-        var function = _kernel.CreateFunctionFromPrompt(prompt);
-
-        var result = await function.InvokeAsync(_kernel, new KernelArguments
+        do
         {
-            ["text"] = shortenedText,
-            ["number_of_questions"] = numQuestions.ToString()
-        });
+            // Get the AI response
+            var result = await _chatCompletionService.GetChatMessageContentsAsync(chatMessages);
+            response = result.LastOrDefault();
 
-        var jsonResult = result.GetValue<string>() ?? "[]";
+            if (response != null)
+            {
+                // Try to extract questions from the response
+                questions = ExtractQuestionsFromResult(response.Content);
+            }
+
+            // If no valid questions were extracted, add a user message to clarify. Will this cause errors?
+            if (questions.Count == 0)
+            {
+                chatMessages.AddUserMessage("The response was not in the correct format. Please provide the questions in a valid JSON format as specified earlier.");
+            }
+
+        } while (questions.Count == 0);
+
+        timer.Stop();
+
 
         QuestionResponse questionResponse = new()
         {
             ResponseTopic = page.Title,
             TopicUrl = page.Url,
-            Questions = ExtractQuestionsFromResult(jsonResult),
+            AIResponseTime = timer.ElapsedMilliseconds,
+            Questions = ExtractQuestionsFromResult(response.Content),
+            ModelName = _chatCompletionService.GetModelId() ?? "NA"
         };
 
-        if (result.Metadata.TryGetValue("Usage", out object? usageObj) && usageObj is CompletionsUsage usage)
+        if (response.Metadata.TryGetValue("Usage", out object? usageObj) && usageObj is CompletionsUsage usage)
         {
             questionResponse.PromptTokenUsage = usage.PromptTokens;
             questionResponse.CompletionTokenUsage = usage.CompletionTokens;
@@ -99,7 +131,7 @@ Remember: Your entire output must be a valid JSON array of question objects. Do 
     private List<Question> ExtractQuestionsFromResult(string result)
     {
         // Remove code fences, extra brackets, and whitespace
-        var cleanedResult = CleanJsonString(result);
+        var cleanedResult = Utility.CleanJsonString(result);
 
         try
         {
@@ -118,23 +150,5 @@ Remember: Your entire output must be a valid JSON array of question objects. Do 
             Debug.WriteLine($"Cleaned JSON string: {cleanedResult}");
             return new List<Question>();
         }
-    }
-
-    private string CleanJsonString(string input)
-    {
-        // Remove code fences
-        var withoutCodeFences = Regex.Replace(input, @"^\s*```(?:json)?\s*|\s*```\s*$", "", RegexOptions.Multiline);
-
-        // Remove extra brackets at the start and end
-        var withoutExtraBrackets = Regex.Replace(withoutCodeFences, @"^\s*\[?\s*|\s*\]?\s*$", "");
-
-        // Trim whitespace and ensure the string is wrapped in brackets
-        var trimmed = withoutExtraBrackets.Trim();
-        if (!trimmed.StartsWith("["))
-            trimmed = "[" + trimmed;
-        if (!trimmed.EndsWith("]"))
-            trimmed = trimmed + "]";
-
-        return trimmed;
     }
 }

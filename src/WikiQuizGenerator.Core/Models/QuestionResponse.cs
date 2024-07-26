@@ -13,6 +13,8 @@ public class QuestionResponse
     public string TopicUrl { get; set; } // to add urls for user's exploration if a question piques their interest
     public int PromptTokenUsage { get; set; }
     public int CompletionTokenUsage { get; set; }
+    public long AIResponseTime { get; set; } // in milliseconds
+    public string ModelName { get; set; }
     public List<Question> Questions { get; set; }
 
     public QuestionResponse()

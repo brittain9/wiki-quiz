@@ -25,4 +25,18 @@ public static class SemanticKernelServiceExtensions
 
         return services;
     }
+
+    public static IServiceCollection AddPerplexityAIService(this IServiceCollection services, IConfiguration configuration, string modelId = "")
+    {
+        string? perplexityApiKey = Environment.GetEnvironmentVariable("PERPLEXITY_API_KEY");
+
+        if (string.IsNullOrEmpty(perplexityApiKey))
+        {
+            throw new InvalidOperationException("Perplexity API key not found in environment variables. Please configure the .env file");
+        }
+
+        // Create the perplexity chat completion class
+
+        return services;
+    }
 }

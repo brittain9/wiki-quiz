@@ -44,7 +44,10 @@ public class WikipediaContent
     /// <returns>A WikipediaArticle object containing the article information.</returns>
     public static async Task<WikipediaPage> GetWikipediaPage(string topic)
     {
+        // I want to differiate between a valid page and Disambiguation pages (as I just found out they are called)
+
         var query = HttpUtility.UrlEncode(topic);
+
         // query properties full extract, info (url and page info), up to 500 links
         // links are in alphabetically ordered. Query lots of them and we can randomly select.
         var url = $"{API_ENDPOINT}?action=query&format=json&prop=extracts|info|links&redirects=1&inprop=url|displaytitle&pllimit=100&titles={query}";
