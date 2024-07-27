@@ -121,7 +121,6 @@ Please generate the quiz questions in {language} while maintaining the JSON stru
 
         timer.Stop();
 
-
         QuestionResponse questionResponse = new()
         {
             ResponseTopic = page.Title,

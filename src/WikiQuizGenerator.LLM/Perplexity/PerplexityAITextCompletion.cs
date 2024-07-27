@@ -1,5 +1,6 @@
 ﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Services;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -12,18 +13,24 @@ public class PerplexityAITextCompletion : IChatCompletionService
 {
     private readonly string _apiKey;
     private readonly string _apiEndpoint;
-    private readonly string _model;
+    // The llama models are causing a Bad Request response from the perplexity api. Will look into it
+    private readonly string _model; // llama-3-sonar-large-32k-online, llama-3-sonar-large-32k-chat, llama-3-70b-instruct, **mixtral-8x7b-instruct.
     private readonly HttpClient _httpClient;
 
+    public IReadOnlyDictionary<string, object?> Attributes { get; }
     public PerplexityAITextCompletion(string apiKey, string model = "mixtral-8x7b-instruct" , string apiEndpoint = "https://api.perplexity.ai/chat/completions")
     {
         _apiKey = apiKey;
         _apiEndpoint = apiEndpoint;
         _httpClient = new HttpClient();
         _model = model;
-    }
 
-    public IReadOnlyDictionary<string, object?> Attributes => new Dictionary<string, object?>();
+        Attributes = new Dictionary<string, object?>()
+        {
+            { "ModelId", "perplexity-" + _model },
+            {"Endpoint", _apiEndpoint}
+        };
+    }
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatMessageContentsAsync(ChatHistory chatHistory, PromptExecutionSettings? executionSettings = null, Kernel? kernel = null, CancellationToken cancellationToken = default)
     {
