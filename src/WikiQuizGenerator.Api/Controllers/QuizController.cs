@@ -43,9 +43,9 @@ public class QuizController : ControllerBase
     /// <response code="200">Returns the quiz</response>
     /// <response code="400">If the topic is not found or invalid</response>
     [HttpGet("GenerateBasicQuiz")]
-    public async Task<IActionResult> GenerateBasicQuiz(string topic)
+    public async Task<IActionResult> GenerateBasicQuiz(string topic, string language = "en")
     {
-        var quiz = await _quizGenerator.GeneratorBasicQuizAsync(topic);
+        var quiz = await _quizGenerator.GeneratorBasicQuizAsync(topic, language);
         if (quiz == null) return BadRequest($"Invalid topic: {topic}");
         Console.WriteLine(quiz.QuestionResponses[0].GetTotalTokens());
         return Ok(quiz);

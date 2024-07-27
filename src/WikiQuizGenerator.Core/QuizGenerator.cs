@@ -16,11 +16,11 @@ public class QuizGenerator : IQuizGenerator
         _questionGenerator = questionGenerator;
     }
 
-    public async Task<Quiz> GeneratorBasicQuizAsync(string topic)
+    public async Task<Quiz> GeneratorBasicQuizAsync(string topic, string langauge)
     {
-        topic = topic.ToTitleCase();
+        topic = topic.ToTitleCase(); // Hopefully this works for multilingual support? Might need to use some more extensive libraries now
 
-        WikipediaPage page = await WikipediaContent.GetWikipediaPage(topic);
+        WikipediaPage page = await WikipediaContent.GetWikipediaPage(topic, langauge);
         if(page == null)
         { 
             // The topic was not found.
@@ -31,7 +31,7 @@ public class QuizGenerator : IQuizGenerator
 
         quiz.Title = topic;
 
-        var questionsResponse = await _questionGenerator.GenerateQuestionsAsync(page, 5, 5000);
+        var questionsResponse = await _questionGenerator.GenerateQuestionsAsync(page, 5, 5000, langauge);
         quiz.QuestionResponses.Add(questionsResponse);
 
         return quiz;

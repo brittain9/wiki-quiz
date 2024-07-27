@@ -9,6 +9,6 @@ namespace WikiQuizGenerator.Core.Interfaces;
 
 public interface IQuizGenerator
 {
-    Task<Quiz> GeneratorBasicQuizAsync(string topic);
+    Task<Quiz> GeneratorBasicQuizAsync(string topic, string language = "en");
 }
 

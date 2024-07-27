@@ -45,7 +45,7 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
     ///   
     /// - GPT-4o mini costs 15 cents per 1M input tokens and 60 cents per 1M output tokens.
     /// </remarks>
-    public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, int numQuestions, int extractSubstringLength)
+    public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, int numQuestions, int extractSubstringLength, string language)
     {
         // Shorten the extract the user defined length; default 500
         var shortenedText = page.Extract.Length > extractSubstringLength ? 
@@ -57,27 +57,40 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
 
         ChatHistory chatMessages = new ChatHistory();
 
+        // change to use the semantic kernel prompt template later.
         chatMessages.AddSystemMessage($"""
-            You are an expert quiz creator. Your task is to create a quiz based on the given content. The quiz should be engaging, informative, and avoid trivial details like specific dates or names of lesser-known individuals.
-            
-            Content: {shortenedText}
-            
-            Number of questions: {numQuestions}
-            
-            Instructions:
-            1. Create {numQuestions} multiple-choice questions based on the provided content.
-            2. Each question should be independent and not require knowledge from other questions.
-            3. Focus on key concepts, interesting facts, and important ideas from the content.
-            4. Avoid questions about specific dates or names of people who are not well-known.
-            5. For each question, provide four options, with only one correct answer.
-            6. Output each question in an array in JSON format, following this structure:
-            
-            "Text": string,
-            "Options": string[],
-            "CorrectAnswerIndex": number
-            
-            Ensure that the JSON is valid and follows the structure provided above.
-            """);
+You are an expert quiz creator. Your task is to create a quiz based on the given content. The quiz should be engaging, informative, and avoid trivial details like specific dates or names of lesser-known individuals.
+
+Content: {shortenedText}
+
+Number of questions: {numQuestions}
+
+Language: {language}
+
+Instructions:
+1. Create {numQuestions} multiple-choice questions based on the provided content.
+2. Each question should be independent and not require knowledge from other questions.
+3. Focus on key concepts, interesting facts, and important ideas from the content.
+4. Avoid questions about specific dates or names of people who are not well-known.
+5. For each question, provide four options, with only one correct answer.
+6. Output each question in an array in JSON format, following this structure:
+
+    "Text": "Question text in {language}",
+    "Options": [
+    "Option 1 in {language}",
+    "Option 2 in {language}",
+    "Option 3 in {language}",
+    "Option 4 in {language}"
+    ],
+    "CorrectAnswerIndex": number
+
+7. Ensure that all text content (question text and options) is in the specified language ({language}).
+8. Keep the JSON keys ("Text", "Options", "CorrectAnswerIndex") in English.
+9. Ensure that the JSON is valid and follows the structure provided above.
+
+Please generate the quiz questions in {language} while maintaining the JSON structure as specified.
+""");
+
 
         chatMessages.AddUserMessage("Generate the question JSON now: ");
 
