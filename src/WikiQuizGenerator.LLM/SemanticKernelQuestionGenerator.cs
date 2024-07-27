@@ -9,18 +9,17 @@ using Microsoft.SemanticKernel.Services;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
+
 namespace WikiQuizGenerator.LLM;
 
 public class SemanticKernelQuestionGenerator : IQuestionGenerator
 {
-    private readonly Kernel _kernel;
     private readonly IChatCompletionService _chatCompletionService; // so I can use message history
 
     // We create the kernel in the service extension method and inject it
-    public SemanticKernelQuestionGenerator(Kernel kernel)
+    public SemanticKernelQuestionGenerator(IChatCompletionService chatCompletionService)
     {
-        _kernel = kernel;
-        _chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+        _chatCompletionService = chatCompletionService;
 
     }
 
@@ -132,10 +131,15 @@ Please generate the quiz questions in {language} while maintaining the JSON stru
             ModelName = _chatCompletionService.GetModelId() ?? "NA"
         };
 
-        if (response.Metadata.TryGetValue("Usage", out object? usageObj) && usageObj is CompletionsUsage usage)
+        if (response.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
         {
             questionResponse.PromptTokenUsage = usage.PromptTokens;
             questionResponse.CompletionTokenUsage = usage.CompletionTokens;
+        } 
+        else if (response.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
+        {
+            questionResponse.PromptTokenUsage = perUsage.PromptTokens;
+            questionResponse.CompletionTokenUsage = perUsage.CompletionTokens;
         }
 
         return questionResponse;

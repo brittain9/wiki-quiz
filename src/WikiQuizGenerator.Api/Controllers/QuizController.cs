@@ -47,7 +47,7 @@ public class QuizController : ControllerBase
     {
         var quiz = await _quizGenerator.GeneratorBasicQuizAsync(topic, language);
         if (quiz == null) return BadRequest($"Invalid topic: {topic}");
-        Console.WriteLine(quiz.QuestionResponses[0].GetTotalTokens());
+        Console.WriteLine(quiz.QuestionResponses[0].TotalTokens);
         return Ok(quiz);
     }
 }

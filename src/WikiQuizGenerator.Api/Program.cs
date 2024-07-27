@@ -11,9 +11,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddOpenAIService(builder.Configuration);
+// Choose AI service here
+// builder.Services.AddOpenAIService(builder.Configuration);
+builder.Services.AddPerplexityAIService(builder.Configuration);
+
 builder.Services.AddSingleton<IQuestionGenerator, SemanticKernelQuestionGenerator>();
 builder.Services.AddSingleton<IQuizGenerator, QuizGenerator>();
+
 builder.Services.AddDataServices(builder.Configuration);
 
 builder.Services.AddCors(options =>

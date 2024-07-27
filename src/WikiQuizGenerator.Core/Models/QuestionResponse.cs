@@ -11,8 +11,8 @@ public class QuestionResponse
     // In our basic quiz these will be the same as the user's topic
     public string ResponseTopic { get; set; }
     public string TopicUrl { get; set; } // to add urls for user's exploration if a question piques their interest
-    public int PromptTokenUsage { get; set; }
-    public int CompletionTokenUsage { get; set; }
+    public int? PromptTokenUsage { get; set; }
+    public int? CompletionTokenUsage { get; set; }
     public long AIResponseTime { get; set; } // in milliseconds
     public string ModelName { get; set; }
     public List<Question> Questions { get; set; }
@@ -20,10 +20,30 @@ public class QuestionResponse
     public QuestionResponse()
     {
         Questions = new List<Question>();
+
     }
 
-    // make into property
-    public int GetTotalTokens(){
-        return PromptTokenUsage + CompletionTokenUsage;
+    public int? TotalTokens
+    {
+        get
+        {
+            if (PromptTokenUsage.HasValue && CompletionTokenUsage.HasValue)
+            {
+                return PromptTokenUsage.Value + CompletionTokenUsage.Value;
+            }
+            else if (PromptTokenUsage.HasValue)
+            {
+                return PromptTokenUsage.Value;
+            }
+            else if (CompletionTokenUsage.HasValue)
+            {
+                return CompletionTokenUsage.Value;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        
     }
 }
