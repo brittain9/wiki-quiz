@@ -4,6 +4,7 @@ using Xunit;
 
 using WikiQuizGenerator.Core.Models;
 using System.Diagnostics;
+using WikiQuizGenerator.Core;
 
 public class WikipediaContentTests
 {
@@ -67,8 +68,36 @@ public class WikipediaContentTests
         string input = "<this will be removed> this will stay </this will be removed>";
         string expected = "this will stay";
 
-        string result = WikipediaContent.RemoveFormatting(input);
+        string result = Utility.RemoveFormatting(input);
 
         Assert.Equal(expected, result);
+    }
+
+    // Bottom two tests are for debugging the JSON returned and GetWikipediaPage function
+    [Fact]
+    public async Task DifferentLangauges_WikipediaContent()
+    {   
+        var englishPage = await WikipediaContent.GetWikipediaPage("Computer Science", "en");
+        var spanishPage = await WikipediaContent.GetWikipediaPage("Informática", "es");
+        var frenchPage = await WikipediaContent.GetWikipediaPage("Informatique", "fr");
+
+        Assert.NotNull(englishPage);
+        Assert.NotNull(spanishPage);
+        Assert.NotNull(frenchPage);
+
+        // Debug print
+        Console.WriteLine(englishPage.Extract.Substring(0, 50));
+        Console.WriteLine(spanishPage.Extract.Substring(0, 50));
+        Console.WriteLine(frenchPage.Extract.Substring(0, 50));
+    }
+
+    [Fact]
+    public async Task DisambiguationPage_WikipediaContent()
+    {   
+        var disambiguationPage = await WikipediaContent.GetWikipediaPage("George Bush");
+
+        Assert.NotNull(disambiguationPage);
+
+        Console.WriteLine(disambiguationPage.Extract.Substring(0, 50));
     }
 }
