@@ -1,21 +1,19 @@
 ### Wikipedia Quiz Generator
 
-This project will generate quizes based on any Wikipedia topic the user requests using ChatGPT.
+This project will generate high quality quizes based on any Wikipedia topic the user requests using AI.
 
 # Requirements:
-- OpenAI API key
+- AI Service API Key of your choosing (currently supports OpenAI and Perplexity)
 - Docker
 
 # Instructions:
-- Set up .env file with Open AI key
+- Set up .env file with your api key (use the .env.example file)
 - Run docker-compose up --build
-- Test API at localhost:5000
+- Test API at localhost:5543
 
 # Todo:
-- Normalize the models?
 - Add a basic user class
 - Store the quizes in the database
-- Make the web app
-
-# Considerations:
- - Gpt 4o mini is really good, and the Wikipedia content ensures quality and accuracy.
+- Add support for Google Gemini and Mistral
+- Add logic to handle Wikipedia disambiguation pages: https://en.wikipedia.org/wiki/Category:Disambiguation_pages
+- Use more semantic kernel functionality like prompt templates possibly according to topic category (a quiz about a book would have a different prompt that a person for example)
