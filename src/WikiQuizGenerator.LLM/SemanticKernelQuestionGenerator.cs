@@ -15,10 +15,16 @@ namespace WikiQuizGenerator.LLM;
 public class SemanticKernelQuestionGenerator : IQuestionGenerator
 {
     private readonly Kernel _kernel;
+    private readonly PromptManager _promptManager;
+
 
     public SemanticKernelQuestionGenerator(Kernel kernel)
     {
         _kernel = kernel;
+        var promptTemplatesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates");
+
+        _promptManager = new PromptManager(promptTemplatesPath);
+
     }
 
     /// <summary>
@@ -38,61 +44,33 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
             page.Extract.Substring(0, extractSubstringLength) : page.Extract;
 
         // Limit the number of questions
-        if (numQuestions < 0) numQuestions = 1;
-        if (numQuestions > 35) numQuestions = 35;
+        numQuestions = Math.Clamp(numQuestions, 1, 35);
 
-        ChatHistory chatMessages = new ChatHistory();
+        var quizFunction = _promptManager.GetPromptFunction("Default");
         
-        // change to use the semantic kernel prompt template later.
-        chatMessages.AddSystemMessage($"""
-You are an expert quiz creator. Your task is to create a quiz based on the given content. The quiz should be engaging, informative, and avoid trivial details like specific dates or names of lesser-known individuals.
-
-Content: {shortenedText}
-
-Number of questions: {numQuestions}
-
-Language: {language}
-
-Instructions:
-1. Create {numQuestions} multiple-choice questions based on the provided content.
-2. Each question should be independent and not require knowledge from other questions.
-3. Focus on key concepts, interesting facts, and important ideas from the content.
-4. Avoid questions about specific dates or names of people who are not well-known.
-5. For each question, provide four options, with only one correct answer.
-6. Output each question in an array in JSON format, following this structure:
-
-    "Text": "Question text in {language}",
-    "Options": [
-    "Option 1 in {language}",
-    "Option 2 in {language}",
-    "Option 3 in {language}",
-    "Option 4 in {language}"
-    ],
-    "CorrectAnswerIndex": number
-
-7. Ensure that all text content (question text and options) is in the specified language ({language}).
-8. Keep the JSON keys ("Text", "Options", "CorrectAnswerIndex") in English.
-9. Ensure that the JSON is valid and follows the structure provided above.
-
-Please generate the quiz questions in {language} while maintaining the JSON structure as specified.
-""");
-
-        chatMessages.AddUserMessage("Generate and respond only with the questions: ");
-
-        var response = new ChatMessageContent();
-        var questions = new List<Question>();
-        var generationAttempts = 0;
+        var inputVariables = new Dictionary<string, object>
+        {
+            { "text", shortenedText },
+            { "numQuestions", numQuestions },
+            { "language", language }
+        };
 
         var timer = new Stopwatch(); // to get the response time
         timer.Start();
+
+        var questions = new List<Question>();
+        FunctionResult result = null!;
+
+        var generationAttempts = 0;
+        
         do
         {
-            // Get the AI response
-            var result = await _chatCompletionService.GetChatMessageContentsAsync(chatMessages);
-            response = result.LastOrDefault();
+            result = await quizFunction.InvokeAsync(_kernel, new KernelArguments(inputVariables));
 
-            if (response != null) // Try to extract questions from the response
-                questions = ExtractQuestionsFromResult(response.Content);
+            var jsonResult = result.GetValue<string>();
+
+            if (!string.IsNullOrEmpty(jsonResult))
+                questions = ExtractQuestionsFromResult(jsonResult);
 
             generationAttempts++;
         } while (questions.Count == 0 && generationAttempts < 3);
@@ -109,16 +87,16 @@ Please generate the quiz questions in {language} while maintaining the JSON stru
             ResponseTopic = page.Title,
             TopicUrl = page.Url,
             AIResponseTime = timer.ElapsedMilliseconds,
-            Questions = ExtractQuestionsFromResult(response.Content),
+            Questions = questions,
             ModelName = _chatCompletionService.GetModelId() ?? "NA"
         };
 
-        if (response.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
+        if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
         {
             questionResponse.PromptTokenUsage = usage.PromptTokens;
             questionResponse.CompletionTokenUsage = usage.CompletionTokens;
         } 
-        else if (response.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
+        else if (result.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
         {
             questionResponse.PromptTokenUsage = perUsage.PromptTokens;
             questionResponse.CompletionTokenUsage = perUsage.CompletionTokens;

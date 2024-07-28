@@ -1,0 +1,19 @@
+{
+    "name": "Default",
+    "description": "The default prompt to create engaging and informative quiz questions based on provided content.",
+    "template_format": "semantic-kernel",
+    "input_variables": [
+      {
+        "name": "text",
+        "description": "The content based on which the quiz questions will be created.",
+      },
+      {
+        "name": "numQuestions",
+        "description": "The number of multiple-choice questions to create.",
+      },
+      {
+        "name": "language",
+        "description": "The language in which the quiz questions and options should be generated.",
+      }
+    ]
+  }
