@@ -1,4 +1,7 @@
-﻿using Microsoft.SemanticKernel;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Services;
 using System;
@@ -9,27 +12,35 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class PerplexityAITextCompletion : IChatCompletionService
+public class PerplexityAIChatCompletion : IChatCompletionService
 {
     private readonly string _apiKey;
     private readonly string _apiEndpoint;
-    // The llama models are causing a Bad Request response from the perplexity api. Will look into it
-    private readonly string _model; // llama-3-sonar-large-32k-online, llama-3-sonar-large-32k-chat, llama-3-70b-instruct, **mixtral-8x7b-instruct.
+    // The llama models don't like my current prompt... they dont generate only the json data causing errors.
+    private readonly string _model; // llama-3-sonar-small-32k-chat, llama-3-70b-instruct, **mixtral-8x7b-instruct.
     private readonly HttpClient _httpClient;
+    private readonly ILogger<PerplexityAIChatCompletion> _logger;
 
     public IReadOnlyDictionary<string, object?> Attributes { get; }
-    public PerplexityAITextCompletion(string apiKey, string model = "mixtral-8x7b-instruct" , string apiEndpoint = "https://api.perplexity.ai/chat/completions")
+    public PerplexityAIChatCompletion(string apiKey, 
+        string model, 
+        string apiEndpoint = "https://api.perplexity.ai/chat/completions", 
+        HttpClient? httpClient = null,
+        ILogger<PerplexityAIChatCompletion> logger = null)
     {
         _apiKey = apiKey;
-        _apiEndpoint = apiEndpoint;
-        _httpClient = new HttpClient();
         _model = model;
+        _apiEndpoint = apiEndpoint;
+        _httpClient = httpClient ?? new HttpClient();
+        _logger = logger ?? NullLogger<PerplexityAIChatCompletion>.Instance;
 
         Attributes = new Dictionary<string, object?>()
         {
             { "ModelId", "perplexity-" + _model },
             {"Endpoint", _apiEndpoint}
         };
+
+        _logger.LogInformation("PerplexityAIChatCompletion initialized with model {Model} and endpoint {Endpoint}", _model, _apiEndpoint);
     }
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatMessageContentsAsync(ChatHistory chatHistory, PromptExecutionSettings? executionSettings = null, Kernel? kernel = null, CancellationToken cancellationToken = default)
@@ -83,4 +94,6 @@ public class PerplexityAITextCompletion : IChatCompletionService
     {
         throw new NotImplementedException();
     }
+
+
 }

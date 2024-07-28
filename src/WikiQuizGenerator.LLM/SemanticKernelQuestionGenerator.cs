@@ -14,38 +14,25 @@ namespace WikiQuizGenerator.LLM;
 
 public class SemanticKernelQuestionGenerator : IQuestionGenerator
 {
-    private readonly IChatCompletionService _chatCompletionService; // so I can use message history
+    private readonly Kernel _kernel;
 
-    // We create the kernel in the service extension method and inject it
-    public SemanticKernelQuestionGenerator(IChatCompletionService chatCompletionService)
+    public SemanticKernelQuestionGenerator(Kernel kernel)
     {
-        _chatCompletionService = chatCompletionService;
-
+        _kernel = kernel;
     }
 
     /// <summary>
     /// Generates a list of multiple-choice questions based on input text using an AI model.
     /// </summary>
-    /// <param name="text">The full text to base questions on.</param>
-    /// <param name="numberOfQuestions">The number of questions to generate.</param>
-    /// <param name="reducedTextLength">Optional parameter to limit input text length (default 500 characters).</param>
-    /// <returns>A list of Question objects.</returns>
-    /// <remarks>
-    /// This function balances between generating high-quality questions and managing token usage.
-    /// It shortens the input text to reduce token consumption, constructs a detailed prompt,
-    /// invokes an AI model, and processes the results.
-    /// 
-    /// Token usage notes:
-    /// - Prompt tokens: ~320 tokens with text shortened to 500 chars, used whooping 8000 tokens for the full extract about C++
-    /// Used 15000 input tokens for topic Planets! The question quality seems to improve with higher token usage.
-    /// 
-    /// - Completion tokens vary with number of questions:
-    ///   ~125 for 2 questions, ~600 for 10 questions, ~1100 for 20 questions (using gpt-4-mini)
-    ///   
-    /// - GPT-4o mini costs 15 cents per 1M input tokens and 60 cents per 1M output tokens.
-    /// </remarks>
+    /// <param name="page">The Wikipedia page to base questions on.</param>
+    /// <param name="numQuestions">The number of questions to generate.</param>
+    /// <param name="extractSubstringLength">Optional parameter to limit input text length (default 500 characters).</param>
+    /// <param name="language">The language for the quiz (default English).</param>
+    /// <returns>A Question Response object containing the questions and metadata.</returns>
     public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, int numQuestions, int extractSubstringLength, string language)
     {
+        var _chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+
         // Shorten the extract the user defined length; default 500
         var shortenedText = page.Extract.Length > extractSubstringLength ? 
             page.Extract.Substring(0, extractSubstringLength) : page.Extract;
@@ -55,7 +42,7 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
         if (numQuestions > 35) numQuestions = 35;
 
         ChatHistory chatMessages = new ChatHistory();
-
+        
         // change to use the semantic kernel prompt template later.
         chatMessages.AddSystemMessage($"""
 You are an expert quiz creator. Your task is to create a quiz based on the given content. The quiz should be engaging, informative, and avoid trivial details like specific dates or names of lesser-known individuals.
@@ -90,36 +77,32 @@ Instructions:
 Please generate the quiz questions in {language} while maintaining the JSON structure as specified.
 """);
 
-
-        chatMessages.AddUserMessage("Generate the question JSON now: ");
-
-        var timer = new Stopwatch();
-        timer.Start();
+        chatMessages.AddUserMessage("Generate and respond only with the questions: ");
 
         var response = new ChatMessageContent();
         var questions = new List<Question>();
+        var generationAttempts = 0;
 
+        var timer = new Stopwatch(); // to get the response time
+        timer.Start();
         do
         {
             // Get the AI response
             var result = await _chatCompletionService.GetChatMessageContentsAsync(chatMessages);
             response = result.LastOrDefault();
 
-            if (response != null)
-            {
-                // Try to extract questions from the response
+            if (response != null) // Try to extract questions from the response
                 questions = ExtractQuestionsFromResult(response.Content);
-            }
 
-            // If no valid questions were extracted, add a user message to clarify. Will this cause errors?
-            if (questions.Count == 0)
-            {
-                chatMessages.AddUserMessage("The response was not in the correct format. Please provide the questions in a valid JSON format as specified earlier.");
-            }
-
-        } while (questions.Count == 0);
+            generationAttempts++;
+        } while (questions.Count == 0 && generationAttempts < 3);
 
         timer.Stop();
+
+        if (generationAttempts >= 3)
+        {
+            return null;
+        }
 
         QuestionResponse questionResponse = new()
         {
