@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	
+	<ItemGroup>
+	<ProjectReference Include="..\WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+		<PackageReference Include="Microsoft.SemanticKernel" Version="1.16.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Folder Include="PromptTemplates\" />
+	</ItemGroup>
+	
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+    <ItemGroup>
+	    <!-- Include all files in the PromptTemplates directory -->
+	    <None Update="PromptTemplates\**\*">
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    </None>
+    </ItemGroup>
+	
+</Project>

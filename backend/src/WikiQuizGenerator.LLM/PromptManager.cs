@@ -35,19 +35,16 @@ public class PromptManager
         return (config, prompt);
     }
 
-    public void CreatePromptFunction(string templateName)
+    private void CreatePromptFunction(string templateName)
     {
-        if (!_promptFunctions.ContainsKey(templateName))
-        {
-            var (config, prompt) = LoadPromptTemplate(templateName);
-            PromptTemplateConfig skconfig = PromptTemplateConfig.FromJson(config);
+        var (config, prompt) = LoadPromptTemplate(templateName);
+        PromptTemplateConfig skconfig = PromptTemplateConfig.FromJson(config);
 
-            skconfig.Template = prompt;
+        skconfig.Template = prompt;
 
-            var promptFunction = _kernel.CreateFunctionFromPrompt(skconfig, _promptTemplateFactory);
+        var promptFunction = _kernel.CreateFunctionFromPrompt(skconfig, _promptTemplateFactory);
 
-            _promptFunctions[templateName] = promptFunction;
-        }
+        _promptFunctions[templateName] = promptFunction;
     }
 
     public KernelFunction GetPromptFunction(string templateName)

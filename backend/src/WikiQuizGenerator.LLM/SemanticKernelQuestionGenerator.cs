@@ -21,7 +21,9 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
     public SemanticKernelQuestionGenerator(Kernel kernel)
     {
         _kernel = kernel;
-        var promptTemplatesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates");
+
+        // copy the prompt templates to the build directory in .csproj
+        var promptTemplatesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates"); 
 
         _promptManager = new PromptManager(promptTemplatesPath);
 
@@ -37,8 +39,6 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
     /// <returns>A Question Response object containing the questions and metadata.</returns>
     public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, int numQuestions, int extractSubstringLength, string language)
     {
-        var _chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-
         // Shorten the extract the user defined length; default 500
         var shortenedText = page.Extract.Length > extractSubstringLength ? 
             page.Extract.Substring(0, extractSubstringLength) : page.Extract;
@@ -47,25 +47,22 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
         numQuestions = Math.Clamp(numQuestions, 1, 35);
 
         var quizFunction = _promptManager.GetPromptFunction("Default");
-        
-        var inputVariables = new Dictionary<string, object>
-        {
-            { "text", shortenedText },
-            { "numQuestions", numQuestions },
-            { "language", language }
-        };
 
         var timer = new Stopwatch(); // to get the response time
         timer.Start();
 
         var questions = new List<Question>();
         FunctionResult result = null!;
+        var generationAttempts = 0;;
 
-        var generationAttempts = 0;
-        
         do
         {
-            result = await quizFunction.InvokeAsync(_kernel, new KernelArguments(inputVariables));
+            result = await quizFunction.InvokeAsync(_kernel, new KernelArguments
+            {
+                ["text"] = shortenedText,
+                ["numQuestions"] = numQuestions,
+                ["language"] = language
+            });
 
             var jsonResult = result.GetValue<string>();
 
@@ -88,7 +85,7 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
             TopicUrl = page.Url,
             AIResponseTime = timer.ElapsedMilliseconds,
             Questions = questions,
-            ModelName = _chatCompletionService.GetModelId() ?? "NA"
+            ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA"
         };
 
         if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
