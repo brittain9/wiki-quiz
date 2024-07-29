@@ -19,41 +19,47 @@ public class PromptManager
         _promptTemplateFactory = promptTemplateFactory ?? new KernelPromptTemplateFactory();
     }
 
-    private (string config, string prompt) LoadPromptTemplate(string templateName)
+    public KernelFunction GetPromptFunction(string templateName, string language = "en")
     {
-        var templateDir = Path.Combine(_directoryPath, templateName);
+        var nameWithLang = templateName + "_" + language;
+
+        if (!_promptFunctions.ContainsKey(nameWithLang))
+            CreatePromptFunction(templateName, language);
+
+        return _promptFunctions[nameWithLang];
+    }
+
+    private void CreatePromptFunction(string templateName, string language)
+    {
+        var (config, prompt) = LoadPromptTemplate(templateName, language);
+
+        PromptTemplateConfig skconfig = PromptTemplateConfig.FromJson(config);
+        skconfig.Template = prompt;
+
+        var promptFunction = _kernel.CreateFunctionFromPrompt(skconfig, _promptTemplateFactory);
+
+        var nameWithLang = templateName + "_" + language;
+        _promptFunctions[nameWithLang] = promptFunction;
+        Console.WriteLine($"Registered function for {nameWithLang}");
+    }
+
+    private (string config, string prompt) LoadPromptTemplate(string templateName, string language)
+    {
+        var templateDir = Path.Combine(_directoryPath, language, templateName);
         var configPath = Path.Combine(templateDir, "config.json");
         var promptPath = Path.Combine(templateDir, "skprompt.txt");
 
         if (!File.Exists(configPath) || !File.Exists(promptPath))
         {
             throw new ArgumentException($"Template '{templateName}' not found or is missing required files.");
-        }
-        var config = File.ReadAllText(configPath);
-        var prompt = File.ReadAllText(promptPath);
+        }  
+
+        var config = File.ReadAllText(configPath, System.Text.Encoding.UTF8);
+        var prompt = File.ReadAllText(promptPath, System.Text.Encoding.UTF8);
+
+        Console.WriteLine($"Loaded config for {language}: {config}");
+        Console.WriteLine($"Loaded prompt for {language}: {prompt}");
 
         return (config, prompt);
-    }
-
-    private void CreatePromptFunction(string templateName)
-    {
-        var (config, prompt) = LoadPromptTemplate(templateName);
-        PromptTemplateConfig skconfig = PromptTemplateConfig.FromJson(config);
-
-        skconfig.Template = prompt;
-
-        var promptFunction = _kernel.CreateFunctionFromPrompt(skconfig, _promptTemplateFactory);
-
-        _promptFunctions[templateName] = promptFunction;
-    }
-
-    public KernelFunction GetPromptFunction(string templateName)
-    {
-        if (!_promptFunctions.ContainsKey(templateName))
-        {
-            CreatePromptFunction(templateName);
-        }
-
-        return _promptFunctions[templateName];
     }
 }

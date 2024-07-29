@@ -26,7 +26,6 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
         var promptTemplatesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates"); 
 
         _promptManager = new PromptManager(promptTemplatesPath);
-
     }
 
     /// <summary>
@@ -37,7 +36,7 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
     /// <param name="extractSubstringLength">Optional parameter to limit input text length (default 500 characters).</param>
     /// <param name="language">The language for the quiz (default English).</param>
     /// <returns>A Question Response object containing the questions and metadata.</returns>
-    public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, int numQuestions, int extractSubstringLength, string language)
+    public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, string language, int numQuestions, int extractSubstringLength)
     {
         // Shorten the extract the user defined length; default 500
         var shortenedText = page.Extract.Length > extractSubstringLength ? 
@@ -46,7 +45,7 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
         // Limit the number of questions
         numQuestions = Math.Clamp(numQuestions, 1, 35);
 
-        var quizFunction = _promptManager.GetPromptFunction("Default");
+        var quizFunction = _promptManager.GetPromptFunction("Default", language);
 
         var timer = new Stopwatch(); // to get the response time
         timer.Start();

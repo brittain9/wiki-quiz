@@ -3,14 +3,15 @@ using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.LLM;
 using WikiQuizGenerator.Data;
 using WikiQuizGenerator.Core;
+using WikiQuizGenerator.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// TOOD: Make both AI services avaliable and able to switch between them
 // Choose AI service here
 builder.Services.AddOpenAIService(builder.Configuration);
 //builder.Services.AddPerplexityAIService(builder.Configuration);
@@ -31,16 +32,14 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.MapQuizEndpoints();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
 
 app.UseCors("AllowReactApp");
 
