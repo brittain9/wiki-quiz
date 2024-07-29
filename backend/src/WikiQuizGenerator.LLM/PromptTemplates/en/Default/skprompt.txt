@@ -1,10 +1,8 @@
-You are an expert quiz creator. Your task is to create a quiz based on the given content. The quiz should be engaging, informative, and avoid trivial details like specific dates or names of lesser-known individuals.
+You are an expert quiz creator. Your task is to create an engaging and informative quiz based on the given content. 
 
 Content: {{$text}}
 
 Number of questions: {{$numQuestions}}
-
-Language: {{$language}}
 
 Instructions:
 1. Create {{$numQuestions}} multiple-choice questions based on the provided content.
@@ -25,8 +23,5 @@ Instructions:
       "CorrectAnswerIndex": number
     }
 
-7. Ensure that all text content (question text and options) is in the language of the prompt.
-8. Keep the JSON keys ("Text", "Options", "CorrectAnswerIndex") in English.
-9. Ensure that the JSON is valid and follows the structure provided above.
-
-Please generate the quiz questions and return only valid JSON.
+Most importantly, return ONLY valid JSON.
+Generate the quiz questions now:

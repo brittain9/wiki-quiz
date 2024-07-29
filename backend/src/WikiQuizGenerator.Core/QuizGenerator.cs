@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Humanizer;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
@@ -18,8 +19,7 @@ public class QuizGenerator : IQuizGenerator
 
     public async Task<Quiz> GeneratorBasicQuizAsync(string topic, string language, int numQuestions, int extractLength)
     {
-        topic = topic.ToTitleCase(); // This probably will have problems for chinese or other non-Latin scripts
-
+        // topic = topic.Transform(To.TitleCase); // only do this with latin langauges
         WikipediaPage page = await WikipediaContent.GetWikipediaPage(topic, language);
 
         if(page == null) // The topic was not found on Wikipedia
