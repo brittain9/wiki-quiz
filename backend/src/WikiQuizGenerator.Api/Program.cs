@@ -16,7 +16,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddOpenAIService(builder.Configuration);
 //builder.Services.AddPerplexityAIService(builder.Configuration);
 
-builder.Services.AddSingleton<IQuestionGenerator, SemanticKernelQuestionGenerator>();
+builder.Services.AddSingleton<IQuestionGenerator, QuestionGenerator>();
 builder.Services.AddSingleton<IQuizGenerator, QuizGenerator>();
 
 builder.Services.AddDataServices(builder.Configuration);

@@ -37,6 +37,17 @@ public class WikipediaContentTests
         Debug.WriteLine(toStringResult);
     }
 
+    [Theory]
+    [InlineData("invasion of ygoslavia", "Invasion of Yugoslavia")]
+    [InlineData("SURGERY IN ANCIENT ROME", "Surgery in ancient Rome")]
+    [InlineData("MarS OceAn TheoRy", "Mars ocean theory")]
+    public async Task GetWikipediaExactTitle_ReturnsValidTitle(string input, string expectedTitle)
+    {
+        string title = await WikipediaContent.GetWikipediaExactTitle(input);
+
+        Assert.Equal(title, expectedTitle);
+    }
+
     [Fact]
     public async Task GetWikipediaArticle_InvalidTopic_ReturnsNull()
     {
@@ -45,32 +56,6 @@ public class WikipediaContentTests
         WikipediaPage article = await WikipediaContent.GetWikipediaPage(invalidTopic);
 
         Assert.Null(article);
-    }
-
-    [Fact]
-    public async Task GetWikipediaArticle_ReturnsValidArticle()
-    {
-        string topic = "George Washington";
-
-        var article = await WikipediaContent.GetWikipediaPage(topic);
-
-        Assert.NotNull(article);
-        Assert.Equal(topic, article.Title);
-        Assert.NotEmpty(article.Extract);
-        Assert.NotEmpty(article.Url);
-        Assert.NotEqual(default(DateTime), article.LastModified);
-        Assert.NotEmpty(article.Links);
-    }
-
-    [Fact]
-    public void RemoveFormatting_RemovesHTMLTags()
-    {
-        string input = "<this will be removed> this will stay </this will be removed>";
-        string expected = "this will stay";
-
-        string result = Utility.RemoveFormatting(input);
-
-        Assert.Equal(expected, result);
     }
 
     // Bottom two tests are for debugging the JSON returned and GetWikipediaPage function

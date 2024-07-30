@@ -7,9 +7,14 @@ using System.Collections.Generic;
 
 using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core;
+using System.Diagnostics;
 
-public class WikipediaContent
+public static class WikipediaContent
 {
+    private static HttpClient _client = new HttpClient(); // maybe use dependency injection later.
+    public static string ApiEndpoint{ get { return $"https://{Language}.wikipedia.org/w/api.php"; } }
+    public static string Language { get; set; } = "en"; // I need to add an Enum or dictionary for this
+
     /// <summary>
     /// Fetches the content of a Wikipedia article based on the given topic.
     /// </summary>
@@ -19,13 +24,21 @@ public class WikipediaContent
     {
         HttpClient client = new HttpClient();
 
-        string API_ENDPOINT = $"https://{language}.wikipedia.org/w/api.php";
-
+        if (Language != language) Language = language; // this doesn't check for errors at all
 
         var query = HttpUtility.UrlEncode(topic);
 
+        Stopwatch timer = new Stopwatch();
+        timer.Start();
+        string exactTitle = await GetWikipediaExactTitle(query);
+        timer.Stop();
+        Console.WriteLine($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {timer.ElapsedMilliseconds}");
+
+        var exactQuery = HttpUtility.UrlEncode(exactTitle);
+
+        timer.Restart();
         // Construct the API URL with the specified language, get the extract, general info, links, and categories
-        var url = $"{API_ENDPOINT}?action=query&format=json&prop=extracts|info|links|categories&redirects=1&inprop=url|displaytitle&pllimit=100&titles={query}";
+        var url = $"{ApiEndpoint}?action=query&format=json&prop=extracts|info|links|categories&redirects=1&inprop=url|displaytitle&pllimit=100&titles={exactQuery}";
 
         // This code is ugly but it works for now.
         try
@@ -58,15 +71,40 @@ public class WikipediaContent
                     }
                 }
 
+                if (page.Value.TryGetProperty("categories", out var categories))
+                {
+                    foreach (var category in categories.EnumerateArray())
+                    {
+                        wikiPage.Categories.Add(category.GetProperty("title").GetString());
+                    }
+                }
+
+                timer.Stop();
+                Console.WriteLine($"Found Wikipedia page '{wikiPage.Title}' in {timer.ElapsedMilliseconds} milliseconds");
                 return wikiPage;
             }
 
-            return null;
+            return null; // idk why this would ever be hit, need to refactor
         }
         catch (Exception ex)
         {
+            timer.Reset();
             Console.WriteLine($"An error occurred: {ex.Message}");
-            return null;
+            throw;
         }
+    }
+
+    public static async Task<string> GetWikipediaExactTitle(string query)
+    {
+        string searchUrl = $"{ApiEndpoint}?action=opensearch&search={query}&limit=1&format=json";
+        var searchResponse = await _client.GetStringAsync(searchUrl);
+        var searchResults = JsonDocument.Parse(searchResponse);
+
+        if (searchResults.RootElement.GetArrayLength() < 2 || !searchResults.RootElement[1].EnumerateArray().MoveNext())
+        {
+            throw new Exception("No search results found.");
+        }
+
+        return searchResults.RootElement[1][0].GetString();
     }
 }

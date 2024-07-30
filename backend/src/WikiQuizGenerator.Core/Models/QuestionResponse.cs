@@ -20,7 +20,6 @@ public class QuestionResponse
     public QuestionResponse()
     {
         Questions = new List<Question>();
-
     }
 
     public int? TotalTokens

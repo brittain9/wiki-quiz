@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WikiQuizGenerator.Core.Models;
 
 public class WikipediaPage
 {
+    [Key]
     public int Id { get; set; } // pageid
     public string Langauge {get; set;} // pagelangauge
     public string Title { get; set; } // title

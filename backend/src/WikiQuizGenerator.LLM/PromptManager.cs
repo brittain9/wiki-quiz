@@ -1,6 +1,7 @@
 ﻿using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -33,9 +34,12 @@ public class PromptManager
         {
             if (!_promptFunctions.ContainsKey(name))
             {
-                // This will throw error if it fails
-                CreatePromptFunction(templateName, language);
-                Console.WriteLine($"Registered function for {name}");
+                // Get the time because the user currently has to wait for the function be created before they can get a quiz.
+                Stopwatch timer = new Stopwatch();
+                timer.Start();
+                CreatePromptFunction(templateName, language); // This will throw error if it fails
+                timer.Stop();
+                Console.WriteLine($"Registered function for {name} in {timer.ElapsedMilliseconds} milliseconds");
             }
             return _promptFunctions[name];
         }
@@ -65,7 +69,6 @@ public class PromptManager
             if (!File.Exists(configPath) || !File.Exists(promptPath))
                 throw new Exception($"Files not found.");
             
-
             var config = File.ReadAllText(configPath, System.Text.Encoding.UTF8);
             var prompt = File.ReadAllText(promptPath, System.Text.Encoding.UTF8);
 

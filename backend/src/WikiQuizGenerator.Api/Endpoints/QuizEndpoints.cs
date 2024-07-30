@@ -1,6 +1,7 @@
 ﻿using WikiQuizGenerator.Core.Interfaces;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Any;
+using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Api.Endpoints
 {
@@ -10,13 +11,17 @@ namespace WikiQuizGenerator.Api.Endpoints
         {
             app.MapGet("/basicquiz", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int extractLength = 1000) =>
             {
-                var quiz = await quizGenerator.GeneratorBasicQuizAsync(topic, language, numQuestions, extractLength);
-
-                if (quiz == null) return Results.NoContent();
-
-                Console.WriteLine($"Generated basic quiz on {topic} using {quiz.QuestionResponses[0].TotalTokens} tokens.");
-
-                return Results.Ok(quiz);
+                try
+                {
+                    var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, language, numQuestions, extractLength);
+                    Console.WriteLine($"Generated basic quiz on {topic} using {quiz.QuestionResponses[0].TotalTokens} tokens.");
+                    return Results.Ok(quiz);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed generating basic quiz on {topic}.");
+                    return Results.NoContent();
+                }
             })
            .WithName("GetBasicQuiz")
            .WithOpenApi(operation =>
@@ -32,6 +37,10 @@ namespace WikiQuizGenerator.Api.Endpoints
 
                return operation;
            });
+
+            // Should I add a post method that allows for the quiz to be sumbitted and checked?
+            // If I want to display older quizes with the user's answer choice, I need the post method.
+            // it would also allow me to expose the answer choice to the user by keeping it on the server side.
         }
     }
 }

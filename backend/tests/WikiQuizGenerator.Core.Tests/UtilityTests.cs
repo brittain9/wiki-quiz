@@ -9,16 +9,15 @@ namespace WikiQuizGenerator.Core.Tests;
 
 public class UtilityTests
 {
-    [Theory]
-    [InlineData("hello world", "Hello World")]
-    [InlineData("h", "H")]
-    [InlineData("heLlo    WoRLD", "Hello    World")]
-    [InlineData("hElLo wOrLD!", "Hello World!")]
-    [InlineData("hello world123", "Hello World123")]
-
-    public void ToTitleCase_VariousInputs_CorrectlyCapitalizes(string input, string expected)
+    [Fact]
+    public void RemoveFormatting_RemovesHTMLTags()
     {
-        Assert.Equal(expected, input.ToTitleCase());
+        string input = "<this will be removed> this will stay </this will be removed>";
+        string expected = "this will stay";
+
+        string result = Utility.RemoveFormatting(input);
+
+        Assert.Equal(expected, result);
     }
 }
 

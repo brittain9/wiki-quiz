@@ -9,16 +9,14 @@ using Microsoft.SemanticKernel.Services;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
-
 namespace WikiQuizGenerator.LLM;
 
-public class SemanticKernelQuestionGenerator : IQuestionGenerator
+public class QuestionGenerator : IQuestionGenerator
 {
     private readonly Kernel _kernel;
     private readonly PromptManager _promptManager;
 
-
-    public SemanticKernelQuestionGenerator(Kernel kernel)
+    public QuestionGenerator(Kernel kernel)
     {
         _kernel = kernel;
 
@@ -69,6 +67,7 @@ public class SemanticKernelQuestionGenerator : IQuestionGenerator
                 questions = ExtractQuestionsFromResult(jsonResult);
 
             generationAttempts++;
+
         } while (questions.Count == 0 && generationAttempts < 3);
 
         timer.Stop();
