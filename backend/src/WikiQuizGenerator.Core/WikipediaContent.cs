@@ -30,9 +30,9 @@ public static class WikipediaContent
 
         Stopwatch timer = new Stopwatch();
         timer.Start();
-        string exactTitle = await GetWikipediaExactTitle(query);
+        string exactTitle = await GetWikipediaExactTitle(query); // takes about 200 ms
         timer.Stop();
-        Console.WriteLine($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {timer.ElapsedMilliseconds}");
+        Console.WriteLine($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {timer.ElapsedMilliseconds} milliseconds");
 
         var exactQuery = HttpUtility.UrlEncode(exactTitle);
 
@@ -79,7 +79,7 @@ public static class WikipediaContent
                     }
                 }
 
-                timer.Stop();
+                timer.Stop(); // this takes 100-500 ms
                 Console.WriteLine($"Found Wikipedia page '{wikiPage.Title}' in {timer.ElapsedMilliseconds} milliseconds");
                 return wikiPage;
             }
@@ -96,6 +96,8 @@ public static class WikipediaContent
 
     public static async Task<string> GetWikipediaExactTitle(string query)
     {
+        // Id like to show a drop down of the topics that the user can click on based upon what they have currently entered in the textbox
+        // that is more a frontend thing though.
         string searchUrl = $"{ApiEndpoint}?action=opensearch&search={query}&limit=1&format=json";
         var searchResponse = await _client.GetStringAsync(searchUrl);
         var searchResults = JsonDocument.Parse(searchResponse);
