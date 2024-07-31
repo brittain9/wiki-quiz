@@ -1,7 +1,9 @@
-using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.Interfaces;
+using WikiQuizGenerator.Data;
+using Microsoft.EntityFrameworkCore;
 
-namespace WikiQuizGenerator.Data;
+namespace WikiQuizGenerator.Data.Repositories;
 
 public class QuizRepository : IQuizRepository
 {
@@ -11,24 +13,47 @@ public class QuizRepository : IQuizRepository
     {
         _context = context;
     }
-    public Task<Quiz> GetQuizByIdAsync(int id)
+
+    public async Task<Quiz> GetByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Quizzes
+            .Include(q => q.QuestionResponses)
+                .ThenInclude(qr => qr.Questions)
+            .Include(q => q.QuestionResponses)
+                .ThenInclude(qr => qr.WikipediaPage)
+            .FirstOrDefaultAsync(q => q.Id == id);
     }
-    public Task<List<Quiz>> GetAllQuizzesAsync()
+
+    public async Task<IEnumerable<Quiz>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Quizzes
+            .Include(q => q.QuestionResponses)
+                .ThenInclude(qr => qr.Questions)
+            .Include(q => q.QuestionResponses)
+                .ThenInclude(qr => qr.WikipediaPage)
+            .ToListAsync();
     }
-    public Task AddQuizAsync(Quiz quiz)
+
+    public async Task<Quiz> AddAsync(Quiz quiz)
     {
-        throw new NotImplementedException();
+        await _context.Quizzes.AddAsync(quiz);
+        await _context.SaveChangesAsync();
+        return quiz;
     }
-    public Task UpdateQuizAsync(Quiz quiz)
+
+    public async Task UpdateAsync(Quiz quiz)
     {
-        throw new NotImplementedException();    
+        _context.Quizzes.Update(quiz);
+        await _context.SaveChangesAsync();
     }
-    public Task DeleteQuizAsync(int id)
+
+    public async Task DeleteAsync(int id)
     {
-        throw new NotImplementedException();
+        var quiz = await _context.Quizzes.FindAsync(id);
+        if (quiz != null)
+        {
+            _context.Quizzes.Remove(quiz);
+            await _context.SaveChangesAsync();
+        }
     }
 }

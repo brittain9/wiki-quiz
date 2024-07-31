@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WikiQuizGenerator.Core.Models;
 
@@ -16,8 +13,8 @@ public class WikipediaPage
     public DateTime LastModified { get; set; }  // touched
     public string Url { get; set; } // fullurl
     public int Length { get; set; } // length, seems to be response char count
-    public List<string> Links { get; set; } // links
-    public List<string> Categories { get; set; }
+    public ICollection<string> Links { get; set; } // links
+    public ICollection<string> Categories { get; set; }
 
     public WikipediaPage()
     {

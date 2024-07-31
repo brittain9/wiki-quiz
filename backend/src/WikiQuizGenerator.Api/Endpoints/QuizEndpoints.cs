@@ -15,7 +15,7 @@ public static class QuizEndpoints
             try
             {
                 var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, language, numQuestions, extractLength);
-                Log.Information($"Generated basic quiz on {topic} using {quiz.QuestionResponses[0].TotalTokens} tokens.");
+                Log.Information($"Generated basic quiz on {topic} using {quiz.QuestionResponses.First().TotalTokens} tokens.");
                 return Results.Ok(quiz);
             }
             catch (Exception ex)
@@ -39,8 +39,6 @@ public static class QuizEndpoints
            return operation;
        });
 
-        // Should I add a post method that allows for the quiz to be sumbitted and checked?
-        // If I want to display older quizes with the user's answer choice, I need the post method.
-        // it would also allow me to expose the answer choice to the user by keeping it on the server side.
+        // Add post method and expose DTOs.
     }
 }

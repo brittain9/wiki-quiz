@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WikiQuizGenerator.Core.Models;
 
@@ -11,13 +7,15 @@ public class QuestionResponse
 {
     [Key]
     public int Id { get; set; }
-    public string ResponseTopic { get; set; }
-    public string TopicUrl { get; set; }
     public int? PromptTokenUsage { get; set; }
     public int? CompletionTokenUsage { get; set; }
     public long AIResponseTime { get; set; } // in milliseconds
     public string ModelName { get; set; }
-    public List<Question> Questions { get; set; }
+    public int WikipediaPageId { get; set; }
+
+    [ForeignKey("WikipediaPageId")]
+    public WikipediaPage WikipediaPage { get; set; }
+    public ICollection<Question> Questions { get; set; }
 
     public QuestionResponse()
     {

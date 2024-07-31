@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using Azure.AI.OpenAI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Services;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
@@ -20,8 +19,7 @@ public class QuestionGenerator : IQuestionGenerator
     {
         _kernel = kernel;
 
-        // copy the prompt templates to the build directory in .csproj
-        var promptTemplatesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates"); 
+        var promptTemplatesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates"); // prompt templates are copied to the build directory in .csproj
 
         _promptManager = new PromptManager(promptTemplatesPath);
     }
@@ -79,11 +77,10 @@ public class QuestionGenerator : IQuestionGenerator
 
         QuestionResponse questionResponse = new()
         {
-            ResponseTopic = page.Title,
-            TopicUrl = page.Url,
             AIResponseTime = timer.ElapsedMilliseconds,
             Questions = questions,
-            ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA"
+            ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA",
+            WikipediaPage = page
         };
 
         if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
@@ -100,17 +97,35 @@ public class QuestionGenerator : IQuestionGenerator
         return questionResponse;
     }
 
+    public static string CleanJsonString(string input)
+    {
+        // Remove code fences
+        var withoutCodeFences = Regex.Replace(input, @"^\s*```(?:json)?\s*|\s*```\s*$", "", RegexOptions.Multiline);
+
+        // Remove extra brackets at the start and end
+        var withoutExtraBrackets = Regex.Replace(withoutCodeFences, @"^\s*\[?\s*|\s*\]?\s*$", "");
+
+        // Trim whitespace and ensure the string is wrapped in brackets
+        var trimmed = withoutExtraBrackets.Trim();
+        if (!trimmed.StartsWith("["))
+            trimmed = "[" + trimmed;
+        if (!trimmed.EndsWith("]"))
+            trimmed = trimmed + "]";
+
+        return trimmed;
+    }
+
     private List<Question> ExtractQuestionsFromResult(string result)
     {
         // Remove code fences, extra brackets, and whitespace
-        var cleanedResult = Utility.CleanJsonString(result);
+        var cleanedResult = CleanJsonString(result);
 
         try
         {
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            };                
+            };
 
             var questions = JsonSerializer.Deserialize<List<Question>>(cleanedResult, options);
 

@@ -4,9 +4,9 @@ namespace WikiQuizGenerator.Core.Interfaces;
 
 public interface IQuizRepository
 {
-    Task<Quiz> GetQuizByIdAsync(int id);
-    Task<List<Quiz>> GetAllQuizzesAsync();
-    Task AddQuizAsync(Quiz quiz);
-    Task UpdateQuizAsync(Quiz quiz);
-    Task DeleteQuizAsync(int id);
+    Task<Quiz> GetByIdAsync(int id);
+    Task<IEnumerable<Quiz>> GetAllAsync();
+    Task<Quiz> AddAsync(Quiz quiz);
+    Task UpdateAsync(Quiz quiz);
+    Task DeleteAsync(int id);
 }

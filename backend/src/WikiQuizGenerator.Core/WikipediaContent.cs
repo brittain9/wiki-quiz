@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
+// This class should be made a member of the question or quiz generator
 public static class WikipediaContent
 {
     private static HttpClient _client = new HttpClient(); // maybe use dependency injection later.
@@ -55,7 +57,7 @@ public static class WikipediaContent
                     // TODO: Fix these null reference assignment warnings
                     Id = page.Value.GetProperty("pageid").GetInt32(),
                     Title = page.Value.GetProperty("title").GetString(),
-                    Extract = Utility.RemoveFormatting(page.Value.GetProperty("extract").GetString()),
+                    Extract = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
                     LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString()),
                     Url = page.Value.GetProperty("fullurl").GetString(),
                     Length = page.Value.GetProperty("length").GetInt32()
@@ -108,5 +110,24 @@ public static class WikipediaContent
         }
 
         return searchResults.RootElement[1][0].GetString();
+    }
+
+    public static string RemoveFormatting(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return input;
+        }
+
+        // Remove all HTML tags
+        input = Regex.Replace(input, @"<[^>]+>", string.Empty);
+
+        // Remove extra whitespace
+        input = Regex.Replace(input, @"\s+", " ");
+
+        // Decode HTML entities
+        input = System.Net.WebUtility.HtmlDecode(input);
+
+        return input.Trim();
     }
 }

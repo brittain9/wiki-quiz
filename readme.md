@@ -1,13 +1,12 @@
 # Wikipedia Quiz Generator
 
-This project generates high quality quizes based on any Wikipedia topic the user requests using AI.
+This project generates high-quality quizes based on nearly any topic using Wikipedia and AI.
 
 ## Features:
-- Prompt templates using semantic kernel
+- Dynamic quiz generation utilizing semantic kernel prompt templates  
 - Multilingual support for English, Spanish, French, Japenese, Chinese, and more
-- Dynamic quiz generation with many features being added soon!
-- A forgiving search bar (Entering Apple Company will give you a quiz about Apple Inc.)
-- Easy support for various AI API currently supporting OpenAI ChatGPT and the Perplexity API
+- A flexible search bar (Entering Apple Company will give you a quiz about Apple Inc.)
+- Easy integration with various AI APIs, currently supporting OpenAI API and the Perplexity API
 - A ASP.NET Core minimal api for quiz generation and submission (coming soon)
 
 ## Requirements:
@@ -15,8 +14,7 @@ This project generates high quality quizes based on any Wikipedia topic the user
 - Docker
 
 ## Instructions:
-- Set up .env file with your api key (use the .env.example file) (and uncomment your service extension in program.cs of the api)
-- Run docker-compose up --build
+- Set up the .env file with your API key (use the .env.example file) and uncomment your service extension in program.cs of the API- Run docker-compose up --build
 - Test API at localhost:5543
 
 ## Todo:

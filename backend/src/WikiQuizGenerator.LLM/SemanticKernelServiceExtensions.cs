@@ -7,6 +7,9 @@ using Microsoft.SemanticKernel.TextGeneration;
 
 namespace WikiQuizGenerator.LLM;
 
+// I currently only inject the kernel into the QuestionGenerator class of this same project. Do we need service extensions here?
+// It seems I could just create the kernel in the constructor which would be more efficient.
+// I'll rework this later.
 public static class SemanticKernelServiceExtensions
 {
     public static IServiceCollection AddOpenAIService(this IServiceCollection services, IConfiguration configuration, string modelId="gpt-4o-mini")
