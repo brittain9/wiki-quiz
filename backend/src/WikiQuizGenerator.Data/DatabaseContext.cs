@@ -3,9 +3,9 @@ using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class WikiQuizDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        public WikiQuizDbContext(DbContextOptions<WikiQuizDbContext> options)
             : base(options)
         {
         }
@@ -13,9 +13,5 @@ namespace WikiQuizGenerator.Data
         public DbSet<Quiz> Quizzes { get; set; }
         public DbSet<QuestionResponse> QuestionResponses { get; set; }
         public DbSet<Question> Questions { get; set; }
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            // Configure your entity relationships here if needed
-        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Azure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.SemanticKernel;
@@ -7,6 +8,7 @@ using Microsoft.SemanticKernel.Services;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -16,17 +18,17 @@ public class PerplexityAIChatCompletion : IChatCompletionService
 {
     private readonly string _apiKey;
     private readonly string _apiEndpoint;
-    // The llama models don't like my current prompt... they dont generate only the json data causing errors.
-    private readonly string _model; // llama-3-sonar-small-32k-chat, llama-3-70b-instruct, **mixtral-8x7b-instruct.
+    // Possible values include llama-3.1-sonar-small-128k-chat, llama-3.1-sonar-small-128k-online, llama-3.1-sonar-large-128k-chat,
+    // llama-3.1-sonar-large-128k-online, llama-3.1-8b-instruct, and llama-3.1-70b-instruct.
+    private readonly string _model;
     private readonly HttpClient _httpClient;
     private readonly ILogger<PerplexityAIChatCompletion> _logger;
-
     public IReadOnlyDictionary<string, object?> Attributes { get; }
-    public PerplexityAIChatCompletion(string apiKey, 
-        string model, 
-        string apiEndpoint = "https://api.perplexity.ai/chat/completions", 
-        HttpClient? httpClient = null,
-        ILogger<PerplexityAIChatCompletion> logger = null)
+    public PerplexityAIChatCompletion(string apiKey,
+    string model,
+    string apiEndpoint = "https://api.perplexity.ai/chat/completions",
+    HttpClient? httpClient = null,
+    ILogger<PerplexityAIChatCompletion> logger = null)
     {
         _apiKey = apiKey;
         _model = model;

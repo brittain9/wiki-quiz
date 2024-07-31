@@ -1,18 +1,22 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WikiQuizGenerator.Core.Interfaces;
+using System;
 
 namespace WikiQuizGenerator.Data;
 
 public static class DataServiceExtensions
 {
-    public static IServiceCollection AddDataServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddDataServices(this IServiceCollection services)
     {
-        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+        services.AddDbContext<WikiQuizDbContext>(options =>
+            options.UseNpgsql(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")));
 
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        // Register repositories
+        // services.AddScoped<IQuizRepository, QuizRepository>();
+        // services.AddScoped<IQuestionRepository, QuestionRepository>();
+
+        // Add other services
+        // services.AddScoped<ISomeService, SomeService>();
 
         return services;
     }

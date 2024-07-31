@@ -14,3 +14,15 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
       - ASPNETCORE_URLS=http://+:80
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=YourStrongPassword!
+    ports:
+      - "5542:5542" # Port conflicts on my machine..
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

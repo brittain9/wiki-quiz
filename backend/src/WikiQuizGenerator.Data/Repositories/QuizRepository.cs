@@ -5,9 +5,9 @@ namespace WikiQuizGenerator.Data;
 
 public class QuizRepository : IQuizRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly WikiQuizDbContext _context;
 
-    public QuizRepository(ApplicationDbContext context)
+    public QuizRepository(WikiQuizDbContext context)
     {
         _context = context;
     }
