@@ -50,16 +50,6 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.HasIndex("QuestionResponseId");
 
                     b.ToTable("Questions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CorrectAnswerIndex = 0,
-                            Options = new List<string> { "Option A", "Option B", "Option C", "Option D" },
-                            QuestionResponseId = 1,
-                            Text = "What is this test question?"
-                        });
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.QuestionResponse", b =>
@@ -96,17 +86,6 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.HasIndex("WikipediaPageId");
 
                     b.ToTable("QuestionResponses");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AIResponseTime = 1000L,
-                            CompletionTokenUsage = 20,
-                            ModelName = "GPT-4",
-                            PromptTokenUsage = 10,
-                            WikipediaPageId = 1
-                        });
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.Quiz", b =>
@@ -124,13 +103,6 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Quizzes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Title = "Test Quiz"
-                        });
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaPage", b =>
@@ -174,20 +146,6 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WikipediaPages");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Categories = new[] { "Category1", "Category2" },
-                            Extract = "This is a test Wikipedia page extract.",
-                            Langauge = "en",
-                            LastModified = new DateTime(2024, 7, 31, 23, 34, 51, 912, DateTimeKind.Utc).AddTicks(290),
-                            Length = 100,
-                            Links = new[] { "Link1", "Link2" },
-                            Title = "Test Wikipedia Page",
-                            Url = "https://en.wikipedia.org/wiki/Test"
-                        });
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.Question", b =>

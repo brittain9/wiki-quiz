@@ -7,7 +7,7 @@ public class Quiz
     [Key]
     public int Id { get; set; }
     public string Title { get; set; }
-    public ICollection<QuestionResponse> QuestionResponses { get; set; }
+    public IList<QuestionResponse> QuestionResponses { get; set; }
 
     // Add a user later
 

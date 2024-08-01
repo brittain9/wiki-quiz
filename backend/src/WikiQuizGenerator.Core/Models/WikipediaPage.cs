@@ -6,15 +6,15 @@ namespace WikiQuizGenerator.Core.Models;
 public class WikipediaPage
 {
     [Key]
-    public int Id { get; set; } // pageid
+    public int Id { get; set; } // pageid, maybe add a different property for this
     public string Langauge {get; set;} // pagelangauge
     public string Title { get; set; } // title
     public string Extract { get; set; } // extract
     public DateTime LastModified { get; set; }  // touched
     public string Url { get; set; } // fullurl
     public int Length { get; set; } // length, seems to be response char count
-    public ICollection<string> Links { get; set; } // links
-    public ICollection<string> Categories { get; set; }
+    public IList<string> Links { get; set; } // links
+    public IList<string> Categories { get; set; }
 
     public WikipediaPage()
     {

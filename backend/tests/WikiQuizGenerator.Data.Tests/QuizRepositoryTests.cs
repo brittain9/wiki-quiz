@@ -10,13 +10,11 @@ using Xunit;
 
 namespace WikiQuizGenerator.Data.Tests
 {
-    public class QuizRepositoryTests
+    public class QuizRepositoryTests : TestBase
     {
-        private readonly WikiQuizDbContext _context;
         private readonly IQuizRepository _repository;
         public QuizRepositoryTests()
         {
-            _context = TestContext.CreateInMemoryDatabase();
             _repository = new QuizRepository(_context);
         }
 
@@ -24,22 +22,15 @@ namespace WikiQuizGenerator.Data.Tests
         public async Task GetByIdAsync_ReturnsQuiz_WhenQuizExists()
         {
             // Arrange
-            var expectedQuiz = new Quiz()
-            {
-                Id = 1,
-                Title = "Test Quiz"
-            };
-
-            _context.Quizzes.Add(expectedQuiz);
-            await _context.SaveChangesAsync();
+            await ResetDatabaseAsync();
 
             // Act
             var result = await _repository.GetByIdAsync(1);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedQuiz.Id, result.Id);
-            Assert.Equal(expectedQuiz.Title, result.Title);
+            Assert.Equal(TestQuiz.Id, result.Id);
+            Assert.Equal(TestQuiz.Title, result.Title);
         }
     }
 }

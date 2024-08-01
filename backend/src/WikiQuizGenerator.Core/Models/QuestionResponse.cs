@@ -15,7 +15,7 @@ public class QuestionResponse
 
     [ForeignKey("WikipediaPageId")]
     public WikipediaPage WikipediaPage { get; set; }
-    public ICollection<Question> Questions { get; set; }
+    public IList<Question> Questions { get; set; }
 
     public QuestionResponse()
     {
