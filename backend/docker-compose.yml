@@ -13,14 +13,14 @@ services:
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_HTTP_PORTS=80 # this fixes annoying warning
   db:
     image: postgres:latest
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=YourStrongPassword!
     ports:
-      - "5542:5542" # Port conflicts on my machine..
+      - "5542:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
 

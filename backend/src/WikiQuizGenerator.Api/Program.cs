@@ -1,4 +1,3 @@
-using System.Net;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.LLM;
 using WikiQuizGenerator.Data;
@@ -6,7 +5,7 @@ using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Api;
 using Serilog;
 
-// Bootstrap logger for start up, config not av
+// Bootstrap logger for start up
  Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -14,19 +13,14 @@ using Serilog;
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-
+    builder.Host.UseSerilog();
     // Add services to the container.
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
     builder.Services.AddSerilog((services, lc) => lc
-        .ReadFrom.Configuration(builder.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File(
-            path: "logs/log-.txt",
-            rollingInterval: RollingInterval.Day));
+        .ReadFrom.Configuration(builder.Configuration) // appsettings.json
+        .ReadFrom.Services(services));
 
     // TODO: Make both AI services avaliable and able to switch between them
     // Choose AI service here
@@ -61,6 +55,7 @@ try
 
     app.UseCors("AllowReactApp");
 
+    Log.Information("The web api is now running!");
     app.Run();
 }
 catch (Exception ex)

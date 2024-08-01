@@ -58,7 +58,7 @@ public class WikipediaContentTests
         Assert.Null(article);
     }
 
-    // Bottom two tests are for debugging the JSON returned and GetWikipediaPage function
+    // Next two tests are for debugging the JSON returned and GetWikipediaPage function
     [Fact]
     public async Task DifferentLangauges_WikipediaContent()
     {   
@@ -84,5 +84,16 @@ public class WikipediaContentTests
         Assert.NotNull(disambiguationPage);
 
         Console.WriteLine(disambiguationPage.Extract.Substring(0, 50));
+    }
+
+    [Fact]
+    public void RemoveFormatting_RemovesHTMLTags()
+    {
+        string input = "<this will be removed> this will stay </this will be removed>";
+        string expected = "this will stay";
+
+        string result = WikipediaContent.RemoveFormatting(input);
+
+        Assert.Equal(expected, result);
     }
 }
