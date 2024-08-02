@@ -12,6 +12,7 @@ public static class QuizEndpoints
 {
     public static void MapQuizEndpoints(this WebApplication app)
     {
+        // Returns our DTO
         app.MapGet("/basicquiz", async(IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
             try
@@ -41,6 +42,7 @@ public static class QuizEndpoints
            return operation;
        });
 
+        // Returns our Quiz model for debugging
         app.MapGet("/basicquizdev", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
             try
@@ -54,15 +56,6 @@ public static class QuizEndpoints
                 Log.Warning($"Failed generating basic quiz on {topic}.");
                 return Results.NoContent();
             }
-        })
-        .WithOpenApi(operation =>
-        {
-           operation.Responses.Add("204", new OpenApiResponse
-           {
-               Description = "No content. The Wikipedia page could not be found for the given topic."
-           });
-
-           return operation;
         });
 
         // Add post method and expose DTOs.

@@ -8,11 +8,12 @@ Number of options: {{$numOptions}}
 
 Instructions:
 1. Create {{$numQuestions}} multiple-choice questions based on the provided content.
-2. Each question MUST have EXACTLY {{$numOptions}} multiple-choice options. No more, no less.
+2. Each question MUST have EXACTLY {{$numOptions}} multiple-choice options.
 3. Each question should be independent and not require knowledge from other questions.
 4. Focus on key concepts, interesting facts, and important ideas from the content.
 5. Avoid questions about specific dates or names of people who are not well-known.
-6. For each question, provide four options, with only one correct answer.
+6. The ""CorrectAnswerIndex"" MUST be the index of the correct answer in the Options array (0-based index).
+
 7. Output each question in an array in JSON format, following this structure:
 
     {
@@ -22,7 +23,7 @@ Instructions:
         "Option 2",
         ...
       ],
-      "CorrectAnswerOption": number
+      "CorrectAnswerIndex": number
     }
 
 Most importantly, return ONLY valid JSON.

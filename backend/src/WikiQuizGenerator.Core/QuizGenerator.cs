@@ -13,19 +13,22 @@ namespace WikiQuizGenerator.Core;
 
 public class QuizGenerator : IQuizGenerator
 {
+    private IWikipediaContentProvider _wikipediaContentProvider;
     private readonly IQuestionGenerator _questionGenerator;
     private readonly ILogger<QuizGenerator> _logger;
 
-    public QuizGenerator(IQuestionGenerator questionGenerator, ILogger<QuizGenerator> logger)
+    public QuizGenerator(IQuestionGenerator questionGenerator, IWikipediaContentProvider wikipediaContentProvider, ILogger<QuizGenerator> logger)
     {
+        _wikipediaContentProvider = wikipediaContentProvider;
         _questionGenerator = questionGenerator;
         _logger = logger;
     }
 
     public async Task<Quiz> GenerateBasicQuizAsync(string topic, string language, int numQuestions, int numOptions, int extractLength)
     {
-        // topic = topic.Transform(To.TitleCase); // this causes errors when searching for topics..
-        WikipediaPage page = await WikipediaContent.GetWikipediaPage(topic, language); // throws exception if topic not found
+        Languages lang = LanguagesExtensions.GetLanguageFromCode(language); // this will throw error if language is not found
+
+        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, lang); // throws exception if topic not found
 
         if(page == null) // The topic was not found on Wikipedia
             return null; // This will fail fast, and ill indicate in text box that the topic is invalid within a second.
@@ -38,50 +41,59 @@ public class QuizGenerator : IQuizGenerator
 
         var aiResponse = await _questionGenerator.GenerateQuestionsAsync(page, content, language, numQuestions, numOptions);
         quiz.AIResponses.Add(aiResponse);
+        quiz.CreatedAt = DateTime.UtcNow;
 
         return quiz;
     }
 
-    private static string GetRandomContentSections(WikipediaPage page, int contentLength)
+    private static string GetRandomContentSections(WikipediaPage page, int requestedContentLength)
     {
-        // Clamp the minimum to 500 for quality variety and the max to 50000 for token usage
-        contentLength = Math.Clamp(contentLength, 500, 50000);
+        const int MIN_CONTENT_LENGTH = 500; // minimum content for quality questions
+        const int MAX_CONTENT_LENGTH = 50000; // max to avoid using too many prompt tokens. 50k is super generous too
+        const int LENGTH_FOR_LARGER_SECTIONS = 3000; // when doing large amounts of content, use bigger sections
+        const int LARGER_SECTION_SIZE = 1000;
+        const int SMALLER_SECTION_SIZE = 500;
 
-        var extract = page.Extract;
-        var length = extract.Length;
+        int contentLength = Math.Clamp(requestedContentLength, MIN_CONTENT_LENGTH, MAX_CONTENT_LENGTH);
+        string extract = page.Extract;
 
-
-        if (contentLength >= length)
+        // If requested length is greater than or equal to the extract length, return the full extract
+        if (contentLength >= extract.Length)
         {
-            // If the user requests more than or equal to the entire length of the extract, return it all.
             return extract;
         }
 
-        int sectionSize = contentLength > 3000 ? 1000 : 500;
+        int sectionSize = contentLength >= LENGTH_FOR_LARGER_SECTIONS ? LARGER_SECTION_SIZE : SMALLER_SECTION_SIZE;
 
-        // Get the content from the wiki page more randomly to get variety
-        StringBuilder contentSb = new StringBuilder();
+        Random random = new Random();
+        StringBuilder contentSb = new StringBuilder(contentLength);
+        HashSet<int> usedPositions = new HashSet<int>();
 
         while (contentLength > 0)
         {
-            if (length <= sectionSize)
+            int remainingLength = extract.Length - usedPositions.Count;
+            if (remainingLength <= 0) break;
+
+            int maxStartPosition = Math.Max(0, remainingLength - sectionSize);
+            int startPosition;
+
+            do
             {
-                // If there is not enough length to grab left, just append the remaining
-                contentSb.Append(extract);
-                break;
+                startPosition = random.Next(maxStartPosition + 1);
+            } while (usedPositions.Contains(startPosition));
+
+            int actualSectionSize = Math.Min(sectionSize, Math.Min(contentLength, extract.Length - startPosition));
+
+            for (int i = 0; i < actualSectionSize; i++)
+            {
+                int currentPosition = startPosition + i;
+                if (!usedPositions.Contains(currentPosition))
+                {
+                    contentSb.Append(extract[currentPosition]);
+                    usedPositions.Add(currentPosition);
+                    contentLength--;
+                }
             }
-
-            Random random = new Random();
-
-            int textStartPos = random.Next(length - sectionSize);
-            int actualSectionSize = Math.Min(sectionSize, length - textStartPos);
-
-            contentSb.Append(extract.Substring(textStartPos, actualSectionSize));
-
-            extract = extract.Remove(textStartPos, actualSectionSize);
-
-            length -= actualSectionSize;
-            contentLength -= actualSectionSize;
         }
 
         return contentSb.ToString();

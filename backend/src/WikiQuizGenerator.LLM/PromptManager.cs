@@ -131,7 +131,8 @@ public class PromptManager
         4. Focus on key concepts, interesting facts, and important ideas from the content.
         5. Avoid questions about specific dates or names of people who are not well-known.
         6. For each question, provide {{$numOptions}} options, with only one correct answer.
-        7. Output each question in an array in JSON format, following this structure:
+        7. The ""CorrectAnswerIndex"" MUST be the index of the correct answer in the Options array (0-based index).
+        8. Output each question in an array in JSON format, following this structure:
 
             {
               ""Text"": ""Question text in {{$language}}"",
@@ -140,10 +141,10 @@ public class PromptManager
                 ""Option 2 in {{$language}}"",
                 ...
               ],
-              ""CorrectAnswerOption"": number
+              ""CorrectAnswerIndex"": number
             }
 
-        8. Keep the JSON keys (""Text"", ""Options"", ""CorrectAnswerOption"") in English.
+        9. Keep the JSON keys (""Text"", ""Options"", ""CorrectAnswerOption"") in English.
 
         Most importantly, return ONLY valid JSON.
         Generate the quiz questions in {{$language}} while maintaining the JSON structure as specified:

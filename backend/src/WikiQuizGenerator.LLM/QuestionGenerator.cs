@@ -140,7 +140,7 @@ public class QuestionGenerator : IQuestionGenerator
                     Text = jsonQuestion.GetProperty("Text").GetString(),
                     Option1 = "",
                     Option2 = "",
-                    CorrectOptionNumber = jsonQuestion.GetProperty("CorrectAnswerOption").GetInt32()
+                    CorrectOptionNumber = jsonQuestion.GetProperty("CorrectAnswerIndex").GetInt32() + 1 // 0 based index for the options array turned to the option number
                 };
 
                 var jsonOptions = jsonQuestion.GetProperty("Options").EnumerateArray();

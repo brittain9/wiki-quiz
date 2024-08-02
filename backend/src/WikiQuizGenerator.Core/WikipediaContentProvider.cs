@@ -1,51 +1,59 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Web;
 using System.Text.Json;
-using System.Collections.Generic;
-
 using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
+using WikiQuizGenerator.Core.Interfaces;
 
-// This class should be made a member of the question or quiz generator
-public static class WikipediaContent
+public class WikipediaContentProvider : IWikipediaContentProvider
 {
-    private static HttpClient _client = new HttpClient(); // maybe use dependency injection later.
-    public static string ApiEndpoint{ get { return $"https://{Language}.wikipedia.org/w/api.php"; } }
-    public static string Language { get; set; } = "en"; // I need to add an Enum or dictionary for this
+    private HttpClient _client;
+    private readonly ILogger<WikipediaContentProvider> _logger;
+
+    public string ApiEndpoint
+    { 
+        get { return $"https://{Language.GetWikipediaLanguageCode()}.wikipedia.org/w/api.php"; } 
+    }
+    public Languages Language { get; set; }
+
+    public string QueryApiEndpoint 
+    {
+        get { return $"{ApiEndpoint}?action=query&format=json&prop=extracts|info|links|categories&redirects=1&inprop=url|displaytitle&pllimit=100&titles="; } // + the query topic
+    }
+
+    public WikipediaContentProvider(ILogger<WikipediaContentProvider> logger)
+    {
+        _logger = logger;
+        _client = new HttpClient();
+        Language = Languages.English;
+    }
 
     /// <summary>
     /// Fetches the content of a Wikipedia article based on the given topic.
     /// </summary>
     /// <param name="topic">The topic to search for on Wikipedia.</param>
     /// <returns>A WikipediaArticle object containing the article information.</returns>
-    public static async Task<WikipediaPage> GetWikipediaPage(string topic, string language = "en")
+    public async Task<WikipediaPage> GetWikipediaPage(string topic, Languages language)
     {
-        HttpClient client = new HttpClient();
-
-        if (Language != language) Language = language; // this doesn't check for errors at all
+        if (Language != language) 
+            Language = language;
 
         var query = HttpUtility.UrlEncode(topic);
 
-        Stopwatch timer = new Stopwatch();
-        timer.Start();
-        string exactTitle = await GetWikipediaExactTitle(query); // takes about 200 ms
-        timer.Stop();
-        Console.WriteLine($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {timer.ElapsedMilliseconds} milliseconds");
+        Stopwatch sw = Stopwatch.StartNew();
+        string exactTitle = await GetWikipediaExactTitle(query);
+        sw.Stop();
+        _logger.LogInformation($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {sw.ElapsedMilliseconds} milliseconds");
 
         var exactQuery = HttpUtility.UrlEncode(exactTitle);
+        var url = QueryApiEndpoint + exactQuery;
 
-        timer.Restart();
-        // Construct the API URL with the specified language, get the extract, general info, links, and categories
-        var url = $"{ApiEndpoint}?action=query&format=json&prop=extracts|info|links|categories&redirects=1&inprop=url|displaytitle&pllimit=100&titles={exactQuery}";
-
-        // This code is ugly but it works for now.
+        sw.Restart();
         try
         {
-            var response = await client.GetStringAsync(url);
+            var response = await _client.GetStringAsync(url);
             var jsonDoc = JsonDocument.Parse(response);
             var pages = jsonDoc.RootElement.GetProperty("query").GetProperty("pages");
 
@@ -57,6 +65,7 @@ public static class WikipediaContent
                     // TODO: Fix these null reference assignment warnings
                     Id = page.Value.GetProperty("pageid").GetInt32(),
                     Title = page.Value.GetProperty("title").GetString(),
+                    Language = page.Value.GetProperty("pagelanguage").GetString(),
                     Extract = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
                     LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString()),
                     Url = page.Value.GetProperty("fullurl").GetString(),
@@ -81,8 +90,8 @@ public static class WikipediaContent
                 //    }
                 //}
 
-                timer.Stop(); // this takes 100-500 ms
-                Console.WriteLine($"Found Wikipedia page '{wikiPage.Title}' in {timer.ElapsedMilliseconds} milliseconds");
+                sw.Stop(); // this takes 100-500 ms
+                _logger.LogInformation($"Found Wikipedia page '{wikiPage.Title}' in {sw.ElapsedMilliseconds} milliseconds");
                 return wikiPage;
             }
 
@@ -90,16 +99,14 @@ public static class WikipediaContent
         }
         catch (Exception ex)
         {
-            timer.Reset();
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            sw.Reset();
+            _logger.LogError($"An error occurred: {ex.Message}");
             throw;
         }
     }
 
-    public static async Task<string> GetWikipediaExactTitle(string query)
+    public async Task<string> GetWikipediaExactTitle(string query)
     {
-        // Id like to show a drop down of the topics that the user can click on based upon what they have currently entered in the textbox
-        // that is more a frontend thing though.
         string searchUrl = $"{ApiEndpoint}?action=opensearch&search={query}&limit=1&format=json";
         var searchResponse = await _client.GetStringAsync(searchUrl);
         var searchResults = JsonDocument.Parse(searchResponse);
