@@ -88,7 +88,31 @@ public class PromptManager
     private void CreateFallbackPromptFunction()
     {
         // The default prompt will be hardcoded so it can never fail to be loaded which would cause the app to crash in the current implementation.
-        string defaultConfig = "{\r\n    \"name\": \"Default\",\r\n    \"description\": \"The default prompt when all else fails.\",\r\n    \"template_format\": \"semantic-kernel\",\r\n    \"input_variables\": [\r\n      {\r\n        \"name\": \"text\",\r\n        \"description\": \"The content based on which the quiz questions will be created.\"\r\n      },\r\n      {\r\n        \"name\": \"numQuestions\",\r\n        \"description\": \"The number of multiple-choice questions to create.\"\r\n      },\r\n      {\r\n        \"name\": \"numOptions\",\r\n        \"description\": \"The number of option choices for each question.\"\r\n      },\r\n      {\r\n        \"name\": \"language\",\r\n        \"description\": \"The language in which the quiz questions and options should be generated.\"\r\n      }\r\n    ]\r\n  }";
+        string defaultConfig = @"{
+            ""name"": ""Default"",
+            ""description"": ""The default prompt when all else fails."",
+            ""template_format"": ""semantic-kernel"",
+            ""input_variables"": [
+              {
+                ""name"": ""text"",
+                ""description"": ""The content based on which the quiz questions will be created.""
+              },
+              {
+                ""name"": ""numQuestions"",
+                ""description"": ""The number of multiple-choice questions to create.""
+              },
+              {
+                ""name"": ""numOptions"",
+                ""description"": ""The number of option choices for each question.""
+              },
+              {
+                ""name"": ""language"",
+                ""description"": ""The language in which the quiz questions and options should be generated.""
+              }
+            ]
+          }";
+
+
         string defaultPrompt = @"
         You are an expert quiz creator. Your task is to create an engaging and informative quiz based on the given content.
 
@@ -102,24 +126,24 @@ public class PromptManager
 
         Instructions:
         1. Create {numQuestions} multiple-choice questions based on the provided content.
-        2. Each question should be independent and not require knowledge from other questions.
-        3. Focus on key concepts, interesting facts, and important ideas from the content.
-        4. Avoid questions about specific dates or names of people who are not well-known.
-        5. For each question, provide {{$numOptions}} options, with only one correct answer.
-        6. Output each question in an array in JSON format, following this structure:
+        2. Each question MUST have EXACTLY {{$numOptions}} multiple-choice options. No more, no less.
+        3. Each question should be independent and not require knowledge from other questions.
+        4. Focus on key concepts, interesting facts, and important ideas from the content.
+        5. Avoid questions about specific dates or names of people who are not well-known.
+        6. For each question, provide {{$numOptions}} options, with only one correct answer.
+        7. Output each question in an array in JSON format, following this structure:
 
             {
               ""Text"": ""Question text in {{$language}}"",
               ""Options"": [
                 ""Option 1 in {{$language}}"",
                 ""Option 2 in {{$language}}"",
-                ""Option 3 in {{$language}}"",
-                ""Option 4 in {{$language}}""
+                ...
               ],
-              ""CorrectAnswerIndex"": number
+              ""CorrectAnswerOption"": number
             }
 
-        7. Keep the JSON keys (""Text"", ""Options"", ""CorrectAnswerIndex"") in English.
+        8. Keep the JSON keys (""Text"", ""Options"", ""CorrectAnswerOption"") in English.
 
         Most importantly, return ONLY valid JSON.
         Generate the quiz questions in {{$language}} while maintaining the JSON structure as specified:

@@ -4,10 +4,10 @@ namespace WikiQuizGenerator.Core.Interfaces;
 
 public interface IQuestionResponseRepository
 {
-    Task<QuestionResponse> GetByIdAsync(int id);
-    Task<IEnumerable<QuestionResponse>> GetAllAsync();
-    Task<QuestionResponse> AddAsync(QuestionResponse questionResponse);
-    Task UpdateAsync(QuestionResponse questionResponse);
+    Task<AIResponse> GetByIdAsync(int id);
+    Task<IEnumerable<AIResponse>> GetAllAsync();
+    Task<AIResponse> AddAsync(AIResponse questionResponse);
+    Task UpdateAsync(AIResponse questionResponse);
     Task DeleteAsync(int id);
-    Task<IEnumerable<QuestionResponse>> GetByWikipediaPageIdAsync(int wikipediaPageId);
+    Task<IEnumerable<AIResponse>> GetByWikipediaPageIdAsync(int wikipediaPageId);
 }

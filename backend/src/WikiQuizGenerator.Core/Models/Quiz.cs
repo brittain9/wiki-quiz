@@ -7,12 +7,14 @@ public class Quiz
     [Key]
     public int Id { get; set; }
     public string Title { get; set; }
-    public IList<QuestionResponse> QuestionResponses { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    public IList<AIResponse> AIResponses { get; set; }
 
     // Add a user later
 
     public Quiz()
     {
-        QuestionResponses = new List<QuestionResponse>();
+        AIResponses = new List<AIResponse>();
     }
 }

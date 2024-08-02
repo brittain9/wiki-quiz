@@ -1,13 +1,12 @@
 namespace WikiQuizGenerator.Core.DTOs;
 
-public class QuizDTO
+public class QuizDto
 {
-    // public int Id { get; set; }
     public string Title { get; set; }
-    public List<QuestionResponseDTO> QuestionResponses { get; set; }
+    public IList<AIResponseDto> AIResponses { get; set; }
 
-    public QuizDTO()
+    public QuizDto()
     {
-        QuestionResponses = new List<QuestionResponseDTO>();
+        AIResponses = new List<AIResponseDto>();
     }
 }

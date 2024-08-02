@@ -23,7 +23,7 @@ namespace WikiQuizGenerator.Data.Migrations
                 keyValue: 1);
 
             migrationBuilder.DeleteData(
-                table: "QuestionResponses",
+                table: "AIResponses",
                 keyColumn: "Id",
                 keyValue: 1);
 
@@ -47,7 +47,7 @@ namespace WikiQuizGenerator.Data.Migrations
                 values: new object[] { 1, new[] { "Category1", "Category2" }, "This is a test Wikipedia page extract.", "en", new DateTime(2024, 7, 31, 23, 34, 51, 912, DateTimeKind.Utc).AddTicks(290), 100, new[] { "Link1", "Link2" }, "Test Wikipedia Page", "https://en.wikipedia.org/wiki/Test" });
 
             migrationBuilder.InsertData(
-                table: "QuestionResponses",
+                table: "AIResponses",
                 columns: new[] { "Id", "AIResponseTime", "CompletionTokenUsage", "ModelName", "PromptTokenUsage", "QuizId", "WikipediaPageId" },
                 values: new object[] { 1, 1000L, 20, "GPT-4", 10, null, 1 });
 

@@ -1,7 +1,7 @@
 namespace WikiQuizGenerator.Core.DTOs;
 
-public class QuestionDTO
+public class QuestionDto
 {
     public string Text { get; set; }
-    public List<string> Options { get; set; }
+    public IList<string> Options { get; set; }
 }

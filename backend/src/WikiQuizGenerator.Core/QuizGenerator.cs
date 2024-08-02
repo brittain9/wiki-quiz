@@ -17,7 +17,7 @@ public class QuizGenerator : IQuizGenerator
         _questionGenerator = questionGenerator;
     }
 
-    public async Task<Quiz> GenerateBasicQuizAsync(string topic, string language, int numQuestions, int extractLength)
+    public async Task<Quiz> GenerateBasicQuizAsync(string topic, string language, int numQuestions, int numOptions, int extractLength)
     {
         // topic = topic.Transform(To.TitleCase); // this causes errors when searching for topics..
         WikipediaPage page = await WikipediaContent.GetWikipediaPage(topic, language); // throws exception if topic not found
@@ -29,8 +29,8 @@ public class QuizGenerator : IQuizGenerator
 
         quiz.Title = page.Title;
 
-        var questionsResponse = await _questionGenerator.GenerateQuestionsAsync(page, language, numQuestions, extractLength);
-        quiz.QuestionResponses.Add(questionsResponse);
+        var aiResponse = await _questionGenerator.GenerateQuestionsAsync(page, language, numQuestions, numOptions, extractLength);
+        quiz.AIResponses.Add(aiResponse);
 
         return quiz;
     }

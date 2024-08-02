@@ -63,23 +63,23 @@ public static class WikipediaContent
                     Length = page.Value.GetProperty("length").GetInt32()
                 };
 
+                // TODO: Implement the code for this...
+                //if (page.Value.TryGetProperty("links", out var links))
+                //{
+                //    foreach (var link in links.EnumerateArray())
+                //    {
+                //        // Could do every other link to reduce size
+                //        wikiPage.Links.Add(link.GetProperty("title").GetString());
+                //    }
+                //}
 
-                if (page.Value.TryGetProperty("links", out var links))
-                {
-                    foreach (var link in links.EnumerateArray())
-                    {
-                        // Could do every other link to reduce size
-                        wikiPage.Links.Add(link.GetProperty("title").GetString());
-                    }
-                }
-
-                if (page.Value.TryGetProperty("categories", out var categories))
-                {
-                    foreach (var category in categories.EnumerateArray())
-                    {
-                        wikiPage.Categories.Add(category.GetProperty("title").GetString());
-                    }
-                }
+                //if (page.Value.TryGetProperty("categories", out var categories))
+                //{
+                //    foreach (var category in categories.EnumerateArray())
+                //    {
+                //        wikiPage.Categories.Add(category.GetProperty("title").GetString());
+                //    }
+                //}
 
                 timer.Stop(); // this takes 100-500 ms
                 Console.WriteLine($"Found Wikipedia page '{wikiPage.Title}' in {timer.ElapsedMilliseconds} milliseconds");

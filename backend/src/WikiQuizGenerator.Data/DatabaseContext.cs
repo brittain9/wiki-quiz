@@ -12,6 +12,6 @@ public class WikiQuizDbContext : DbContext
 
     public DbSet<WikipediaPage> WikipediaPages { get; set; }
     public DbSet<Quiz> Quizzes { get; set; }
-    public DbSet<QuestionResponse> QuestionResponses { get; set; }
+    public DbSet<AIResponse> AIResponses { get; set; }
     public DbSet<Question> Questions { get; set; }
 }

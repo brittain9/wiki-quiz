@@ -17,14 +17,14 @@ public class QuestionRepository : IQuestionRepository
     public async Task<Question> GetByIdAsync(int id)
     {
         return await _context.Questions
-            .Include(q => q.QuestionResponse)
+            .Include(q => q.AIResponse)
             .FirstOrDefaultAsync(q => q.Id == id);
     }
 
     public async Task<IEnumerable<Question>> GetAllAsync()
     {
         return await _context.Questions
-            .Include(q => q.QuestionResponse)
+            .Include(q => q.AIResponse)
             .ToListAsync();
     }
 
@@ -54,7 +54,7 @@ public class QuestionRepository : IQuestionRepository
     public async Task<IEnumerable<Question>> GetByQuestionResponseIdAsync(int questionResponseId)
     {
         return await _context.Questions
-            .Where(q => q.QuestionResponseId == questionResponseId)
+            .Where(q => q.AIResponseId == questionResponseId)
             .ToListAsync();
     }
 }

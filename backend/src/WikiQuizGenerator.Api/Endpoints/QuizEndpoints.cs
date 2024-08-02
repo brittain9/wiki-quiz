@@ -1,8 +1,10 @@
 ﻿using WikiQuizGenerator.Core.Interfaces;
 using Microsoft.OpenApi.Models;
 using Microsoft.OpenApi.Any;
-using WikiQuizGenerator.Core.Models;
 using Serilog;
+using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DTOs;
+using WikiQuizGenerator.Core.Mappers;
 
 namespace WikiQuizGenerator.Api;
 
@@ -10,13 +12,13 @@ public static class QuizEndpoints
 {
     public static void MapQuizEndpoints(this WebApplication app)
     {
-        app.MapGet("/basicquiz", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int extractLength = 1000) =>
+        app.MapGet("/basicquiz", async(IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
             try
             {
-                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, language, numQuestions, extractLength);
-                Log.Information($"Generated basic quiz on {topic} using {quiz.QuestionResponses.First().TotalTokens} tokens.");
-                return Results.Ok(quiz);
+                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, language, numQuestions, numOptions, extractLength);
+                Log.Information($"Generated basic quiz on {topic}" ); // TODO: Add token usage to logs again
+                return Results.Ok(QuizMapper.ToDto(quiz));
             }
             catch (Exception ex)
             {

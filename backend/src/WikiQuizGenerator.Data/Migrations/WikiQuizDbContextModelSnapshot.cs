@@ -85,7 +85,7 @@ namespace WikiQuizGenerator.Data.Migrations
 
                     b.HasIndex("WikipediaPageId");
 
-                    b.ToTable("QuestionResponses");
+                    b.ToTable("AIResponses");
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.Quiz", b =>
@@ -162,7 +162,7 @@ namespace WikiQuizGenerator.Data.Migrations
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.QuestionResponse", b =>
                 {
                     b.HasOne("WikiQuizGenerator.Core.Models.Quiz", null)
-                        .WithMany("QuestionResponses")
+                        .WithMany("AIResponses")
                         .HasForeignKey("QuizId");
 
                     b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", "WikipediaPage")
@@ -181,7 +181,7 @@ namespace WikiQuizGenerator.Data.Migrations
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.Quiz", b =>
                 {
-                    b.Navigation("QuestionResponses");
+                    b.Navigation("AIResponses");
                 });
 #pragma warning restore 612, 618
         }

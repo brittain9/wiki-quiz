@@ -14,7 +14,7 @@ public abstract class TestBase : IDisposable
     protected WikiQuizDbContext _context;
 
     public WikipediaPage TestWikipediaPage { get; private set; }
-    public QuestionResponse TestQuestionResponse { get; private set; }
+    public AIResponse TestQuestionResponse { get; private set; }
     public Question TestQuestion { get; private set; }
     public Quiz TestQuiz { get; private set; }
 
@@ -31,7 +31,7 @@ public abstract class TestBase : IDisposable
     {
         _context.WikipediaPages.RemoveRange(_context.WikipediaPages);
         _context.Questions.RemoveRange(_context.Questions);
-        _context.QuestionResponses.RemoveRange(_context.QuestionResponses);
+        _context.AIResponses.RemoveRange(_context.AIResponses);
         _context.Quizzes.RemoveRange(_context.Quizzes);
         await _context.SaveChangesAsync();
 
@@ -54,7 +54,7 @@ public abstract class TestBase : IDisposable
         _context.WikipediaPages.Add(TestWikipediaPage);
         await _context.SaveChangesAsync();
 
-        TestQuestionResponse = new QuestionResponse
+        TestQuestionResponse = new AIResponse
         {
             PromptTokenUsage = 10,
             CompletionTokenUsage = 20,
@@ -62,7 +62,7 @@ public abstract class TestBase : IDisposable
             ModelName = "GPT-4",
             WikipediaPageId = TestWikipediaPage.Id
         };
-        _context.QuestionResponses.Add(TestQuestionResponse);
+        _context.AIResponses.Add(TestQuestionResponse);
         await _context.SaveChangesAsync();
 
         TestQuestion = new Question
@@ -78,7 +78,7 @@ public abstract class TestBase : IDisposable
         TestQuiz = new Quiz
         {
             Title = "Test Quiz",
-            QuestionResponses = new List<QuestionResponse> { TestQuestionResponse }
+            AIResponses = new List<AIResponse> { TestQuestionResponse }
         };
         _context.Quizzes.Add(TestQuiz);
         await _context.SaveChangesAsync();

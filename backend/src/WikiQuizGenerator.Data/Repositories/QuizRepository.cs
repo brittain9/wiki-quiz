@@ -17,9 +17,9 @@ public class QuizRepository : IQuizRepository
     public async Task<Quiz> GetByIdAsync(int id)
     {
         return await _context.Quizzes
-            .Include(q => q.QuestionResponses)
+            .Include(q => q.AIResponses)
                 .ThenInclude(qr => qr.Questions)
-            .Include(q => q.QuestionResponses)
+            .Include(q => q.AIResponses)
                 .ThenInclude(qr => qr.WikipediaPage)
             .FirstOrDefaultAsync(q => q.Id == id);
     }
@@ -27,9 +27,9 @@ public class QuizRepository : IQuizRepository
     public async Task<IEnumerable<Quiz>> GetAllAsync()
     {
         return await _context.Quizzes
-            .Include(q => q.QuestionResponses)
+            .Include(q => q.AIResponses)
                 .ThenInclude(qr => qr.Questions)
-            .Include(q => q.QuestionResponses)
+            .Include(q => q.AIResponses)
                 .ThenInclude(qr => qr.WikipediaPage)
             .ToListAsync();
     }

@@ -32,14 +32,15 @@ public class QuestionGenerator : IQuestionGenerator
     /// <param name="extractSubstringLength">Optional parameter to limit input text length (default 500 characters).</param>
     /// <param name="language">The language for the quiz (default English).</param>
     /// <returns>A Question Response object containing the questions and metadata.</returns>
-    public async Task<QuestionResponse> GenerateQuestionsAsync(WikipediaPage page, string language, int numQuestions, int extractSubstringLength)
+    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string language, int numQuestions, int numOptions, int extractSubstringLength)
     {
         // Shorten the extract the user defined length; default 500
         var shortenedText = page.Extract.Length > extractSubstringLength ? 
             page.Extract.Substring(0, extractSubstringLength) : page.Extract;
 
-        // Limit the number of questions
+        // Limit the number of questions and options
         numQuestions = Math.Clamp(numQuestions, 1, 35);
+        numOptions = Math.Clamp(numOptions, 2, 5);
 
         var quizFunction = _promptManager.GetPromptFunction("Default", language);
 
@@ -56,6 +57,7 @@ public class QuestionGenerator : IQuestionGenerator
             {
                 ["text"] = shortenedText,
                 ["numQuestions"] = numQuestions,
+                ["numOptions"] = numOptions,
                 ["language"] = language
             });
 
@@ -75,26 +77,31 @@ public class QuestionGenerator : IQuestionGenerator
             return null;
         }
 
-        QuestionResponse questionResponse = new()
+        AIMetadata aiMetadata = new()
         {
-            AIResponseTime = timer.ElapsedMilliseconds,
-            Questions = questions,
             ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA",
-            WikipediaPage = page
         };
 
         if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
         {
-            questionResponse.PromptTokenUsage = usage.PromptTokens;
-            questionResponse.CompletionTokenUsage = usage.CompletionTokens;
+            aiMetadata.PromptTokenUsage = usage.PromptTokens;
+            aiMetadata.CompletionTokenUsage = usage.CompletionTokens;
         } 
         else if (result.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
         {
-            questionResponse.PromptTokenUsage = perUsage.PromptTokens;
-            questionResponse.CompletionTokenUsage = perUsage.CompletionTokens;
+            aiMetadata.PromptTokenUsage = perUsage.PromptTokens;
+            aiMetadata.CompletionTokenUsage = perUsage.CompletionTokens;
         }
 
-        return questionResponse;
+        AIResponse aiResponse = new()
+        {
+            ResponseTime = timer.ElapsedMilliseconds,
+            Questions = questions,
+            WikipediaPage = page,
+            AIMetadata = aiMetadata
+        };
+
+        return aiResponse;
     }
 
     public static string CleanJsonString(string input)
@@ -127,9 +134,51 @@ public class QuestionGenerator : IQuestionGenerator
                 PropertyNameCaseInsensitive = true
             };
 
-            var questions = JsonSerializer.Deserialize<List<Question>>(cleanedResult, options);
+            var jsonQuestions = JsonSerializer.Deserialize<List<JsonElement>>(cleanedResult, options);
+            var questions = new List<Question>();
 
-            return questions ?? new List<Question>();
+            foreach (var jsonQuestion in jsonQuestions)
+            {
+                var question = new Question
+                {
+                    Text = jsonQuestion.GetProperty("Text").GetString(),
+                    Option1 = "",
+                    Option2 = "",
+                    CorrectOptionNumber = jsonQuestion.GetProperty("CorrectAnswerOption").GetInt32()
+                };
+
+                var jsonOptions = jsonQuestion.GetProperty("Options").EnumerateArray();
+                int optionCount = 0;
+                foreach (var jsonOption in jsonOptions)
+                {
+                    optionCount++;
+                    switch (optionCount)
+                    {
+                        case 1:
+                            question.Option1 = jsonOption.GetString();
+                            break;
+                        case 2:
+                            question.Option2 = jsonOption.GetString();
+                            break;
+                        case 3:
+                            question.Option3 = jsonOption.GetString();
+                            break;
+                        case 4:
+                            question.Option4 = jsonOption.GetString();
+                            break;
+                        case 5:
+                            question.Option5 = jsonOption.GetString();
+                            break;
+                        default:
+                            // Ignore additional options if more than 5
+                            break;
+                    }
+                }
+
+                questions.Add(question);
+            }
+
+            return questions;
         }
         catch (JsonException ex)
         {

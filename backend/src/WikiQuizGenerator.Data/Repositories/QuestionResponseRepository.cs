@@ -14,48 +14,48 @@ public class QuestionResponseRepository : IQuestionResponseRepository
         _context = context;
     }
 
-    public async Task<QuestionResponse> GetByIdAsync(int id)
+    public async Task<AIResponse> GetByIdAsync(int id)
     {
-        return await _context.QuestionResponses
+        return await _context.AIResponses
             .Include(qr => qr.Questions)
             .Include(qr => qr.WikipediaPage)
             .FirstOrDefaultAsync(qr => qr.Id == id);
     }
 
-    public async Task<IEnumerable<QuestionResponse>> GetAllAsync()
+    public async Task<IEnumerable<AIResponse>> GetAllAsync()
     {
-        return await _context.QuestionResponses
+        return await _context.AIResponses
             .Include(qr => qr.Questions)
             .Include(qr => qr.WikipediaPage)
             .ToListAsync();
     }
 
-    public async Task<QuestionResponse> AddAsync(QuestionResponse questionResponse)
+    public async Task<AIResponse> AddAsync(AIResponse questionResponse)
     {
-        await _context.QuestionResponses.AddAsync(questionResponse);
+        await _context.AIResponses.AddAsync(questionResponse);
         await _context.SaveChangesAsync();
         return questionResponse;
     }
 
-    public async Task UpdateAsync(QuestionResponse questionResponse)
+    public async Task UpdateAsync(AIResponse questionResponse)
     {
-        _context.QuestionResponses.Update(questionResponse);
+        _context.AIResponses.Update(questionResponse);
         await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(int id)
     {
-        var questionResponse = await _context.QuestionResponses.FindAsync(id);
+        var questionResponse = await _context.AIResponses.FindAsync(id);
         if (questionResponse != null)
         {
-            _context.QuestionResponses.Remove(questionResponse);
+            _context.AIResponses.Remove(questionResponse);
             await _context.SaveChangesAsync();
         }
     }
 
-    public async Task<IEnumerable<QuestionResponse>> GetByWikipediaPageIdAsync(int wikipediaPageId)
+    public async Task<IEnumerable<AIResponse>> GetByWikipediaPageIdAsync(int wikipediaPageId)
     {
-        return await _context.QuestionResponses
+        return await _context.AIResponses
             .Include(qr => qr.Questions)
             .Include(qr => qr.WikipediaPage)
             .Where(qr => qr.WikipediaPageId == wikipediaPageId)
