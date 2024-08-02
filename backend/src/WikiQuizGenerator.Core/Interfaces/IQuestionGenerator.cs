@@ -4,5 +4,5 @@ namespace WikiQuizGenerator.Core.Interfaces;
 
 public interface IQuestionGenerator
 {
-    Task<AIResponse> GenerateQuestionsAsync(WikipediaPage text, string language, int numberOfQuestions, int numOptions, int textSubstringLength);
+    Task<AIResponse> GenerateQuestionsAsync(WikipediaPage text, string content, string language, int numberOfQuestions, int numOptions);
 }

@@ -32,12 +32,8 @@ public class QuestionGenerator : IQuestionGenerator
     /// <param name="extractSubstringLength">Optional parameter to limit input text length (default 500 characters).</param>
     /// <param name="language">The language for the quiz (default English).</param>
     /// <returns>A Question Response object containing the questions and metadata.</returns>
-    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string language, int numQuestions, int numOptions, int extractSubstringLength)
+    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, string language, int numQuestions, int numOptions)
     {
-        // Shorten the extract the user defined length; default 500
-        var shortenedText = page.Extract.Length > extractSubstringLength ? 
-            page.Extract.Substring(0, extractSubstringLength) : page.Extract;
-
         // Limit the number of questions and options
         numQuestions = Math.Clamp(numQuestions, 1, 35);
         numOptions = Math.Clamp(numOptions, 2, 5);
@@ -55,7 +51,7 @@ public class QuestionGenerator : IQuestionGenerator
         {
             result = await quizFunction.InvokeAsync(_kernel, new KernelArguments
             {
-                ["text"] = shortenedText,
+                ["text"] = content,
                 ["numQuestions"] = numQuestions,
                 ["numOptions"] = numOptions,
                 ["language"] = language

@@ -41,6 +41,30 @@ public static class QuizEndpoints
            return operation;
        });
 
+        app.MapGet("/basicquizdev", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
+        {
+            try
+            {
+                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, language, numQuestions, numOptions, extractLength);
+                Log.Information($"Generated basic quiz on {topic}"); // TODO: Add token usage to logs again
+                return Results.Ok(quiz);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning($"Failed generating basic quiz on {topic}.");
+                return Results.NoContent();
+            }
+        })
+        .WithOpenApi(operation =>
+        {
+           operation.Responses.Add("204", new OpenApiResponse
+           {
+               Description = "No content. The Wikipedia page could not be found for the given topic."
+           });
+
+           return operation;
+        });
+
         // Add post method and expose DTOs.
     }
 }
