@@ -50,9 +50,8 @@ namespace WikiQuizGenerator.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ResponseTime = table.Column<long>(type: "bigint", nullable: false),
                     WikipediaPageId = table.Column<int>(type: "integer", nullable: false),
-                    QuizId = table.Column<int>(type: "integer", nullable: true)
+                    QuizId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -61,13 +60,14 @@ namespace WikiQuizGenerator.Data.Migrations
                         name: "FK_AIResponses_Quizzes_QuizId",
                         column: x => x.QuizId,
                         principalTable: "Quizzes",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AIResponses_WikipediaPages_WikipediaPageId",
                         column: x => x.WikipediaPageId,
                         principalTable: "WikipediaPages",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -105,7 +105,8 @@ namespace WikiQuizGenerator.Data.Migrations
                         name: "FK_WikipediaLinks_WikipediaPages_WikipediaPageId",
                         column: x => x.WikipediaPageId,
                         principalTable: "WikipediaPages",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -114,6 +115,7 @@ namespace WikiQuizGenerator.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ResponseTime = table.Column<long>(type: "bigint", nullable: false),
                     PromptTokenUsage = table.Column<int>(type: "integer", nullable: true),
                     CompletionTokenUsage = table.Column<int>(type: "integer", nullable: true),
                     ModelName = table.Column<string>(type: "text", nullable: true),

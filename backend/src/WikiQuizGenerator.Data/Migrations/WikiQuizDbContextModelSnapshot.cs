@@ -61,7 +61,7 @@ namespace WikiQuizGenerator.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("QuizId")
+                    b.Property<int>("QuizId")
                         .HasColumnType("integer");
 
                     b.Property<int>("WikipediaPageId")
@@ -247,12 +247,14 @@ namespace WikiQuizGenerator.Data.Migrations
                 {
                     b.HasOne("WikiQuizGenerator.Core.Models.Quiz", null)
                         .WithMany("AIResponses")
-                        .HasForeignKey("QuizId");
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", "WikipediaPage")
                         .WithMany()
                         .HasForeignKey("WikipediaPageId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("WikipediaPage");
@@ -280,7 +282,8 @@ namespace WikiQuizGenerator.Data.Migrations
                 {
                     b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", "WikipediaPage")
                         .WithMany("Links")
-                        .HasForeignKey("WikipediaPageId");
+                        .HasForeignKey("WikipediaPageId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("WikipediaPage");
                 });

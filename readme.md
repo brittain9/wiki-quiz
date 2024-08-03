@@ -20,8 +20,7 @@ This project generates high-quality quizes based on nearly any topic using Wikip
 
 ## Todo:
 - Add a basic user class
-- Store the quizes in the database
 - Add support for Google Gemini and Mistral
 - Add logic to handle Wikipedia disambiguation pages: https://en.wikipedia.org/wiki/Category:Disambiguation_pages
 
-![ERD Diagram](backend/WikiQuizERD.png)
+![ERD Diagram](backend\src\WikiQuizGenerator.Data/WikiQuizERD.png)

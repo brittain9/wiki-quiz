@@ -13,6 +13,10 @@ public class Quiz
     public DateTime CreatedAt { get; set; }
 
     public IList<AIResponse> AIResponses { get; set; }
+    
+    // Add an array for the user's answer choices gotten on post method.
+    // add an array for the correct answer for easy checking?
+    // need another DTO for completed quiz
 
     // Add a user later
 

@@ -13,6 +13,8 @@ public class AIResponse
     public AIMetadata AIMetadata { get; set; } // This allows to change the metadata without affecting the response
 
     public int WikipediaPageId { get; set; }
-    [ForeignKey("WikipediaPageId")]
     public WikipediaPage WikipediaPage { get; set; }
+
+    [ForeignKey("Quiz")]
+    public int QuizId { get; set; }
 }

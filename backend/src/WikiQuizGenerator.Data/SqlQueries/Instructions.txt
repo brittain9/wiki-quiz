@@ -1,0 +1,2 @@
+Goto database exec in docker gui or cmd, enter:
+	psql -U postgres -d WikiQuizGenerator

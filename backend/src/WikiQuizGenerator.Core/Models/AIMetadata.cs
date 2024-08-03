@@ -14,6 +14,5 @@ public class AIMetadata
     public string? ModelName { get; set; }
 
     public int AIResponseId { get; set; }
-    [ForeignKey("AIResponseId")]
     public AIResponse AIResponse { get; set; }
 }

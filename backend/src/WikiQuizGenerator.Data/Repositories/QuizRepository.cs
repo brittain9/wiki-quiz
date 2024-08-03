@@ -2,6 +2,7 @@ using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace WikiQuizGenerator.Data.Repositories;
 
@@ -14,23 +15,40 @@ public class QuizRepository : IQuizRepository
         _context = context;
     }
 
-    public Task<Quiz> AddAsync(Quiz quiz)
+    public async Task<Quiz> AddAsync(Quiz quiz)
     {
-        throw new NotImplementedException();
+        await _context.Set<Quiz>().AddAsync(quiz);
+        await _context.SaveChangesAsync();
+        return quiz;   
     }
 
-    public Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id)
     {
-        throw new NotImplementedException();
+        var quiz = await _context.Set<Quiz>().FindAsync(id);
+        if (quiz != null)
+        {
+            _context.Set<Quiz>().Remove(quiz);
+            await _context.SaveChangesAsync();
+        }
     }
 
-    public Task<IEnumerable<Quiz>> GetAllAsync()
+    public async Task<IEnumerable<Quiz>> GetAllAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Set<Quiz>()
+            .Include(q => q.AIResponses)
+                .ThenInclude(ar => ar.Questions)
+            .Include(q => q.AIResponses)
+                .ThenInclude(ar => ar.AIMetadata)
+            .ToListAsync();
     }
 
-    public Task<Quiz> GetByIdAsync(int id)
+    public async Task<Quiz> GetByIdAsync(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Set<Quiz>()
+            .Include(q => q.AIResponses)
+                .ThenInclude(ar => ar.Questions)
+            .Include(q => q.AIResponses)
+                .ThenInclude(ar => ar.AIMetadata)
+            .FirstOrDefaultAsync(q => q.Id == id);
     }
 }

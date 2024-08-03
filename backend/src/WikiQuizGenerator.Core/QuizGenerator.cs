@@ -14,14 +14,16 @@ namespace WikiQuizGenerator.Core;
 public class QuizGenerator : IQuizGenerator
 {
     private IWikipediaContentProvider _wikipediaContentProvider;
+    private readonly IQuizRepository _quizRepository;
     private readonly IQuestionGenerator _questionGenerator;
     private readonly ILogger<QuizGenerator> _logger;
 
-    public QuizGenerator(IQuestionGenerator questionGenerator, IWikipediaContentProvider wikipediaContentProvider, ILogger<QuizGenerator> logger)
+    public QuizGenerator(IQuestionGenerator questionGenerator, IWikipediaContentProvider wikipediaContentProvider, ILogger<QuizGenerator> logger, IQuizRepository quizRepository)
     {
         _wikipediaContentProvider = wikipediaContentProvider;
         _questionGenerator = questionGenerator;
         _logger = logger;
+        _quizRepository = quizRepository;
     }
 
     public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, int numQuestions, int numOptions, int extractLength)
@@ -41,7 +43,16 @@ public class QuizGenerator : IQuizGenerator
         quiz.AIResponses.Add(aiResponse);
         quiz.CreatedAt = DateTime.UtcNow;
 
-        return quiz;
+        try
+        {
+            var result = await _quizRepository.AddAsync(quiz);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding quiz to database");
+            throw;
+        }
     }
 
     private static string GetRandomContentSections(WikipediaPage page, int requestedContentLength)
