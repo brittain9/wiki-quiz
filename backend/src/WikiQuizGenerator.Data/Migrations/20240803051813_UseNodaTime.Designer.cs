@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WikiQuizGenerator.Data;
@@ -11,9 +12,11 @@ using WikiQuizGenerator.Data;
 namespace WikiQuizGenerator.Data.Migrations
 {
     [DbContext(typeof(WikiQuizDbContext))]
-    partial class WikiQuizDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240803051813_UseNodaTime")]
+    partial class UseNodaTime
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,9 +45,6 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int?>("PromptTokenUsage")
                         .HasColumnType("integer");
 
-                    b.Property<long>("ResponseTime")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AIResponseId")
@@ -63,6 +63,9 @@ namespace WikiQuizGenerator.Data.Migrations
 
                     b.Property<int?>("QuizId")
                         .HasColumnType("integer");
+
+                    b.Property<long>("ResponseTime")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("WikipediaPageId")
                         .HasColumnType("integer");

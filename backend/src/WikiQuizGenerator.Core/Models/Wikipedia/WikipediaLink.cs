@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace WikiQuizGenerator.Core.Models;
 
@@ -11,6 +12,7 @@ public class WikipediaLink
 
     public int? WikipediaPageId { get; set; }
 
+    [JsonIgnore]
     [ForeignKey("WikipediaPageId")]
     public WikipediaPage? WikipediaPage { get; set; }
 }

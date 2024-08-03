@@ -5,6 +5,7 @@ using Serilog;
 using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Mappers;
+using WikiQuizGenerator.Core;
 
 namespace WikiQuizGenerator.Api;
 
@@ -12,18 +13,43 @@ public static class QuizEndpoints
 {
     public static void MapQuizEndpoints(this WebApplication app)
     {
+
         // Returns our DTO
         app.MapGet("/basicquiz", async(IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
+            // Validate input parameters
+            if (numQuestions < 1 || numQuestions > 20)
+            {
+                return Results.BadRequest("Number of questions must be between 1 and 20.");
+            }
+
+            if (numOptions < 2 || numOptions > 5)
+            {
+                return Results.BadRequest("Number of options must be between 2 and 6.");
+            }
+
+            if (extractLength < 100 || extractLength > 50000)
+            {
+                return Results.BadRequest("Extract length must be between 100 and 50000 characters.");
+            }
+
             try
             {
-                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, language, numQuestions, numOptions, extractLength);
-                Log.Information($"Generated basic quiz on {topic}" ); // TODO: Add token usage to logs again
+                Languages lang = LanguagesExtensions.GetLanguageFromCode(language); // this will throw error if language is not found
+
+                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, numQuestions, numOptions, extractLength);
+
+                Log.Information($"Generated basic quiz on {topic}"); // TODO: Add token usage to logs again
                 return Results.Ok(QuizMapper.ToDto(quiz));
+            }
+            catch (ArgumentException ex) when (ex.Message.Contains("language"))
+            {
+                Log.Error($"Invalid language code: {language}");
+                return Results.BadRequest($"Invalid language code: {language}");
             }
             catch (Exception ex)
             {
-                Log.Warning($"Failed generating basic quiz on {topic}.");
+                Log.Error($"Failed generating basic quiz on {topic}.");
                 return Results.NoContent();
             }
         })
@@ -41,22 +67,6 @@ public static class QuizEndpoints
 
            return operation;
        });
-
-        // Returns our Quiz model for debugging
-        app.MapGet("/basicquizdev", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
-        {
-            try
-            {
-                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, language, numQuestions, numOptions, extractLength);
-                Log.Information($"Generated basic quiz on {topic}"); // TODO: Add token usage to logs again
-                return Results.Ok(quiz);
-            }
-            catch (Exception ex)
-            {
-                Log.Warning($"Failed generating basic quiz on {topic}.");
-                return Results.NoContent();
-            }
-        });
 
         // Add post method and expose DTOs.
     }

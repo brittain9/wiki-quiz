@@ -10,6 +10,7 @@ using WikiQuizGenerator.Core.Interfaces;
 public class WikipediaContentProvider : IWikipediaContentProvider
 {
     private HttpClient _client;
+    private readonly IWikipediaPageRepository _pageRepository;
     private readonly ILogger<WikipediaContentProvider> _logger;
 
     public string ApiEndpoint
@@ -23,8 +24,9 @@ public class WikipediaContentProvider : IWikipediaContentProvider
         get { return $"{ApiEndpoint}?action=query&format=json&prop=extracts|info|links|categories&redirects=1&inprop=url|displaytitle&pllimit=100&titles="; } // + the query topic
     }
 
-    public WikipediaContentProvider(ILogger<WikipediaContentProvider> logger)
+    public WikipediaContentProvider(IWikipediaPageRepository wikipediaPageRepository, ILogger<WikipediaContentProvider> logger)
     {
+        _pageRepository = wikipediaPageRepository;
         _logger = logger;
         _client = new HttpClient();
         Language = Languages.English;
@@ -43,9 +45,16 @@ public class WikipediaContentProvider : IWikipediaContentProvider
         var query = HttpUtility.UrlEncode(topic);
 
         Stopwatch sw = Stopwatch.StartNew();
-        string exactTitle = await GetWikipediaExactTitle(query);
+        string exactTitle = await GetWikipediaExactTitle(query); // this throws an error. I want to hammer this process out later
         sw.Stop();
         _logger.LogInformation($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {sw.ElapsedMilliseconds} milliseconds");
+
+        // Check if we already have this page.
+        if (await _pageRepository.ExistsByTitleAsync(exactTitle))
+        {
+            _logger.LogInformation($"Found page '{exactTitle}' in the database");
+            return await _pageRepository.GetByTitleAsync(exactTitle);
+        }
 
         var exactQuery = HttpUtility.UrlEncode(exactTitle);
         var url = QueryApiEndpoint + exactQuery;
@@ -62,40 +71,53 @@ public class WikipediaContentProvider : IWikipediaContentProvider
             {
                 var wikiPage = new WikipediaPage
                 {
-                    // TODO: Fix these null reference assignment warnings
                     Id = page.Value.GetProperty("pageid").GetInt32(),
                     Title = page.Value.GetProperty("title").GetString(),
                     Language = page.Value.GetProperty("pagelanguage").GetString(),
                     Extract = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
-                    LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString()),
+                    LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString()).ToUniversalTime(),
                     Url = page.Value.GetProperty("fullurl").GetString(),
-                    Length = page.Value.GetProperty("length").GetInt32()
+                    Length = page.Value.GetProperty("length").GetInt32(),
+                    Links = new List<WikipediaLink>(),
+                    Categories = new List<WikipediaCategory>()
                 };
 
-                // TODO: Implement the code for this...
-                //if (page.Value.TryGetProperty("links", out var links))
-                //{
-                //    foreach (var link in links.EnumerateArray())
-                //    {
-                //        // Could do every other link to reduce size
-                //        wikiPage.Links.Add(link.GetProperty("title").GetString());
-                //    }
-                //}
+                if (page.Value.TryGetProperty("links", out var links))
+                {
+                    foreach (var link in links.EnumerateArray())
+                    {
+                        wikiPage.Links.Add(new WikipediaLink
+                        {
+                            PageName = link.GetProperty("title").GetString()
+                        });
+                    }
+                }
 
-                //if (page.Value.TryGetProperty("categories", out var categories))
-                //{
-                //    foreach (var category in categories.EnumerateArray())
-                //    {
-                //        wikiPage.Categories.Add(category.GetProperty("title").GetString());
-                //    }
-                //}
+                if (page.Value.TryGetProperty("categories", out var categories))
+                {
+                    foreach (var category in categories.EnumerateArray())
+                    {
+                        var categoryName = category.GetProperty("title").GetString();
 
-                sw.Stop(); // this takes 100-500 ms
-                _logger.LogInformation($"Found Wikipedia page '{wikiPage.Title}' in {sw.ElapsedMilliseconds} milliseconds");
+                        // Remove "Category:" prefix if present
+                        if (categoryName.StartsWith("Category:"))
+                        {
+                            categoryName = categoryName.Substring("Category:".Length);
+                        }
+                        wikiPage.Categories.Add(new WikipediaCategory
+                        {
+                            Name = categoryName
+                        });
+                    }
+                }
+
+                sw.Stop();
+                await _pageRepository.AddAsync(wikiPage);
+                _logger.LogInformation($"Added Wikipedia page '{wikiPage.Title}' to database in {sw.ElapsedMilliseconds} milliseconds");
                 return wikiPage;
             }
 
-            return null; // idk why this would ever be hit, need to refactor
+            return null;
         }
         catch (Exception ex)
         {

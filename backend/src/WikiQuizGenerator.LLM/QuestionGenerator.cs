@@ -2,9 +2,11 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Azure.AI.OpenAI;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Services;
+using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
@@ -14,31 +16,22 @@ public class QuestionGenerator : IQuestionGenerator
 {
     private readonly Kernel _kernel;
     private readonly PromptManager _promptManager;
+    private readonly ILogger<QuestionGenerator> _logger;
 
-    public QuestionGenerator(Kernel kernel)
+    public QuestionGenerator(Kernel kernel, PromptManager promptManager, ILogger<QuestionGenerator> logger)
     {
         _kernel = kernel;
-
-        var promptTemplatesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates"); // prompt templates are copied to the build directory in .csproj
-
-        _promptManager = new PromptManager(promptTemplatesPath);
+        _promptManager = promptManager;
+        _logger = logger;
     }
 
-    /// <summary>
-    /// Generates a list of multiple-choice questions based on input text using an AI model.
-    /// </summary>
-    /// <param name="page">The Wikipedia page to base questions on.</param>
-    /// <param name="numQuestions">The number of questions to generate.</param>
-    /// <param name="extractSubstringLength">Optional parameter to limit input text length (default 500 characters).</param>
-    /// <param name="language">The language for the quiz (default English).</param>
-    /// <returns>A Question Response object containing the questions and metadata.</returns>
-    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, string language, int numQuestions, int numOptions)
+    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions)
     {
         // Limit the number of questions and options
         numQuestions = Math.Clamp(numQuestions, 1, 35);
         numOptions = Math.Clamp(numOptions, 2, 5);
 
-        var quizFunction = _promptManager.GetPromptFunction("Default", language);
+        var quizFunction = _promptManager.GetPromptFunction("Default", language.GetWikipediaLanguageCode());
 
         var timer = new Stopwatch(); // to get the response time
         timer.Start();
@@ -49,6 +42,9 @@ public class QuestionGenerator : IQuestionGenerator
 
         do
         {
+            if (generationAttempts > 0)
+                _logger.LogWarning($"Failed extracting questions from response on attempt {generationAttempts}.");
+
             result = await quizFunction.InvokeAsync(_kernel, new KernelArguments
             {
                 ["text"] = content,
@@ -76,6 +72,7 @@ public class QuestionGenerator : IQuestionGenerator
         AIMetadata aiMetadata = new()
         {
             ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA",
+            ResponseTime = timer.ElapsedMilliseconds,
         };
 
         if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
@@ -91,8 +88,8 @@ public class QuestionGenerator : IQuestionGenerator
 
         AIResponse aiResponse = new()
         {
-            ResponseTime = timer.ElapsedMilliseconds,
             Questions = questions,
+            WikipediaPageId = page.Id,
             WikipediaPage = page,
             AIMetadata = aiMetadata
         };

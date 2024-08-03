@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WikiQuizGenerator.Core.DTOs;
+using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Core.Mappers;
@@ -22,7 +23,11 @@ internal class AIResponseMapper
         {
             ResponseTopic = aiResponse.WikipediaPage.Title,
             TopicUrl = aiResponse.WikipediaPage.Url,
-            Questions = questionsDtos,
+            ResponseTime = aiResponse.AIMetadata.ResponseTime,
+            PromptTokenUsage = aiResponse.AIMetadata.PromptTokenUsage,
+            CompletionTokenUsage = aiResponse.AIMetadata.CompletionTokenUsage,
+            ModelName = aiResponse.AIMetadata.ModelName,
+            Questions = questionsDtos
         };
     }
 }

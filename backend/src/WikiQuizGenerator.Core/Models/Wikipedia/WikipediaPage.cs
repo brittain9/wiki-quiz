@@ -10,7 +10,10 @@ public class WikipediaPage
     public string Language { get; set; }
     public string Title { get; set; }
     public string Extract { get; set; }
+
+    [Column(TypeName = "timestamp with time zone")]
     public DateTime LastModified { get; set; }
+
     public string Url { get; set; }
     public int Length { get; set; }
 

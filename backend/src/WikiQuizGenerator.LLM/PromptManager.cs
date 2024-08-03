@@ -1,24 +1,25 @@
-﻿using Microsoft.SemanticKernel;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
 
 public class PromptManager
 {
+    private readonly ILogger<PromptManager> _logger;
     private readonly string _directoryPath;
     private readonly Kernel _kernel;
     private readonly Dictionary<string, KernelFunction> _promptFunctions;
     private readonly IPromptTemplateFactory _promptTemplateFactory;
     private readonly string _fallbackPromptFunctionName;
 
-    public PromptManager(string directoryPath, IPromptTemplateFactory promptTemplateFactory = null)
+    public PromptManager(ILogger<PromptManager> logger)
     {
-        _directoryPath = directoryPath;
+        _logger = logger;
+        _directoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PromptTemplates");
         _kernel = new Kernel();
         _promptFunctions = new Dictionary<string, KernelFunction>();
-        _promptTemplateFactory = promptTemplateFactory ?? new KernelPromptTemplateFactory();
+        _promptTemplateFactory = new KernelPromptTemplateFactory(); // dependency injection?
 
         // Create our hardcoded fallback prompt function
         _fallbackPromptFunctionName = "Default";
@@ -39,13 +40,13 @@ public class PromptManager
                 timer.Start();
                 CreatePromptFunction(templateName, language); // This will throw error if it fails
                 timer.Stop();
-                Console.WriteLine($"Registered function for {name} in {timer.ElapsedMilliseconds} milliseconds");
+                _logger.LogInformation($"Registered function for {name} in {timer.ElapsedMilliseconds} milliseconds");
             }
             return _promptFunctions[name];
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            _logger.LogError(ex.Message);
             return _promptFunctions[_fallbackPromptFunctionName];
         }
     }

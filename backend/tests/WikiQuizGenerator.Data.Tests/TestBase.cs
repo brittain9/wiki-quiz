@@ -40,46 +40,47 @@ public abstract class TestBase : IDisposable
 
     protected async Task InsertTestDataAsync()
     {
-        TestWikipediaPage = new WikipediaPage
-        {
-            Langauge = "en",
-            Title = "Test Wikipedia Page",
-            Extract = "This is a test Wikipedia page extract.",
-            LastModified = DateTime.UtcNow,
-            Url = "https://en.wikipedia.org/wiki/Test",
-            Length = 100,
-            Links = new List<string> { "Link1", "Link2" },
-            Categories = new List<string> { "Category1", "Category2" }
-        };
-        _context.WikipediaPages.Add(TestWikipediaPage);
-        await _context.SaveChangesAsync();
+        //TestWikipediaPage = new WikipediaPage
+        //{
+        //    Langauge = "en",
+        //    Title = "Test Wikipedia Page",
+        //    Extract = "This is a test Wikipedia page extract.",
+        //    LastModified = DateTime.UtcNow,
+        //    Url = "https://en.wikipedia.org/wiki/Test",
+        //    Length = 100,
+        //    Links = new List<string> { "Link1", "Link2" },
+        //    Categories = new List<string> { "Category1", "Category2" }
+        //};
+        //_context.WikipediaPages.Add(TestWikipediaPage);
+        //await _context.SaveChangesAsync();
 
-        TestQuestionResponse = new AIResponse
-        {
-            PromptTokenUsage = 10,
-            CompletionTokenUsage = 20,
-            AIResponseTime = 1000,
-            ModelName = "GPT-4",
-            WikipediaPageId = TestWikipediaPage.Id
-        };
-        _context.AIResponses.Add(TestQuestionResponse);
-        await _context.SaveChangesAsync();
+        //TestQuestionResponse = new AIResponse
+        //{
+        //    PromptTokenUsage = 10,
+        //    CompletionTokenUsage = 20,
+        //    AIResponseTime = 1000,
+        //    ModelName = "GPT-4",
+        //    WikipediaPageId = TestWikipediaPage.Id
+        //};
+        //_context.AIResponses.Add(TestQuestionResponse);
+        //await _context.SaveChangesAsync();
 
-        TestQuestion = new Question
-        {
-            Text = "What is this test question?",
-            Options = new List<string> { "Option A", "Option B", "Option C", "Option D" },
-            CorrectAnswerIndex = 0,
-            QuestionResponseId = TestQuestionResponse.Id
-        };
-        _context.Questions.Add(TestQuestion);
-        await _context.SaveChangesAsync();
+        //TestQuestion = new Question
+        //{
+        //    Text = "What is this test question?",
+        //    Options = new List<string> { "Option A", "Option B", "Option C", "Option D" },
+        //    CorrectAnswerIndex = 0,
+        //    QuestionResponseId = TestQuestionResponse.Id
+        //};
+        //_context.Questions.Add(TestQuestion);
+        //await _context.SaveChangesAsync();
 
-        TestQuiz = new Quiz
-        {
-            Title = "Test Quiz",
-            AIResponses = new List<AIResponse> { TestQuestionResponse }
-        };
+        //TestQuiz = new Quiz
+        //{
+        //    Title = "Test Quiz",
+        //    AIResponses = new List<AIResponse> { TestQuestionResponse }
+        //};
+
         _context.Quizzes.Add(TestQuiz);
         await _context.SaveChangesAsync();
     }

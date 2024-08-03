@@ -21,6 +21,7 @@ public class QuizMapper
         return new QuizDto
         {
             Title = quiz.Title,
+            CreatedAt = quiz.CreatedAt,
             AIResponses = aiResponseDtos,
         };
     }

@@ -31,7 +31,7 @@ public static class LanguagesExtensions
             throw new ArgumentException("Language code cannot be null or empty", nameof(languageCode));
         }
 
-        var pair = LanguageCodeMap.FirstOrDefault(x => x.Value.Equals(languageCode, StringComparison.OrdinalIgnoreCase));
+        var pair = LanguageCodeMap.First(x => x.Value.Equals(languageCode, StringComparison.OrdinalIgnoreCase));
 
         if (LanguageCodeMap.ContainsKey(pair.Key))
         {

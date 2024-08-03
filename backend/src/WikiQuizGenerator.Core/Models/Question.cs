@@ -27,9 +27,7 @@ public class Question
     [Range(1, 5)]
     public int CorrectOptionNumber { get; set; }
 
-
     public int AIResponseId { get; set; }
-
     [ForeignKey("AIResponseId")]
     public AIResponse AIResponse { get; set; }
 }

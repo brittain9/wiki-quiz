@@ -14,46 +14,23 @@ public class QuizRepository : IQuizRepository
         _context = context;
     }
 
-    public async Task<Quiz> GetByIdAsync(int id)
+    public Task<Quiz> AddAsync(Quiz quiz)
     {
-        return await _context.Quizzes
-            .Include(q => q.AIResponses)
-                .ThenInclude(qr => qr.Questions)
-            .Include(q => q.AIResponses)
-                .ThenInclude(qr => qr.WikipediaPage)
-            .FirstOrDefaultAsync(q => q.Id == id);
+        throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<Quiz>> GetAllAsync()
+    public Task DeleteAsync(int id)
     {
-        return await _context.Quizzes
-            .Include(q => q.AIResponses)
-                .ThenInclude(qr => qr.Questions)
-            .Include(q => q.AIResponses)
-                .ThenInclude(qr => qr.WikipediaPage)
-            .ToListAsync();
+        throw new NotImplementedException();
     }
 
-    public async Task<Quiz> AddAsync(Quiz quiz)
+    public Task<IEnumerable<Quiz>> GetAllAsync()
     {
-        await _context.Quizzes.AddAsync(quiz);
-        await _context.SaveChangesAsync();
-        return quiz;
+        throw new NotImplementedException();
     }
 
-    public async Task UpdateAsync(Quiz quiz)
+    public Task<Quiz> GetByIdAsync(int id)
     {
-        _context.Quizzes.Update(quiz);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        var quiz = await _context.Quizzes.FindAsync(id);
-        if (quiz != null)
-        {
-            _context.Quizzes.Remove(quiz);
-            await _context.SaveChangesAsync();
-        }
+        throw new NotImplementedException();
     }
 }

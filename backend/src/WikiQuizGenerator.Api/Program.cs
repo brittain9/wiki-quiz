@@ -23,14 +23,18 @@ try
         .ReadFrom.Services(services));
 
     // TODO: Make both AI services avaliable and able to switch between them
-    // builder.Services.AddOpenAIService(builder.Configuration);
-    builder.Services.AddPerplexityAIService(builder.Configuration);
-
-    builder.Services.AddScoped<IQuestionGenerator, QuestionGenerator>();
-    builder.Services.AddScoped<IQuizGenerator, QuizGenerator>();
-    builder.Services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
+    builder.Services.AddOpenAIService(builder.Configuration);
+    // builder.Services.AddPerplexityAIService(builder.Configuration);
 
     builder.Services.AddDataServices();
+
+    builder.Services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
+
+    builder.Services.AddSingleton<PromptManager>();
+    builder.Services.AddScoped<IQuestionGenerator, QuestionGenerator>();
+
+    builder.Services.AddScoped<IQuizGenerator, QuizGenerator>();
+
 
     builder.Services.AddCors(options =>
     {

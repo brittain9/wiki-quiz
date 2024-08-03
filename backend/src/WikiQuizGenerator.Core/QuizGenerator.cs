@@ -24,11 +24,9 @@ public class QuizGenerator : IQuizGenerator
         _logger = logger;
     }
 
-    public async Task<Quiz> GenerateBasicQuizAsync(string topic, string language, int numQuestions, int numOptions, int extractLength)
+    public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, int numQuestions, int numOptions, int extractLength)
     {
-        Languages lang = LanguagesExtensions.GetLanguageFromCode(language); // this will throw error if language is not found
-
-        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, lang); // throws exception if topic not found
+        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language); // throws exception if topic not found
 
         if(page == null) // The topic was not found on Wikipedia
             return null; // This will fail fast, and ill indicate in text box that the topic is invalid within a second.
