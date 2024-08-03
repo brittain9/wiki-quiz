@@ -19,8 +19,13 @@ This project generates high-quality quizes based on nearly any topic using Wikip
 - Test API at localhost:5543/swagger
 
 ## Todo:
-- Add a basic user class
-- Add support for Google Gemini and Mistral
+- Write tests for the repositories
+- Add more prompt templates for various languages, difficulties, themes (funny, scientific, etc)
+- Hammer out bugs and optimize (write tests!)
+- Utilize the links and categories for quiz generation
+- Add the basic quiz post endpoint which checks the answers and returns a completedQuiz dto
+- Add a user
+- Work on the frontend
 - Add logic to handle Wikipedia disambiguation pages: https://en.wikipedia.org/wiki/Category:Disambiguation_pages
 
-![ERD Diagram](backend\src\WikiQuizGenerator.Data/WikiQuizERD.png)
+![ERD Diagram](backend/src/WikiQuizGenerator.Data/WikiQuizERD.png)
