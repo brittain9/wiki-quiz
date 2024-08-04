@@ -39,6 +39,8 @@ public class WikipediaContentProvider : IWikipediaContentProvider
     /// <returns>A WikipediaArticle object containing the article information.</returns>
     public async Task<WikipediaPage> GetWikipediaPage(string topic, Languages language)
     {
+        _logger.LogTrace($"Getting wikipedia page content on topic '{topic}' in {nameof(language)}.");
+
         if (Language != language) 
             Language = language;
 
@@ -46,26 +48,26 @@ public class WikipediaContentProvider : IWikipediaContentProvider
 
         Stopwatch sw = Stopwatch.StartNew();
 
+        // Get the exact wikipedia page title using the wikipedia api search
         var exactTitle = await GetWikipediaExactTitle(query);
         if (string.IsNullOrEmpty(exactTitle))
         {
             throw new ArgumentException($"No Wikipedia page found for the given query.", nameof(query));
         }
 
-        sw.Stop();
-        _logger.LogInformation($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {sw.ElapsedMilliseconds} milliseconds");
+        _logger.LogInformation($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {sw.ElapsedMilliseconds} milliseconds.");
+        sw.Restart();
 
         // Check if we already have this page.
-        if (await _pageRepository.ExistsByTitleAsync(exactTitle))
+        if (await _pageRepository.ExistsByTitleAsync(exactTitle, language))
         {
-            _logger.LogInformation($"Found page '{exactTitle}' in the database");
-            return await _pageRepository.GetByTitleAsync(exactTitle);
+            _logger.LogInformation($"Got page '{exactTitle}' in language '{nameof(language)}'from the database in {sw.ElapsedMilliseconds} milliseconds");
+            return await _pageRepository.GetByTitleAsync(exactTitle, language);
         }
 
         var exactQuery = HttpUtility.UrlEncode(exactTitle);
         var url = QueryApiEndpoint + exactQuery;
 
-        sw.Restart();
         try
         {
             var response = await _client.GetStringAsync(url);
@@ -77,7 +79,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
             {
                 var wikiPage = new WikipediaPage
                 {
-                    Id = page.Value.GetProperty("pageid").GetInt32(),
+                    WikipediaId = page.Value.GetProperty("pageid").GetInt32(),
                     Title = page.Value.GetProperty("title").GetString(),
                     Language = page.Value.GetProperty("pagelanguage").GetString(),
                     Extract = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
@@ -116,7 +118,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
 
                 sw.Stop();
                 wikiPage = await _pageRepository.AddAsync(wikiPage);
-                _logger.LogInformation($"Added Wikipedia page '{wikiPage.Title}' to database in {sw.ElapsedMilliseconds} milliseconds");
+                _logger.LogInformation($"Added Wikipedia page '{wikiPage.Title}' with language {nameof(language)} to database in {sw.ElapsedMilliseconds} milliseconds.");
                 return wikiPage;
             }
 
@@ -132,6 +134,8 @@ public class WikipediaContentProvider : IWikipediaContentProvider
 
     public async Task<string> GetWikipediaExactTitle(string query)
     {
+        _logger.LogTrace($"Getting exact wikipedia title from user topic '{query}'.");
+
         string searchUrl = $"{ApiEndpoint}?action=opensearch&search={query}&limit=1&format=json";
         var searchResponse = await _client.GetStringAsync(searchUrl);
         var searchResults = JsonDocument.Parse(searchResponse);

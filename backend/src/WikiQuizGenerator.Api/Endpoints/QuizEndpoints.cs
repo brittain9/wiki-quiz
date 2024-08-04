@@ -6,6 +6,7 @@ using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Mappers;
 using WikiQuizGenerator.Core;
+using Microsoft.AspNetCore.SignalR;
 
 namespace WikiQuizGenerator.Api;
 
@@ -17,6 +18,8 @@ public static class QuizEndpoints
         // Returns our DTO
         app.MapGet("/basicquiz", async(IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
+            Log.Verbose($"GET /basicquiz called with topic '{topic}' in {language} with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
+
             // Validate input parameters
             if (numQuestions < 1 || numQuestions > 20)
             {
@@ -39,13 +42,18 @@ public static class QuizEndpoints
 
                 var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, numQuestions, numOptions, extractLength);
 
-                Log.Information($"Generated basic quiz on {topic}");
+                Log.Verbose($"GET /basicquiz returning quiz with id '{quiz.Id}'.");
                 return Results.Ok(QuizMapper.ToDto(quiz));
             }
-            catch (ArgumentException ex) when (ex.Message.Contains("language"))
+            catch (LanguageException ex)
             {
                 Log.Error($"Invalid language code: {language}");
                 return Results.BadRequest($"Invalid language code: {language}");
+            }
+            catch(ArgumentException ex)
+            {
+                Log.Error($"Wikipedia page not found for topic: {topic}");
+                return Results.BadRequest($"Wikipedia page not found for topic: {topic}");
             }
             catch (Exception ex)
             {
@@ -71,6 +79,8 @@ public static class QuizEndpoints
 
         app.MapPost("/submitquiz", async (IQuizRepository quizRepository, QuizSubmissionDto submissionDto) =>
         {
+            Log.Verbose($"POST /submitquiz called on quiz Id '{submissionDto.QuizId}'.");
+
             var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
 
             if (quiz == null)

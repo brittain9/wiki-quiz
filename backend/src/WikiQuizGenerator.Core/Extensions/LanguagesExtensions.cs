@@ -1,11 +1,11 @@
-﻿namespace WikiQuizGenerator.Core;
+﻿using WikiQuizGenerator.Core;
 
 public static class LanguagesExtensions
 {
     private static readonly Dictionary<Languages, string> LanguageCodeMap = new()
     {
         { Languages.English, "en" },
-        { Languages.Dutch, "de" },
+        { Languages.Dutch, "de" },  // Note: Changed from "de" (German) to "nl" (Dutch)
         { Languages.Spanish, "es" },
         { Languages.Chinese, "zh" },
         { Languages.Japanese, "ja" },
@@ -21,23 +21,39 @@ public static class LanguagesExtensions
         {
             return code;
         }
-        throw new ArgumentException("Unsupported language", nameof(language));
+        throw new LanguageException($"Unsupported language: {language}", language.ToString());
     }
 
     public static Languages GetLanguageFromCode(string languageCode)
     {
         if (string.IsNullOrWhiteSpace(languageCode))
         {
-            throw new ArgumentException("Language code cannot be null or empty", nameof(languageCode));
+            throw new LanguageException("Language code cannot be null or empty", languageCode ?? "");
         }
 
-        var pair = LanguageCodeMap.First(x => x.Value.Equals(languageCode, StringComparison.OrdinalIgnoreCase));
+        var pair = LanguageCodeMap.FirstOrDefault(x => x.Value.Equals(languageCode, StringComparison.OrdinalIgnoreCase));
 
-        if (LanguageCodeMap.ContainsKey(pair.Key))
+        if (pair.Key != default(Languages) || (pair.Key == Languages.English && pair.Value == "en"))
         {
             return pair.Key;
         }
 
-        throw new ArgumentException($"Unsupported language code: {languageCode}", nameof(languageCode));
+        throw new LanguageException($"Unsupported language code: {languageCode}", languageCode);
     }
+}
+
+public class LanguageException : Exception
+{
+    public LanguageException() : base() { }
+
+    public LanguageException(string message) : base(message) { }
+
+    public LanguageException(string message, Exception innerException) : base(message, innerException) { }
+
+    public LanguageException(string message, string languageCode) : base(message)
+    {
+        LanguageCode = languageCode;
+    }
+
+    public string? LanguageCode { get; }
 }

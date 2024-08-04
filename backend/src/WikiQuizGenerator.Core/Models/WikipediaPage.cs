@@ -6,7 +6,8 @@ namespace WikiQuizGenerator.Core.Models;
 
 public class WikipediaPage
 {
-    public int Id { get; set; }
+    public int Id { get; set; } // id for my database, need this for different languages
+    public int WikipediaId { get; set; } // id from wikipedia api
     public string Language { get; set; }
     public string Title { get; set; }
     public string Extract { get; set; }

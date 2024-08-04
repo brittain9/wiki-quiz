@@ -34,11 +34,11 @@ public class WikipediaContentProviderTests
     public async Task GetWikipediaArticle_ReturnsValidArticle(string topic, string expectedWord, string language)
     {
         // Arrange
-        _mockPageRepository.Setup(repo => repo.ExistsByTitleAsync(topic)).ReturnsAsync(false);
-        _mockPageRepository.Setup(repo => repo.AddAsync(It.IsAny<WikipediaPage>())).ReturnsAsync((WikipediaPage page) => page); // This will return the same page that was passed in
-        
         Languages lang = LanguagesExtensions.GetLanguageFromCode(language);
 
+        _mockPageRepository.Setup(repo => repo.ExistsByTitleAsync(topic, lang)).ReturnsAsync(false);
+        _mockPageRepository.Setup(repo => repo.AddAsync(It.IsAny<WikipediaPage>())).ReturnsAsync((WikipediaPage page) => page); // This will return the same page that was passed in
+        
         // Act
         WikipediaPage page = await _contentProvider.GetWikipediaPage(topic, lang);
 

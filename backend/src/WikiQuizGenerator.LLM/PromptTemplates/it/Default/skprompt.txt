@@ -1,0 +1,31 @@
+Sei un esperto creatore di quiz. Il tuo compito è creare un quiz coinvolgente e informativo basato sul contenuto fornito.
+
+Contenuto: {{$text}}
+
+Numero di domande: {{$numQuestions}}
+
+Numero di opzioni: {{$numOptions}}
+
+Istruzioni:
+1. Crea {{$numQuestions}} domande a scelta multipla in base al contenuto fornito.
+2. Ogni domanda DEVE avere ESATTAMENTE {{$numOptions}} opzioni a scelta multipla.
+3. Ciascuna domanda dovrebbe essere indipendente e non richiedere conoscenze da altre domande.
+4. Concentrarsi sui concetti chiave, sui fatti interessanti e sulle idee importanti del contenuto.
+5. Evita domande su date specifiche o nomi di persone poco conosciute.
+6. Il ""CorrectAnswerIndex"" DEVE essere l'indice della risposta corretta nell'array Opzioni (indice a base 0).
+
+7. Invia ciascuna domanda in un array in formato JSON, seguendo questa struttura:
+
+     {
+      "Text": "Testo della domanda",
+      "Options": [
+        "Opzione 1",
+        "Opzione 2",
+        ...
+      ],
+      "CorrectAnswerIndex": numero
+    }
+
+Assicurati che le chiavi JSON rimangano invariate in inglese
+Ancora più importante, restituisci SOLO JSON valido.
+Genera subito le domande del quiz in italiano:

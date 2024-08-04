@@ -1,32 +1,31 @@
-Vous êtes un créateur de quiz expert. Votre tâche consiste à créer un quiz basé sur le contenu donné. Le quiz doit être engageant, informatif et éviter les détails insignifiants comme des dates spécifiques ou des noms de personnes moins connues.
+Vous êtes un créateur de quiz expert. Votre tâche consiste à créer un quiz engageant et informatif basé sur le contenu donné.
 
-Contenu : {{$text}}
+Contenu : {{$text}}
 
-Nombre de questions : {{$numQuestions}}
+Nombre de questions : {{$numQuestions}}
 
-Langue : {{$language}}
+Nombre d'options : {{$numOptions}}
 
 Instructions:
 1. Créez {{$numQuestions}} questions à choix multiples basées sur le contenu fourni.
-2. Chaque question doit être indépendante et ne nécessiter aucune connaissance d’autres questions.
-3. Concentrez-vous sur les concepts clés, les faits intéressants et les idées importantes du contenu.
-4. Évitez les questions sur des dates précises ou sur les noms de personnes peu connues.
-5. Pour chaque question, proposez quatre options, avec une seule bonne réponse.
-6. Affichez chaque question dans un tableau au format JSON, en suivant cette structure :
+2. Chaque question DOIT comporter EXACTEMENT {{$numOptions}} options à choix multiples.
+3. Chaque question doit être indépendante et ne nécessiter aucune connaissance des autres questions.
+4. Concentrez-vous sur les concepts clés, les faits intéressants et les idées importantes du contenu.
+5. Évitez les questions sur des dates précises ou sur les noms de personnes peu connues.
+6. Le ""CorrectAnswerIndex"" DOIT être l'index de la réponse correcte dans le tableau Options (index basé sur 0).
+
+7. Affichez chaque question dans un tableau au format JSON, en suivant cette structure :
 
     {
       "Text": "Texte de la question",
       "Options": [
         "Option 1",
         "Option 2",
-        "Option 3",
-        "Option 4"
+        ...
       ],
-      "CorrectAnswerIndex": number
+      "CorrectAnswerIndex": nombre
     }
 
-7. Assurez-vous que tout le contenu du texte (texte de la question et options) est dans la langue de l'invite.
-8. Conservez les clés JSON ("Text", "Options", "CorrectAnswerIndex") en anglais.
-9. Assurez-vous que le JSON est valide et suit la structure fournie ci-dessus.
-
-Veuillez générer les questions du quiz et renvoyer uniquement du JSON valide.
+Assurez-vous que les clés JSON restent inchangées en anglais
+Plus important encore, renvoyez UNIQUEMENT du JSON valide.
+Générez maintenant les questions du quiz en français :

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Azure;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -27,17 +28,14 @@ public class QuestionGenerator : IQuestionGenerator
 
     public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions)
     {
-        // Limit the number of questions and options
-        numQuestions = Math.Clamp(numQuestions, 1, 35);
-        numOptions = Math.Clamp(numOptions, 2, 5);
+        _logger.LogTrace($"Generating {numQuestions} questions on page '{page.Title}' in {language.GetWikipediaLanguageCode()} with {numOptions} options and {content.Length} content length");
 
         var quizFunction = _promptManager.GetPromptFunction("Default", language.GetWikipediaLanguageCode());
 
-        var timer = new Stopwatch(); // to get the response time
-        timer.Start();
+        Stopwatch sw = Stopwatch.StartNew();
 
         var questions = new List<Question>();
-        FunctionResult result = null!;
+        FunctionResult result = null!; // this will be our ai response
         var generationAttempts = 0;;
 
         do
@@ -62,7 +60,7 @@ public class QuestionGenerator : IQuestionGenerator
 
         } while (questions.Count == 0 && generationAttempts < 3);
 
-        timer.Stop();
+        sw.Stop();
 
         if (generationAttempts >= 3)
         {
@@ -75,7 +73,7 @@ public class QuestionGenerator : IQuestionGenerator
             WikipediaPageId = page.Id,
             WikipediaPage = page,
             ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA",
-            ResponseTime = timer.ElapsedMilliseconds,
+            ResponseTime = sw.ElapsedMilliseconds,
         };
 
         if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
@@ -112,6 +110,8 @@ public class QuestionGenerator : IQuestionGenerator
 
     private List<Question> ExtractQuestionsFromResult(string result)
     {
+        _logger.LogTrace($"Extracting questions from result");
+
         // Remove code fences, extra brackets, and whitespace
         var cleanedResult = CleanJsonString(result);
 
@@ -170,8 +170,8 @@ public class QuestionGenerator : IQuestionGenerator
         }
         catch (JsonException ex)
         {
-            Debug.WriteLine($"Error parsing JSON: {ex.Message}");
-            Debug.WriteLine($"Cleaned JSON string: {cleanedResult}");
+            _logger.LogError($"Error parsing JSON: {ex.Message}");
+            _logger.LogError($"Cleaned JSON string: {cleanedResult}");
             return new List<Question>();
         }
     }

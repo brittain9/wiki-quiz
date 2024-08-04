@@ -1,6 +1,6 @@
 {
-    "name": "Default_fr",
-    "description": "The default prompt to create engaging and informative quiz questions based on provided content in French.",
+    "name": "Default_ru",
+    "description": "The default prompt to create engaging and informative quiz questions based on provided content in Russian.",
     "template_format": "semantic-kernel",
   "input_variables": [
     {

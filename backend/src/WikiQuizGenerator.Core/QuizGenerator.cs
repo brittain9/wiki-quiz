@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Humanizer;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
@@ -29,20 +21,24 @@ public class QuizGenerator : IQuizGenerator
 
     public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, int numQuestions, int numOptions, int extractLength)
     {
-        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language); // throws exception if topic not found
+        _logger.LogTrace($"Generating a basic quiz on '{topic}' in {language.GetWikipediaLanguageCode()} with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
 
-        if (page == null) // The topic was not found on Wikipedia
-            return null;
-
-        Quiz quiz = new Quiz();
-
-        quiz.Title = page.Title;
+        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language);
+        if (page == null)
+            return null; // we got pages, but they aren't valid. Should never happen really, so may change later
 
         var content = RandomContentSections.GetRandomContentSections(page.Extract, extractLength);
 
         var aiResponse = await _questionGenerator.GenerateQuestionsAsync(page, content, language, numQuestions, numOptions);
-        quiz.AIResponses.Add(aiResponse);
-        quiz.CreatedAt = DateTime.UtcNow;
+        if (aiResponse == null)
+            return null;
+
+        Quiz quiz = new Quiz()
+        {
+            Title = page.Title,
+            CreatedAt = DateTime.UtcNow,
+            AIResponses = new List<AIResponse> { aiResponse }
+        };
 
         var result = await _quizRepository.AddAsync(quiz);
         return result;

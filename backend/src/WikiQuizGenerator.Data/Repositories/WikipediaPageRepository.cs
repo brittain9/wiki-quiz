@@ -1,6 +1,7 @@
 ﻿using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using WikiQuizGenerator.Core;
 
 namespace WikiQuizGenerator.Data.Repositories;
 
@@ -18,6 +19,16 @@ public class WikipediaPageRepository : IWikipediaPageRepository
         return await _context.Set<WikipediaPage>()
             .Include(wp => wp.Categories)
             .FirstOrDefaultAsync(wp => wp.Id == id);
+    }
+
+    public async Task<WikipediaPage> GetByWikipediaIdAsync(int wikipediaId, Languages language)
+    {
+        // different languages can link to the same wikipedia id
+        var lang = LanguagesExtensions.GetWikipediaLanguageCode(language);
+        return await _context.Set<WikipediaPage>()
+            .Where(wp => wp.Language == lang)
+            .Include(wp => wp.Categories)
+            .FirstOrDefaultAsync(wp => wp.WikipediaId == wikipediaId);
     }
 
     public async Task<IEnumerable<WikipediaPage>> GetAllAsync()
@@ -58,17 +69,19 @@ public class WikipediaPageRepository : IWikipediaPageRepository
     }
 
 
-    public async Task<WikipediaPage> GetByTitleAsync(string title)
+    public async Task<WikipediaPage> GetByTitleAsync(string title, Languages language)
     {
+        string languageCode = language.GetWikipediaLanguageCode();
         return await _context.WikipediaPages
             .Include(wp => wp.Categories)
-            .FirstOrDefaultAsync(wp => wp.Title == title);
+            .FirstOrDefaultAsync(wp => wp.Title == title && wp.Language == languageCode);
     }
 
-    public async Task<bool> ExistsByTitleAsync(string title)
+    public async Task<bool> ExistsByTitleAsync(string title, Languages language)
     {
+        string languageCode = language.GetWikipediaLanguageCode();
         return await _context.Set<WikipediaPage>()
-            .AnyAsync(wp => wp.Title == title);
+            .AnyAsync(wp => wp.Title == title && wp.Language == languageCode);
     }
 
     public async Task<IEnumerable<WikipediaPage>> GetByLanguageAsync(string language)

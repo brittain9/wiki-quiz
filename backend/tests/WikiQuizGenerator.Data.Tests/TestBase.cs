@@ -52,6 +52,7 @@ public abstract class TestBase : IDisposable
 
         TestWikipediaPage = new WikipediaPage
         {
+            WikipediaId = 535,
             Language = "en",
             Title = "Test Wikipedia Page",
             Extract = "This is a test Wikipedia page extract.",

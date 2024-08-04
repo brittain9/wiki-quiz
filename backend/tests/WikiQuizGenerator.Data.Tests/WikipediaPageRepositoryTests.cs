@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Data;
@@ -30,6 +31,25 @@ public class WikipediaPageRepositoryTests : TestBase
         // Assert
         Assert.NotNull(result);
         Assert.Equal(TestWikipediaPage.Id, result.Id);
+        Assert.Equal(TestWikipediaPage.Title, result.Title);
+        Assert.Equal(TestWikipediaPage.Links.Count, result.Links.Count);
+        Assert.Equal(TestWikipediaPage.Categories.Count, result.Categories.Count);
+    }
+
+    [Fact]
+    public async Task GetByWikipediaIdAsync_ShouldReturnCorrectWikipediaPage()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        Languages language = LanguagesExtensions.GetLanguageFromCode(TestWikipediaPage.Language);
+       
+        // Act
+        var result = await _repository.GetByWikipediaIdAsync(TestWikipediaPage.WikipediaId, language);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(TestWikipediaPage.Id, result.Id);
+        Assert.Equal(TestWikipediaPage.WikipediaId, result.WikipediaId);
         Assert.Equal(TestWikipediaPage.Title, result.Title);
         Assert.Equal(TestWikipediaPage.Links.Count, result.Links.Count);
         Assert.Equal(TestWikipediaPage.Categories.Count, result.Categories.Count);
@@ -133,14 +153,16 @@ public class WikipediaPageRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
+        var testLanguage = Languages.English; // Assume English for this test, adjust as needed
 
         // Act
-        var result = await _repository.GetByTitleAsync(TestWikipediaPage.Title);
+        var result = await _repository.GetByTitleAsync(TestWikipediaPage.Title, testLanguage);
 
         // Assert
         Assert.NotNull(result);
         Assert.Equal(TestWikipediaPage.Id, result.Id);
         Assert.Equal(TestWikipediaPage.Title, result.Title);
+        Assert.Equal(testLanguage.GetWikipediaLanguageCode(), result.Language);
     }
 
     [Fact]
@@ -148,9 +170,10 @@ public class WikipediaPageRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
+        var testLanguage = Languages.English; // Assume English for this test, adjust as needed
 
         // Act
-        var result = await _repository.ExistsByTitleAsync(TestWikipediaPage.Title);
+        var result = await _repository.ExistsByTitleAsync(TestWikipediaPage.Title, testLanguage);
 
         // Assert
         Assert.True(result);
@@ -161,9 +184,24 @@ public class WikipediaPageRepositoryTests : TestBase
     {
         // Arrange
         await ResetDatabaseAsync();
+        var testLanguage = Languages.English; // Assume English for this test, adjust as needed
 
         // Act
-        var result = await _repository.ExistsByTitleAsync("Non-existing Title");
+        var result = await _repository.ExistsByTitleAsync("Non-existing Title", testLanguage);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task ExistsByTitleAsync_ShouldReturnFalseForExistingTitleInDifferentLanguage()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        var testLanguage = Languages.Spanish; // Assume the page exists in English but not in Spanish
+
+        // Act
+        var result = await _repository.ExistsByTitleAsync(TestWikipediaPage.Title, testLanguage);
 
         // Assert
         Assert.False(result);
