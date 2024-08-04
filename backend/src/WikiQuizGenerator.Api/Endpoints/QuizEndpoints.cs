@@ -25,7 +25,7 @@ public static class QuizEndpoints
 
             if (numOptions < 2 || numOptions > 5)
             {
-                return Results.BadRequest("Number of options must be between 2 and 6.");
+                return Results.BadRequest("Number of options must be between 2 and 5.");
             }
 
             if (extractLength < 100 || extractLength > 50000)
@@ -39,7 +39,7 @@ public static class QuizEndpoints
 
                 var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, numQuestions, numOptions, extractLength);
 
-                Log.Information($"Generated basic quiz on {topic}"); // TODO: Add token usage to logs again
+                Log.Information($"Generated basic quiz on {topic}");
                 return Results.Ok(QuizMapper.ToDto(quiz));
             }
             catch (ArgumentException ex) when (ex.Message.Contains("language"))
@@ -68,6 +68,70 @@ public static class QuizEndpoints
            return operation;
        });
 
-        // Add post method and expose DTOs.
+
+        app.MapPost("/submitquiz", async (IQuizRepository quizRepository, QuizSubmissionDto submissionDto) =>
+        {
+            var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
+
+            if (quiz == null)
+            {
+                return Results.NotFound("Quiz not found");
+            }
+
+            var questions = quiz.AIResponses.SelectMany(ar => ar.Questions).ToList();
+
+            if (submissionDto.UserAnswers.Count != questions.Count)
+            {
+                return Results.BadRequest("Number of answers doesn't match number of questions");
+            }
+
+            var result = new QuizResultDto
+            {
+                QuizId = quiz.Id,
+                Questions = new List<QuestionResultDto>(),
+                TotalQuestions = questions.Count
+            };
+
+            for (int i = 0; i < questions.Count; i++)
+            {
+                var question = questions[i];
+                var userAnswer = submissionDto.UserAnswers[i];
+                var isCorrect = userAnswer == question.CorrectOptionNumber;
+
+                result.Questions.Add(new QuestionResultDto
+                {
+                    QuestionId = question.Id,
+                    UserAnswer = userAnswer,
+                    CorrectAnswer = question.CorrectOptionNumber,
+                    IsCorrect = isCorrect
+                });
+
+                if (isCorrect)
+                {
+                    result.Score++;
+                }
+            }
+
+            // Save the submission
+            var submission = new QuizSubmission
+            {
+                QuizId = quiz.Id,
+                Answers = submissionDto.UserAnswers,
+                SubmissionTime = DateTime.UtcNow,
+                Score = result.Score
+            };
+
+            await quizRepository.AddSubmissionAsync(submission);
+
+            return Results.Ok(result);
+        })
+        .WithName("SubmitQuiz")
+        .WithOpenApi(operation =>
+        {
+            operation.Summary = "Submit answers for a quiz and get results.";
+            operation.Description = "This endpoint allows users to submit their answers for a quiz and receive feedback on their performance.";
+
+            return operation;
+        });
     }
 }

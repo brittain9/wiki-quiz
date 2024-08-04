@@ -20,6 +20,7 @@ public class QuizMapper
 
         return new QuizDto
         {
+            Id = quiz.Id,
             Title = quiz.Title,
             CreatedAt = quiz.CreatedAt,
             AIResponses = aiResponseDtos,

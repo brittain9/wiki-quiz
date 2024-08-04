@@ -8,4 +8,9 @@ public interface IQuizRepository
     Task<IEnumerable<Quiz>> GetAllAsync();
     Task<Quiz> AddAsync(Quiz quiz);
     Task DeleteAsync(int id);
+
+    Task<QuizSubmission> AddSubmissionAsync(QuizSubmission submission);
+    Task DeleteSubmissionAsync(int submissionId);
+    Task<QuizSubmission> GetSubmissionByIdAsync(int submissionId);
+    Task<IEnumerable<QuizSubmission>> GetAllSubmissionsAsync();
 }

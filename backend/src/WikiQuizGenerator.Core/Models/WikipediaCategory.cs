@@ -9,5 +9,5 @@ public class WikipediaCategory
     public string Name { get; set; }
 
     // Many-to-many relationship with WikipediaPage
-    public IList<WikipediaPage> WikipediaPages { get; set; }
+    public IList<WikipediaPage> WikipediaPages { get; set; } = new List<WikipediaPage>();
 }

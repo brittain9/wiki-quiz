@@ -103,4 +103,129 @@ public class QuizRepositoryTests : TestBase
         // Assert
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task AddSubmission_ShouldAddNewSubmissionToDatabase()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        var newSubmission = new QuizSubmission
+        {
+            QuizId = TestQuiz.Id,
+            Answers = new List<int> { 2 },
+            SubmissionTime = DateTime.UtcNow,
+            Score = 2
+        };
+
+        // Act
+        var result = await _repository.AddSubmissionAsync(newSubmission);
+
+        // Assert
+        Assert.NotEqual(0, result.Id);
+        var submissionInDb = await _context.QuizSubmissions.FindAsync(result.Id);
+        Assert.NotNull(submissionInDb);
+        Assert.Equal(newSubmission.QuizId, submissionInDb.QuizId);
+        Assert.Equal(newSubmission.Score, submissionInDb.Score);
+    }
+
+    [Fact]
+    public async Task DeleteSubmission_ShouldRemoveSubmissionFromDatabase()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+
+        // Act
+        await _repository.DeleteSubmissionAsync(TestQuizSubmission.Id);
+
+        // Assert
+        var deletedSubmission = await _context.QuizSubmissions.FindAsync(TestQuizSubmission.Id);
+        Assert.Null(deletedSubmission);
+    }
+
+    [Fact]
+    public async Task DeleteQuiz_ShouldCascadeDeleteSubmissions()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+
+        // Act
+        await _repository.DeleteAsync(TestQuiz.Id);
+
+        // Assert
+        var deletedQuiz = await _context.Quizzes.FindAsync(TestQuiz.Id);
+        Assert.Null(deletedQuiz);
+
+        var deletedSubmission = await _context.QuizSubmissions.FindAsync(TestQuizSubmission.Id);
+        Assert.Null(deletedSubmission);
+    }
+
+    [Fact]
+    public async Task GetSubmissionById_ShouldReturnCorrectSubmission()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+
+        // Act
+        var result = await _repository.GetSubmissionByIdAsync(TestQuizSubmission.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(TestQuizSubmission.Id, result.Id);
+        Assert.Equal(TestQuizSubmission.QuizId, result.QuizId);
+        Assert.Equal(TestQuizSubmission.Score, result.Score);
+    }
+
+    [Fact]
+    public async Task GetSubmissionById_ShouldReturnNullForNonexistentId()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        int nonexistentId = 9999;
+
+        // Act
+        var result = await _repository.GetSubmissionByIdAsync(nonexistentId);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetAllSubmissions_ShouldReturnAllSubmissions()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+
+        // Add another submission
+        var newSubmission = new QuizSubmission
+        {
+            QuizId = TestQuiz.Id,
+            Answers = new List<int> { 2, 3, 1, 4 },
+            SubmissionTime = DateTime.UtcNow,
+            Score = 2
+        };
+        await _repository.AddSubmissionAsync(newSubmission);
+
+        // Act
+        var results = await _repository.GetAllSubmissionsAsync();
+
+        // Assert
+        Assert.Equal(2, results.Count());
+        Assert.Contains(results, s => s.Id == TestQuizSubmission.Id);
+        Assert.Contains(results, s => s.Id == newSubmission.Id);
+    }
+
+    [Fact]
+    public async Task GetAllSubmissions_ShouldReturnEmptyListWhenNoSubmissions()
+    {
+        // Arrange
+        await ResetDatabaseAsync();
+        _context.QuizSubmissions.RemoveRange(_context.QuizSubmissions);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var results = await _repository.GetAllSubmissionsAsync();
+
+        // Assert
+        Assert.Empty(results);
+    }
 }

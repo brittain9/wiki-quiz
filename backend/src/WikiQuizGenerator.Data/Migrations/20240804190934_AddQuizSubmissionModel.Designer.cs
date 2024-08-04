@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WikiQuizGenerator.Data;
@@ -12,9 +13,11 @@ using WikiQuizGenerator.Data;
 namespace WikiQuizGenerator.Data.Migrations
 {
     [DbContext(typeof(WikiQuizDbContext))]
-    partial class WikiQuizDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240804190934_AddQuizSubmissionModel")]
+    partial class AddQuizSubmissionModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

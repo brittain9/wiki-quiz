@@ -10,6 +10,5 @@ public class Quiz
     public DateTime CreatedAt { get; set; }
     // These contain the questions and some extra information
     public IList<AIResponse> AIResponses { get; set; } = new List<AIResponse>();
-
-    // Add a user later
+    public IList<QuizSubmission> QuizSubmissions { get; set; } = new List<QuizSubmission>();
 }

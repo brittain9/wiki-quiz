@@ -16,6 +16,7 @@ public abstract class TestBase : IDisposable
     public AIResponse TestAIResponse { get; private set; }
     public Question TestQuestion { get; private set; }
     public Quiz TestQuiz { get; private set; }
+    public QuizSubmission TestQuizSubmission { get; private set; }
 
     public TestBase()
     {
@@ -33,6 +34,8 @@ public abstract class TestBase : IDisposable
         _context.Questions.RemoveRange(_context.Questions);
         _context.AIResponses.RemoveRange(_context.AIResponses);
         _context.Quizzes.RemoveRange(_context.Quizzes);
+        _context.QuizSubmissions.RemoveRange(_context.QuizSubmissions);
+
         await _context.SaveChangesAsync();
 
         await InsertTestDataAsync();
@@ -103,6 +106,23 @@ public abstract class TestBase : IDisposable
 
         // Update TestQuiz with the new AIResponse
         TestQuiz.AIResponses = new List<AIResponse> { TestAIResponse };
+        _context.Quizzes.Update(TestQuiz);
+
+        await _context.SaveChangesAsync();
+
+        TestQuizSubmission = new QuizSubmission
+        {
+            QuizId = TestQuiz.Id,
+            Quiz = TestQuiz,
+            Answers = new List<int> { 1 },
+            SubmissionTime = DateTime.UtcNow,
+            Score = 3
+        };
+        _context.QuizSubmissions.Add(TestQuizSubmission);
+        await _context.SaveChangesAsync();
+
+        // Update TestQuiz with the new QuizSubmission
+        TestQuiz.QuizSubmissions = new List<QuizSubmission> { TestQuizSubmission };
         _context.Quizzes.Update(TestQuiz);
 
         await _context.SaveChangesAsync();
