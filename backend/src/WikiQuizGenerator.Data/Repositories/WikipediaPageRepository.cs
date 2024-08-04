@@ -16,7 +16,6 @@ public class WikipediaPageRepository : IWikipediaPageRepository
     public async Task<WikipediaPage> GetByIdAsync(int id)
     {
         return await _context.Set<WikipediaPage>()
-            .Include(wp => wp.Links)
             .Include(wp => wp.Categories)
             .FirstOrDefaultAsync(wp => wp.Id == id);
     }
@@ -24,7 +23,6 @@ public class WikipediaPageRepository : IWikipediaPageRepository
     public async Task<IEnumerable<WikipediaPage>> GetAllAsync()
     {
         return await _context.Set<WikipediaPage>()
-            .Include(wp => wp.Links)
             .Include(wp => wp.Categories)
             .ToListAsync();
     }
@@ -36,20 +34,33 @@ public class WikipediaPageRepository : IWikipediaPageRepository
         return wikipediaPage;
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
-        var wikipediaPage = await _context.Set<WikipediaPage>().FindAsync(id);
-        if (wikipediaPage != null)
+        var wikipediaPage = await _context.Set<WikipediaPage>()
+            .Include(w => w.AIResponses)
+            .FirstOrDefaultAsync(w => w.Id == id);
+
+        if (wikipediaPage == null)
         {
-            _context.Set<WikipediaPage>().Remove(wikipediaPage);
-            await _context.SaveChangesAsync();
+            return false; // Page not found
         }
+
+        // Check if there are any associated AIResponses
+        if (wikipediaPage.AIResponses.Any())
+        {
+            return false; // Don't delete if there are associated AIResponses
+        }
+
+        // If no AIResponses, proceed with deletion
+        _context.WikipediaPages.Remove(wikipediaPage);
+        await _context.SaveChangesAsync();
+        return true; // Deletion successful
     }
+
 
     public async Task<WikipediaPage> GetByTitleAsync(string title)
     {
         return await _context.WikipediaPages
-            .Include(wp => wp.Links)
             .Include(wp => wp.Categories)
             .FirstOrDefaultAsync(wp => wp.Title == title);
     }
@@ -64,7 +75,6 @@ public class WikipediaPageRepository : IWikipediaPageRepository
     {
         return await _context.Set<WikipediaPage>()
             .Where(wp => wp.Language == language)
-            .Include(wp => wp.Links)
             .Include(wp => wp.Categories)
             .ToListAsync();
     }
@@ -73,76 +83,19 @@ public class WikipediaPageRepository : IWikipediaPageRepository
     {
         return await _context.Set<WikipediaPage>()
             .Where(wp => wp.Categories.Any(c => c.Name == categoryName))
-            .Include(wp => wp.Links)
             .Include(wp => wp.Categories)
             .ToListAsync();
     }
 
-    public async Task AddLinkAsync(int pageId, WikipediaLink link)
+    public async Task DeleteEmptyCategoriesAsync()
     {
-        var page = await _context.Set<WikipediaPage>().FindAsync(pageId);
-        if (page != null)
+        var emptyCategories = await _context.WikipediaCategories
+            .Where(c => !c.WikipediaPages.Any())
+            .ToListAsync();
+
+        if (emptyCategories.Any())
         {
-            link.WikipediaPageId = pageId;
-            await _context.Set<WikipediaLink>().AddAsync(link);
-            await _context.SaveChangesAsync();
-        }
-    }
-
-    public async Task RemoveLinkAsync(int pageId, int linkId)
-    {
-        var link = await _context.Set<WikipediaLink>()
-            .FirstOrDefaultAsync(l => l.Id == linkId && l.WikipediaPageId == pageId);
-
-        if (link != null)
-        {
-            _context.Set<WikipediaLink>().Remove(link);
-            await _context.SaveChangesAsync();
-        }
-    }
-
-    public async Task AddCategoryAsync(int pageId, string categoryName)
-    {
-        var page = await _context.WikipediaPages.FindAsync(pageId);
-        if (page == null)
-        {
-            throw new KeyNotFoundException($"WikipediaPage with id '{pageId}' not found.");
-        }
-
-        var category = await _context.WikipediaCategories
-            .FirstOrDefaultAsync(c => c.Name == categoryName);
-
-        if (category == null)
-        {
-            category = new WikipediaCategory { Name = categoryName };
-            _context.WikipediaCategories.Add(category);
-            await _context.SaveChangesAsync();
-        }
-
-        var pageCategory = await _context.WikipediaPageCategories
-            .FirstOrDefaultAsync(pc => pc.WikipediaPageId == pageId && pc.WikipediaCategoryId == category.Id);
-
-        if (pageCategory == null)
-        {
-            pageCategory = new WikipediaPageCategory
-            {
-                WikipediaPageId = pageId,
-                WikipediaCategoryId = category.Id
-            };
-            _context.WikipediaPageCategories.Add(pageCategory);
-            await _context.SaveChangesAsync();
-        }
-    }
-
-    public async Task RemoveCategoryAsync(int pageId, string categoryName)
-    {
-        var pageCategory = await _context.WikipediaPageCategories
-            .FirstOrDefaultAsync(pc => pc.WikipediaPageId == pageId &&
-                                       pc.WikipediaCategory.Name == categoryName);
-
-        if (pageCategory != null)
-        {
-            _context.WikipediaPageCategories.Remove(pageCategory);
+            _context.WikipediaCategories.RemoveRange(emptyCategories);
             await _context.SaveChangesAsync();
         }
     }

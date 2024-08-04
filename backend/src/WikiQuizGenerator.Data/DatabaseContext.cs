@@ -14,6 +14,7 @@ public class WikiQuizDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // fluent api model configuration
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<WikipediaPage>()
@@ -24,70 +25,45 @@ public class WikiQuizDbContext : DbContext
             .Property(e => e.CreatedAt)
             .HasColumnType(TimestampColumnType);
 
-        // Quiz - AIResponse relationship
+        // Quiz - AIResponse: one-to-many relationship
         modelBuilder.Entity<Quiz>()
             .HasMany(q => q.AIResponses)
-            .WithOne()
-            .HasForeignKey("QuizId")
-            .OnDelete(DeleteBehavior.Cascade);
+            .WithOne(r => r.Quiz)
+            .HasForeignKey(r => r.QuizId)
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
 
-        // AIResponse - Question relationship
+        // AIResponse - Question relationship: one-to-many relationship
         modelBuilder.Entity<AIResponse>()
-            .HasMany(ar => ar.Questions)
+            .HasMany(r => r.Questions)
             .WithOne(q => q.AIResponse)
             .HasForeignKey(q => q.AIResponseId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Cascade)
+            .IsRequired();
 
-        // AIResponse - AIMetadata relationship
-        modelBuilder.Entity<AIResponse>()
-            .HasOne(ar => ar.AIMetadata)
-            .WithOne()
-            .HasForeignKey<AIMetadata>("AIResponseId")
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<AIMetadata>()
-            .HasOne(m => m.AIResponse)
-            .WithOne(r => r.AIMetadata)
-            .HasForeignKey<AIMetadata>(m => m.AIResponseId);
-
-        // AIResponse - WikipediaPage relationship
-        modelBuilder.Entity<AIResponse>()
-            .HasOne(ar => ar.WikipediaPage)
-            .WithMany()
-            .HasForeignKey(ar => ar.WikipediaPageId)
-            .OnDelete(DeleteBehavior.Restrict);  // Restrict deletion of WikipediaPage if AIResponses exist
-
-        // WikipediaPage - WikipediaLink relationship
+        // WikipediaPage - AIResponse relationship: one-to-many relationship
         modelBuilder.Entity<WikipediaPage>()
-            .HasMany(wp => wp.Links)
-            .WithOne(wl => wl.WikipediaPage)
-            .HasForeignKey(wl => wl.WikipediaPageId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasMany(p => p.AIResponses)
+            .WithOne(r => r.WikipediaPage)
+            .HasForeignKey(r => r.WikipediaPageId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // WikipediaPage - WikipediaCategory relationship (many-to-many)
-        modelBuilder.Entity<WikipediaPageCategory>()
-            .HasKey(wpc => new { wpc.WikipediaPageId, wpc.WikipediaCategoryId });
-
-        modelBuilder.Entity<WikipediaPageCategory>()
-            .HasOne(wpc => wpc.WikipediaPage)
-            .WithMany()
-            .HasForeignKey(wpc => wpc.WikipediaPageId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<WikipediaPageCategory>()
-            .HasOne(wpc => wpc.WikipediaCategory)
-            .WithMany(wc => wc.PageCategories)
-            .HasForeignKey(wpc => wpc.WikipediaCategoryId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // This is optional as entity framework would do this anyway, but for learning I will keep it
+        // Create the join entity for the many-to-many relationship between page and category
+        modelBuilder.Entity<WikipediaPage>()
+            .HasMany(e => e.Categories)
+            .WithMany(e => e.WikipediaPages)
+            .UsingEntity(
+                "WikipediaPageCategory",
+                c => c.HasOne(typeof(WikipediaCategory)).WithMany().HasForeignKey("WikipediaCategoryId").HasPrincipalKey(nameof(WikipediaCategory.Id)),
+                p => p.HasOne(typeof(WikipediaPage)).WithMany().HasForeignKey("WikipediaPageId").HasPrincipalKey(nameof(WikipediaPage.Id)),
+                j => j.HasKey("WikipediaCategoryId", "WikipediaPageId"));
     }
 
     public DbSet<WikipediaPage> WikipediaPages { get; set; }
     public DbSet<WikipediaCategory> WikipediaCategories { get; set; }
-    public DbSet<WikipediaLink> WikipediaLinks { get; set; }
-    public DbSet<WikipediaPageCategory> WikipediaPageCategories { get; set; }
 
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<AIResponse> AIResponses { get; set; }
-    public DbSet<AIMetadata> AIMetadata { get; set; }
     public DbSet<Question> Questions { get; set; }
 }

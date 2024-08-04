@@ -5,16 +5,20 @@ namespace WikiQuizGenerator.Core.Models;
 
 public class AIResponse
 {
-    [Key]
     public int Id { get; set; }
 
     public IList<Question> Questions { get; set; }
 
-    public AIMetadata AIMetadata { get; set; } // This allows to change the metadata without affecting the response
+    public long ResponseTime { get; set; } // in milliseconds
+    public int? PromptTokenUsage { get; set; }
+    public int? CompletionTokenUsage { get; set; }
+    public string? ModelName { get; set; }
 
+    // Navigational Property for one-to-one relationship between ai response and wikipedia page
     public int WikipediaPageId { get; set; }
     public WikipediaPage WikipediaPage { get; set; }
 
-    [ForeignKey("Quiz")]
+    // Navigational Property for one to many relationship between quiz and ai response.
     public int QuizId { get; set; }
+    public Quiz Quiz { get; set; }
 }

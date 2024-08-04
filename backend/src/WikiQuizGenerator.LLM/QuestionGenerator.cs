@@ -69,30 +69,25 @@ public class QuestionGenerator : IQuestionGenerator
             return null;
         }
 
-        AIMetadata aiMetadata = new()
+        AIResponse aiResponse = new()
         {
+            Questions = questions,
+            WikipediaPageId = page.Id,
+            WikipediaPage = page,
             ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA",
             ResponseTime = timer.ElapsedMilliseconds,
         };
 
         if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
         {
-            aiMetadata.PromptTokenUsage = usage.PromptTokens;
-            aiMetadata.CompletionTokenUsage = usage.CompletionTokens;
+            aiResponse.PromptTokenUsage = usage.PromptTokens;
+            aiResponse.CompletionTokenUsage = usage.CompletionTokens;
         } 
         else if (result.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
         {
-            aiMetadata.PromptTokenUsage = perUsage.PromptTokens;
-            aiMetadata.CompletionTokenUsage = perUsage.CompletionTokens;
+            aiResponse.PromptTokenUsage = perUsage.PromptTokens;
+            aiResponse.CompletionTokenUsage = perUsage.CompletionTokens;
         }
-
-        AIResponse aiResponse = new()
-        {
-            Questions = questions,
-            WikipediaPageId = page.Id,
-            WikipediaPage = page,
-            AIMetadata = aiMetadata
-        };
 
         return aiResponse;
     }

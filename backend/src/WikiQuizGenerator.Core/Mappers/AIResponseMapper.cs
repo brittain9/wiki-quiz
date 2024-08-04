@@ -23,10 +23,10 @@ internal class AIResponseMapper
         {
             ResponseTopic = aiResponse.WikipediaPage.Title,
             TopicUrl = aiResponse.WikipediaPage.Url,
-            ResponseTime = aiResponse.AIMetadata.ResponseTime,
-            PromptTokenUsage = aiResponse.AIMetadata.PromptTokenUsage,
-            CompletionTokenUsage = aiResponse.AIMetadata.CompletionTokenUsage,
-            ModelName = aiResponse.AIMetadata.ModelName,
+            ResponseTime = aiResponse.ResponseTime,
+            PromptTokenUsage = aiResponse.PromptTokenUsage,
+            CompletionTokenUsage = aiResponse.CompletionTokenUsage,
+            ModelName = aiResponse.ModelName,
             Questions = questionsDtos
         };
     }

@@ -5,7 +5,6 @@ namespace WikiQuizGenerator.Core.Models;
 
 public class Question
 {
-    [Key]
     public int Id { get; set; }
 
     [Required]
@@ -27,7 +26,7 @@ public class Question
     [Range(1, 5)]
     public int CorrectOptionNumber { get; set; }
 
+    // Navigational property for one to many relationship between ai response and question
     public int AIResponseId { get; set; }
-    [ForeignKey("AIResponseId")]
     public AIResponse AIResponse { get; set; }
 }

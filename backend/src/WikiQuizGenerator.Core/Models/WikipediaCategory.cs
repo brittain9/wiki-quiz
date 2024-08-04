@@ -5,9 +5,9 @@ namespace WikiQuizGenerator.Core.Models;
 
 public class WikipediaCategory
 {
-    [Key]
     public int Id { get; set; }
     public string Name { get; set; }
 
-    public IList<WikipediaPageCategory> PageCategories { get; set; }
+    // Many-to-many relationship with WikipediaPage
+    public IList<WikipediaPage> WikipediaPages { get; set; }
 }

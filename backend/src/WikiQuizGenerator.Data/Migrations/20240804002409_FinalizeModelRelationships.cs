@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WikiQuizGenerator.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class FinalizeModelRelationships : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,6 +24,32 @@ namespace WikiQuizGenerator.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Quizzes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WikipediaCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WikipediaCategories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WikipediaLinks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Title = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WikipediaLinks", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -50,6 +76,10 @@ namespace WikiQuizGenerator.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ResponseTime = table.Column<long>(type: "bigint", nullable: false),
+                    PromptTokenUsage = table.Column<int>(type: "integer", nullable: true),
+                    CompletionTokenUsage = table.Column<int>(type: "integer", nullable: true),
+                    ModelName = table.Column<string>(type: "text", nullable: true),
                     WikipediaPageId = table.Column<int>(type: "integer", nullable: false),
                     QuizId = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -71,38 +101,23 @@ namespace WikiQuizGenerator.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WikipediaCategories",
+                name: "WikipediaPageCategory",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    WikipediaPageId = table.Column<int>(type: "integer", nullable: true)
+                    WikipediaCategoryId = table.Column<int>(type: "integer", nullable: false),
+                    WikipediaPageId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WikipediaCategories", x => x.Id);
+                    table.PrimaryKey("PK_WikipediaPageCategory", x => new { x.WikipediaCategoryId, x.WikipediaPageId });
                     table.ForeignKey(
-                        name: "FK_WikipediaCategories_WikipediaPages_WikipediaPageId",
-                        column: x => x.WikipediaPageId,
-                        principalTable: "WikipediaPages",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "WikipediaLinks",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PageName = table.Column<string>(type: "text", nullable: false),
-                    WikipediaPageId = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WikipediaLinks", x => x.Id);
+                        name: "FK_WikipediaPageCategory_WikipediaCategories_WikipediaCategory~",
+                        column: x => x.WikipediaCategoryId,
+                        principalTable: "WikipediaCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_WikipediaLinks_WikipediaPages_WikipediaPageId",
+                        name: "FK_WikipediaPageCategory_WikipediaPages_WikipediaPageId",
                         column: x => x.WikipediaPageId,
                         principalTable: "WikipediaPages",
                         principalColumn: "Id",
@@ -110,24 +125,25 @@ namespace WikiQuizGenerator.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AIMetadata",
+                name: "WikipediaPageLink",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ResponseTime = table.Column<long>(type: "bigint", nullable: false),
-                    PromptTokenUsage = table.Column<int>(type: "integer", nullable: true),
-                    CompletionTokenUsage = table.Column<int>(type: "integer", nullable: true),
-                    ModelName = table.Column<string>(type: "text", nullable: true),
-                    AIResponseId = table.Column<int>(type: "integer", nullable: false)
+                    WikipediaLinkId = table.Column<int>(type: "integer", nullable: false),
+                    WikipediaPageId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AIMetadata", x => x.Id);
+                    table.PrimaryKey("PK_WikipediaPageLink", x => new { x.WikipediaLinkId, x.WikipediaPageId });
                     table.ForeignKey(
-                        name: "FK_AIMetadata_AIResponses_AIResponseId",
-                        column: x => x.AIResponseId,
-                        principalTable: "AIResponses",
+                        name: "FK_WikipediaPageLink_WikipediaLinks_WikipediaLinkId",
+                        column: x => x.WikipediaLinkId,
+                        principalTable: "WikipediaLinks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_WikipediaPageLink_WikipediaPages_WikipediaPageId",
+                        column: x => x.WikipediaPageId,
+                        principalTable: "WikipediaPages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -158,36 +174,6 @@ namespace WikiQuizGenerator.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "WikipediaPageCategories",
-                columns: table => new
-                {
-                    WikipediaPageId = table.Column<int>(type: "integer", nullable: false),
-                    WikipediaCategoryId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WikipediaPageCategories", x => new { x.WikipediaPageId, x.WikipediaCategoryId });
-                    table.ForeignKey(
-                        name: "FK_WikipediaPageCategories_WikipediaCategories_WikipediaCatego~",
-                        column: x => x.WikipediaCategoryId,
-                        principalTable: "WikipediaCategories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_WikipediaPageCategories_WikipediaPages_WikipediaPageId",
-                        column: x => x.WikipediaPageId,
-                        principalTable: "WikipediaPages",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AIMetadata_AIResponseId",
-                table: "AIMetadata",
-                column: "AIResponseId",
-                unique: true);
-
             migrationBuilder.CreateIndex(
                 name: "IX_AIResponses_QuizId",
                 table: "AIResponses",
@@ -204,41 +190,36 @@ namespace WikiQuizGenerator.Data.Migrations
                 column: "AIResponseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WikipediaCategories_WikipediaPageId",
-                table: "WikipediaCategories",
+                name: "IX_WikipediaPageCategory_WikipediaPageId",
+                table: "WikipediaPageCategory",
                 column: "WikipediaPageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WikipediaLinks_WikipediaPageId",
-                table: "WikipediaLinks",
+                name: "IX_WikipediaPageLink_WikipediaPageId",
+                table: "WikipediaPageLink",
                 column: "WikipediaPageId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WikipediaPageCategories_WikipediaCategoryId",
-                table: "WikipediaPageCategories",
-                column: "WikipediaCategoryId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AIMetadata");
-
-            migrationBuilder.DropTable(
                 name: "Questions");
 
             migrationBuilder.DropTable(
-                name: "WikipediaLinks");
+                name: "WikipediaPageCategory");
 
             migrationBuilder.DropTable(
-                name: "WikipediaPageCategories");
+                name: "WikipediaPageLink");
 
             migrationBuilder.DropTable(
                 name: "AIResponses");
 
             migrationBuilder.DropTable(
                 name: "WikipediaCategories");
+
+            migrationBuilder.DropTable(
+                name: "WikipediaLinks");
 
             migrationBuilder.DropTable(
                 name: "Quizzes");

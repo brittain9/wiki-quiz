@@ -7,9 +7,6 @@
   <ItemGroup>
     <None Remove="SqlQueries\GetDatabaseSize.sql" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="SqlQueries\GetDatabaseSize.sql" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj" />

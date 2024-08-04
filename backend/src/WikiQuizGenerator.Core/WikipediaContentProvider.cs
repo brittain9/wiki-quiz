@@ -45,7 +45,13 @@ public class WikipediaContentProvider : IWikipediaContentProvider
         var query = HttpUtility.UrlEncode(topic);
 
         Stopwatch sw = Stopwatch.StartNew();
-        string exactTitle = await GetWikipediaExactTitle(query); // this throws an error. I want to hammer this process out later
+
+        var exactTitle = await GetWikipediaExactTitle(query);
+        if (string.IsNullOrEmpty(exactTitle))
+        {
+            throw new ArgumentException($"No Wikipedia page found for the given query.", nameof(query));
+        }
+
         sw.Stop();
         _logger.LogInformation($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {sw.ElapsedMilliseconds} milliseconds");
 
@@ -78,7 +84,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
                     LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString()).ToUniversalTime(),
                     Url = page.Value.GetProperty("fullurl").GetString(),
                     Length = page.Value.GetProperty("length").GetInt32(),
-                    Links = new List<WikipediaLink>(),
+                    Links = new List<string>(),
                     Categories = new List<WikipediaCategory>()
                 };
 
@@ -86,10 +92,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
                 {
                     foreach (var link in links.EnumerateArray())
                     {
-                        wikiPage.Links.Add(new WikipediaLink
-                        {
-                            PageName = link.GetProperty("title").GetString()
-                        });
+                        wikiPage.Links.Add(link.GetProperty("title").GetString()); // just add the link title string to the links list
                     }
                 }
 
@@ -112,7 +115,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
                 }
 
                 sw.Stop();
-                await _pageRepository.AddAsync(wikiPage);
+                wikiPage = await _pageRepository.AddAsync(wikiPage);
                 _logger.LogInformation($"Added Wikipedia page '{wikiPage.Title}' to database in {sw.ElapsedMilliseconds} milliseconds");
                 return wikiPage;
             }
@@ -135,7 +138,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
 
         if (searchResults.RootElement.GetArrayLength() < 2 || !searchResults.RootElement[1].EnumerateArray().MoveNext())
         {
-            throw new Exception("No search results found.");
+            return string.Empty;
         }
 
         return searchResults.RootElement[1][0].GetString();

@@ -19,7 +19,7 @@ This project generates high-quality quizes based on nearly any topic using Wikip
 - Test API at localhost:5543/swagger
 
 ## Todo:
-- Write tests for the repositories
+- Better api error handling for things like invalid language
 - Add more prompt templates for various languages, difficulties, themes (funny, scientific, etc)
 - Hammer out bugs and optimize (write tests!)
 - Utilize the links and categories for quiz generation

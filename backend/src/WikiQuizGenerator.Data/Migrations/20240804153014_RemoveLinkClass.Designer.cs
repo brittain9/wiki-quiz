@@ -12,8 +12,8 @@ using WikiQuizGenerator.Data;
 namespace WikiQuizGenerator.Data.Migrations
 {
     [DbContext(typeof(WikiQuizDbContext))]
-    [Migration("20240803175944_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240804153014_RemoveLinkClass")]
+    partial class RemoveLinkClass
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,16 +25,13 @@ namespace WikiQuizGenerator.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIMetadata", b =>
+            modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIResponse", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AIResponseId")
-                        .HasColumnType("integer");
 
                     b.Property<int?>("CompletionTokenUsage")
                         .HasColumnType("integer");
@@ -45,27 +42,11 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int?>("PromptTokenUsage")
                         .HasColumnType("integer");
 
-                    b.Property<long>("ResponseTime")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AIResponseId")
-                        .IsUnique();
-
-                    b.ToTable("AIMetadata");
-                });
-
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIResponse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("QuizId")
                         .HasColumnType("integer");
+
+                    b.Property<long>("ResponseTime")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("WikipediaPageId")
                         .HasColumnType("integer");
@@ -153,36 +134,9 @@ namespace WikiQuizGenerator.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("WikipediaPageId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("WikipediaPageId");
 
                     b.ToTable("WikipediaCategories");
-                });
-
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaLink", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("PageName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int?>("WikipediaPageId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WikipediaPageId");
-
-                    b.ToTable("WikipediaLinks");
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaPage", b =>
@@ -207,6 +161,10 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int>("Length")
                         .HasColumnType("integer");
 
+                    b.Property<string[]>("Links")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -220,45 +178,36 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.ToTable("WikipediaPages");
                 });
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaPageCategory", b =>
+            modelBuilder.Entity("WikipediaPageCategory", b =>
                 {
-                    b.Property<int>("WikipediaPageId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("WikipediaCategoryId")
                         .HasColumnType("integer");
 
-                    b.HasKey("WikipediaPageId", "WikipediaCategoryId");
+                    b.Property<int>("WikipediaPageId")
+                        .HasColumnType("integer");
 
-                    b.HasIndex("WikipediaCategoryId");
+                    b.HasKey("WikipediaCategoryId", "WikipediaPageId");
 
-                    b.ToTable("WikipediaPageCategories");
-                });
+                    b.HasIndex("WikipediaPageId");
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIMetadata", b =>
-                {
-                    b.HasOne("WikiQuizGenerator.Core.Models.AIResponse", "AIResponse")
-                        .WithOne("AIMetadata")
-                        .HasForeignKey("WikiQuizGenerator.Core.Models.AIMetadata", "AIResponseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AIResponse");
+                    b.ToTable("WikipediaPageCategory");
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIResponse", b =>
                 {
-                    b.HasOne("WikiQuizGenerator.Core.Models.Quiz", null)
+                    b.HasOne("WikiQuizGenerator.Core.Models.Quiz", "Quiz")
                         .WithMany("AIResponses")
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", "WikipediaPage")
-                        .WithMany()
+                        .WithMany("AIResponses")
                         .HasForeignKey("WikipediaPageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Quiz");
 
                     b.Navigation("WikipediaPage");
                 });
@@ -274,47 +223,23 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Navigation("AIResponse");
                 });
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaCategory", b =>
+            modelBuilder.Entity("WikipediaPageCategory", b =>
                 {
-                    b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", null)
-                        .WithMany("Categories")
-                        .HasForeignKey("WikipediaPageId");
-                });
-
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaLink", b =>
-                {
-                    b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", "WikipediaPage")
-                        .WithMany("Links")
-                        .HasForeignKey("WikipediaPageId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("WikipediaPage");
-                });
-
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaPageCategory", b =>
-                {
-                    b.HasOne("WikiQuizGenerator.Core.Models.WikipediaCategory", "WikipediaCategory")
-                        .WithMany("PageCategories")
+                    b.HasOne("WikiQuizGenerator.Core.Models.WikipediaCategory", null)
+                        .WithMany()
                         .HasForeignKey("WikipediaCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", "WikipediaPage")
+                    b.HasOne("WikiQuizGenerator.Core.Models.WikipediaPage", null)
                         .WithMany()
                         .HasForeignKey("WikipediaPageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("WikipediaCategory");
-
-                    b.Navigation("WikipediaPage");
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIResponse", b =>
                 {
-                    b.Navigation("AIMetadata")
-                        .IsRequired();
-
                     b.Navigation("Questions");
                 });
 
@@ -323,16 +248,9 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Navigation("AIResponses");
                 });
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaCategory", b =>
-                {
-                    b.Navigation("PageCategories");
-                });
-
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaPage", b =>
                 {
-                    b.Navigation("Categories");
-
-                    b.Navigation("Links");
+                    b.Navigation("AIResponses");
                 });
 #pragma warning restore 612, 618
         }
