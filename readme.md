@@ -1,28 +1,29 @@
 # Wikipedia Quiz Generator
 
-This project generates high-quality quizes based on nearly any topic using Wikipedia and AI.
+A Cutting-edge application that leverages AI and Wikipedia to create engaging, topic-specific quizzes.
 
 ## Features:
-- Dynamic quiz generation utilizing semantic kernel prompt templates  
-- Multilingual support for English, Spanish, French, Japanese, Chinese, and more
-- Flexible search bar (Entering Apple Company will give you a quiz about Apple Inc.)
-- Easy integration with various AI APIs, currently supporting OpenAI API and the Perplexity API
-- ASP.NET Core minimal api for quiz generation and submission (coming soon)
+- Dynamic quiz generation powered by Semantic Kernel prompt templates
+- Multilingual support (English, Spanish, French, Japanese, Chinese, and more)
+- Intelligent search functionality for precise topic targeting
+- Seamless integration with leading AI APIs (OpenAI and Perplexity)
+- ASP.NET Core minimal api for quiz generation and submission
 
-## Requirements:
-- Perplexity or OpenAI API key
-- Docker
+## Architecture
+### Frontend
+- React with TypeScript
+- Material-UI component library
+- Vite as the build tool and development server
+ 
+### Backend
+= .NET 8 development framework
+- ASP.NET Core minimal API
+- Integration with Wikipedia API
+- AI integration using Microsoft Semantic Kernel
 
-## Instructions:
-- Set up the .env file with your API key (use the .env.example file) and uncomment your service extension in program.cs of the API
-- Run docker-compose up --build
-- Test API at localhost:5543/swagger
-
-## Todo:
-- Add more prompt templates for various languages, difficulties, themes (funny, scientific, etc)
-- Utilize the links and categories for quiz generation
-- Work on the frontend
+## Roadmap:
+- Enhance frontend user experience and design
+- Expand prompt templates for diverse languages, difficulty levels, and themes
+- More methods for quiz generation using links and categories
 - Add logic to handle Wikipedia disambiguation pages: https://en.wikipedia.org/wiki/Category:Disambiguation_pages
 - Add instruction to prompt to make sure the answer choices are spread evenly
-
-![ERD Diagram](backend/src/WikiQuizGenerator.Data/WikiQuizGeneratorERD.png)
