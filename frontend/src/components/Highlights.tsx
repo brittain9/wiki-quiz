@@ -58,7 +58,7 @@ export default function Highlights() {
       sx={{
         pt: { xs: 4, sm: 12 },
         pb: { xs: 8, sm: 16 },
-        color: 'white',
+        color: 'white', // this is setting the color for the component
         bgcolor: 'hsl(220, 30%, 2%)',
       }}
     >

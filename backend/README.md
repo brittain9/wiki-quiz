@@ -18,4 +18,4 @@ This project generates high-quality quizes based on nearly any topic using Wikip
 - Run docker-compose up --build
 - Test API at localhost:5543/swagger
 
-![ERD Diagram](backend/src/WikiQuizGenerator.Data/WikiQuizGeneratorERD.png)
+![ERD Diagram](src/WikiQuizGenerator.Data/WikiQuizGeneratorERD.png)

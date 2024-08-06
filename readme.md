@@ -16,10 +16,13 @@ A Cutting-edge application that leverages AI and Wikipedia to create engaging, t
 - Vite as the build tool and development server
  
 ### Backend
-= .NET 8 development framework
+- .NET 8 development framework
 - ASP.NET Core minimal API
 - Integration with Wikipedia API
 - AI integration using Microsoft Semantic Kernel
+- PostgreSQL database with Entity Framework Core
+- Repository pattern architecture for database operations
+- Containerized using Docker
 
 ## Roadmap:
 - Enhance frontend user experience and design

@@ -4,6 +4,8 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/system';
 
+// Change these logos to use ones that correspond to my apps services.
+// https://openai.com/brand/
 const whiteLogos = [
   'https://assets-global.website-files.com/61ed56ae9da9fd7e0ef0a967/6560628e8573c43893fe0ace_Sydney-white.svg',
   'https://assets-global.website-files.com/61ed56ae9da9fd7e0ef0a967/655f4d520d0517ae8e8ddf13_Bern-white.svg',
@@ -41,7 +43,7 @@ export default function LogoCollection() {
         align="center"
         sx={{ color: 'text.secondary' }}
       >
-        Trusted by the best companies
+        Guaranteed quality using cutting-edge services
       </Typography>
       <Grid container sx={{ justifyContent: 'center', mt: 0.5, opacity: 0.6 }}>
         {logos.map((logo, index) => (

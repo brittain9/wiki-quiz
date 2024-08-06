@@ -71,7 +71,7 @@ export default function Hero() {
               fontSize: 'clamp(3rem, 10vw, 3.5rem)',
             }}
           >
-            Our&nbsp;latest&nbsp;
+            Generate&nbsp;your&nbsp;
             <Typography
               component="span"
               variant="h1"
@@ -83,7 +83,7 @@ export default function Hero() {
                 }),
               })}
             >
-              products
+              quiz
             </Typography>
           </Typography>
           <Typography
@@ -93,9 +93,8 @@ export default function Hero() {
               width: { sm: '100%', md: '80%' },
             }}
           >
-            Explore our cutting-edge dashboard, delivering high-quality solutions
-            tailored to your needs. Elevate your experience with top-tier features
-            and services.
+            Enter info about quiz generation. I would like to have in the title above a fancy animated thing showcasing
+            random things the user could generate a quiz about. To give them ideas so they are more confident in their choice.
           </Typography>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
@@ -104,19 +103,19 @@ export default function Hero() {
             sx={{ pt: 2, width: { xs: '100%', sm: 'auto' } }}
           >
             <InputLabel htmlFor="email-hero" sx={visuallyHidden}>
-              Email
+              QuizTopic
             </InputLabel>
             <TextField
-              id="email-hero"
+              id="quiz-hero"
               hiddenLabel
               size="small"
               variant="outlined"
-              aria-label="Enter your email address"
-              placeholder="Your email address"
+              aria-label="Enter your quiz topic"
+              placeholder="Your quiz topic"
               slotProps={{
                 htmlInput: {
                   autoComplete: 'off',
-                  'aria-label': 'Enter your email address',
+                  'aria-label': 'Enter your quiz topic',
                 },
               }}
             />
@@ -132,7 +131,6 @@ export default function Hero() {
             .
           </Typography>
         </Stack>
-        <StyledBox id="image" />
       </Container>
     </Box>
   );
