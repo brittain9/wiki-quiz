@@ -1,5 +1,54 @@
 {
-    "appBar": {
-      "highlights": "Resúmenes"
+  "appBar": {
+    "title": "Aplicación de Quiz Wiki",
+    "highlights": "Destacados"
+  },
+  "footer": {
+    "title": "Aplicación de Quiz de Wikipedia"
+  },
+  "hero": {
+    "topics": [
+      "Tema 1",
+      "Tema 2",
+      "Tema 3"
+    ],
+    "generateQuiz": "Generar un quiz sobre",
+    "topicInfo": "Ingresa cualquier tema que te interese y generaremos un quiz personalizado solo para ti.",
+    "placeholder": "Tu tema de quiz",
+    "generatingButtonText": "Generando",
+    "startButtonText": "Comenzar ahora"
+  },
+  "logoCollection": {
+    "qualityGuarantee": "Calidad garantizada utilizando servicios de vanguardia"
+  },
+  "highlights": {
+    "title": "Destacados",
+    "info": "Descubre por qué nuestro producto se destaca: adaptabilidad, durabilidad, diseño fácil de usar e innovación. Disfruta de un soporte al cliente confiable y precisión en cada detalle.",
+    "items": {
+      "performance": {
+        "title": "Rendimiento adaptable",
+        "desc": "Nuestro producto se ajusta sin esfuerzo a tus necesidades, aumentando la eficiencia y simplificando tus tareas."
+      },
+      "last": {
+        "title": "Construido para durar",
+        "desc": "Experimenta una durabilidad inigualable que va más allá con una inversión duradera."
+      },
+      "experience": {
+        "title": "Gran experiencia de usuario",
+        "desc": "Integra nuestro producto en tu rutina con una interfaz intuitiva y fácil de usar."
+      },
+      "functionality": {
+        "title": "Funcionalidad innovadora",
+        "desc": "Mantente a la vanguardia con características que establecen nuevos estándares, atendiendo tus necesidades cambiantes mejor que el resto."
+      },
+      "support": {
+        "title": "Soporte confiable",
+        "desc": "Cuenta con nuestro soporte al cliente receptivo, ofreciendo asistencia que va más allá de la compra."
+      },
+      "detail": {
+        "title": "Precisión en cada detalle",
+        "desc": "Disfruta de un producto meticulosamente elaborado donde los pequeños toques tienen un impacto significativo en tu experiencia general."
+      }
     }
   }
+}

@@ -1,5 +1,54 @@
 {
-    "appBar": {
-      "highlights": "Faits saillants"
+  "appBar": {
+    "title": "Application Quiz Wiki",
+    "highlights": "Points forts"
+  },
+  "footer": {
+    "title": "Application Quiz Wikipédia"
+  },
+  "hero": {
+    "topics": [
+      "Sujet 1",
+      "Sujet 2",
+      "Sujet 3"
+    ],
+    "generateQuiz": "Générer un quiz sur",
+    "topicInfo": "Entrez n'importe quel sujet qui vous intéresse, et nous générerons un quiz personnalisé juste pour vous.",
+    "placeholder": "Votre sujet de quiz",
+    "generatingButtonText": "Génération en cours",
+    "startButtonText": "Commencer maintenant"
+  },
+  "logoCollection": {
+    "qualityGuarantee": "Qualité garantie utilisant des services de pointe"
+  },
+  "highlights": {
+    "title": "Points forts",
+    "info": "Découvrez pourquoi notre produit se démarque : adaptabilité, durabilité, conception conviviale et innovation. Profitez d'un support client fiable et d'une précision dans chaque détail.",
+    "items": {
+      "performance": {
+        "title": "Performance adaptable",
+        "desc": "Notre produit s'adapte sans effort à vos besoins, augmentant l'efficacité et simplifiant vos tâches."
+      },
+      "last": {
+        "title": "Conçu pour durer",
+        "desc": "Expérimentez une durabilité inégalée qui va au-delà avec un investissement durable."
+      },
+      "experience": {
+        "title": "Excellente expérience utilisateur",
+        "desc": "Intégrez notre produit dans votre routine avec une interface intuitive et facile à utiliser."
+      },
+      "functionality": {
+        "title": "Fonctionnalité innovante",
+        "desc": "Restez à la pointe avec des fonctionnalités qui établissent de nouvelles normes, répondant à vos besoins évolutifs mieux que les autres."
+      },
+      "support": {
+        "title": "Support fiable",
+        "desc": "Comptez sur notre support client réactif, offrant une assistance qui va au-delà de l'achat."
+      },
+      "detail": {
+        "title": "Précision dans chaque détail",
+        "desc": "Profitez d'un produit méticuleusement conçu où les petites touches ont un impact significatif sur votre expérience globale."
+      }
     }
   }
+}

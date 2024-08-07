@@ -8,11 +8,11 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AppAppBar from '../components/AppAppBar';
-import Hero from '../components/Hero';
+import Hero from '../components/Hero/Hero';
 import LogoCollection from '../components/LogoCollection';
 import Highlights from '../components/Highlights';
 import Footer from '../components/Footer';
-import getLPTheme from '../getLPTheme';
+import getTheme from '../getTheme';
 import QuizComponent from '../components/QuizComponent';
 
 interface ToggleCustomThemeProps {
@@ -60,10 +60,10 @@ function ToggleCustomTheme({
   );
 }
 
-export default function LandingPage() {
+export default function QuizPage() {
   const [mode, setMode] = React.useState<PaletteMode>('light');
   const [showCustomTheme, setShowCustomTheme] = React.useState(true);
-  const LPtheme = createTheme(getLPTheme(mode));
+  const QPtheme = createTheme(getTheme(mode));
   const defaultTheme = createTheme({ palette: { mode } });
 
   const [quizTopic, setQuizTopic] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export default function LandingPage() {
   };
 
   return (
-    <ThemeProvider theme={showCustomTheme ? LPtheme : defaultTheme}>
+    <ThemeProvider theme={showCustomTheme ? QPtheme : defaultTheme}>
       <CssBaseline />
       <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
       <Hero onStartQuiz={handleStartQuiz} />

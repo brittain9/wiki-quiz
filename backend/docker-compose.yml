@@ -14,15 +14,24 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
       - ASPNETCORE_HTTP_PORTS=80 # this fixes annoying warning
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: postgres:latest
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=YourStrongPassword!
+      - POSTGRES_DB=WikiQuizGenerator
     ports:
       - "5542:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db-data:

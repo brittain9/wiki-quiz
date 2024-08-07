@@ -12,7 +12,6 @@ import frTranslations from './locales/fr/translation.json';
 import itTranslations from './locales/it/translation.json';
 import ptTranslations from './locales/pt/translation.json';
 
-
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)

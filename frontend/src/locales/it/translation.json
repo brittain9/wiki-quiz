@@ -1,5 +1,54 @@
 {
-    "appBar": {
-      "highlights": "Punti salienti"
+  "appBar": {
+    "title": "App Quiz Wiki",
+    "highlights": "In evidenza"
+  },
+  "footer": {
+    "title": "App Quiz Wikipedia"
+  },
+  "hero": {
+    "topics": [
+      "Argomento 1",
+      "Argomento 2",
+      "Argomento 3"
+    ],
+    "generateQuiz": "Genera un quiz su",
+    "topicInfo": "Inserisci qualsiasi argomento che ti incuriosisce e genereremo un quiz personalizzato solo per te.",
+    "placeholder": "Il tuo argomento per il quiz",
+    "generatingButtonText": "Generazione in corso",
+    "startButtonText": "Inizia ora"
+  },
+  "logoCollection": {
+    "qualityGuarantee": "Qualità garantita utilizzando servizi all'avanguardia"
+  },
+  "highlights": {
+    "title": "In evidenza",
+    "info": "Scopri perché il nostro prodotto si distingue: adattabilità, durabilità, design user-friendly e innovazione. Goditi un supporto clienti affidabile e precisione in ogni dettaglio.",
+    "items": {
+      "performance": {
+        "title": "Prestazioni adattabili",
+        "desc": "Il nostro prodotto si adatta senza sforzo alle tue esigenze, aumentando l'efficienza e semplificando i tuoi compiti."
+      },
+      "last": {
+        "title": "Costruito per durare",
+        "desc": "Sperimenta una durabilità senza pari che va oltre le aspettative con un investimento duraturo."
+      },
+      "experience": {
+        "title": "Ottima esperienza utente",
+        "desc": "Integra il nostro prodotto nella tua routine con un'interfaccia intuitiva e facile da usare."
+      },
+      "functionality": {
+        "title": "Funzionalità innovative",
+        "desc": "Resta all'avanguardia con funzionalità che stabiliscono nuovi standard, rispondendo alle tue esigenze in evoluzione meglio di chiunque altro."
+      },
+      "support": {
+        "title": "Supporto affidabile",
+        "desc": "Conta sul nostro supporto clienti reattivo, offrendo assistenza che va oltre l'acquisto."
+      },
+      "detail": {
+        "title": "Precisione in ogni dettaglio",
+        "desc": "Goditi un prodotto meticolosamente realizzato in cui i piccoli tocchi hanno un impatto significativo sulla tua esperienza complessiva."
+      }
     }
   }
+}

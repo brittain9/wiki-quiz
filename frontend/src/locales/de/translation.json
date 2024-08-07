@@ -1,5 +1,54 @@
 {
-    "appBar": {
-      "highlights": "Höhepunkte"
+  "appBar": {
+    "title": "Wiki-Quiz-App",
+    "highlights": "Höhepunkte"
+  },
+  "footer": {
+    "title": "Wikipedia-Quiz-App"
+  },
+  "hero": {
+    "topics": [
+      "Thema 1",
+      "Thema 2",
+      "Thema 3"
+    ],
+    "generateQuiz": "Generiere ein Quiz über",
+    "topicInfo": "Geben Sie ein beliebiges Thema ein, das Sie interessiert, und wir erstellen ein maßgeschneidertes Quiz nur für Sie.",
+    "placeholder": "Ihr Quiz-Thema",
+    "generatingButtonText": "Wird generiert",
+    "startButtonText": "Jetzt starten"
+  },
+  "logoCollection": {
+    "qualityGuarantee": "Garantierte Qualität durch modernste Dienste"
+  },
+  "highlights": {
+    "title": "Höhepunkte",
+    "info": "Entdecken Sie, warum unser Produkt heraussticht: Anpassungsfähigkeit, Langlebigkeit, benutzerfreundliches Design und Innovation. Genießen Sie zuverlässigen Kundensupport und Präzision in jedem Detail.",
+    "items": {
+      "performance": {
+        "title": "Anpassungsfähige Leistung",
+        "desc": "Unser Produkt passt sich mühelos Ihren Bedürfnissen an, steigert die Effizienz und vereinfacht Ihre Aufgaben."
+      },
+      "last": {
+        "title": "Gebaut für die Ewigkeit",
+        "desc": "Erleben Sie unübertroffene Langlebigkeit, die über das Übliche hinausgeht, mit einer dauerhaften Investition."
+      },
+      "experience": {
+        "title": "Großartige Benutzererfahrung",
+        "desc": "Integrieren Sie unser Produkt in Ihren Alltag mit einer intuitiven und benutzerfreundlichen Oberfläche."
+      },
+      "functionality": {
+        "title": "Innovative Funktionalität",
+        "desc": "Bleiben Sie an der Spitze mit Funktionen, die neue Standards setzen und Ihre sich entwickelnden Bedürfnisse besser erfüllen als andere."
+      },
+      "support": {
+        "title": "Zuverlässiger Support",
+        "desc": "Verlassen Sie sich auf unseren reaktionsschnellen Kundensupport, der Unterstützung über den Kauf hinaus bietet."
+      },
+      "detail": {
+        "title": "Präzision in jedem Detail",
+        "desc": "Genießen Sie ein sorgfältig gestaltetes Produkt, bei dem kleine Details einen großen Einfluss auf Ihr Gesamterlebnis haben."
+      }
     }
   }
+}

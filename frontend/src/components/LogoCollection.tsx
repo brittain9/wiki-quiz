@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import { useTheme } from '@mui/system';
+import { useTranslation } from 'react-i18next';
 
 // Change these logos to use ones that correspond to my apps services.
 // https://openai.com/brand/
@@ -32,6 +33,7 @@ const logoStyle = {
 };
 
 export default function LogoCollection() {
+  const { t } = useTranslation();
   const theme = useTheme();
   const logos = theme.palette.mode === 'light' ? darkLogos : whiteLogos;
 
@@ -43,7 +45,7 @@ export default function LogoCollection() {
         align="center"
         sx={{ color: 'text.secondary' }}
       >
-        Guaranteed quality using cutting-edge services
+        {t('logoCollection.qualityGuarantee')}
       </Typography>
       <Grid container sx={{ justifyContent: 'center', mt: 0.5, opacity: 0.6 }}>
         {logos.map((logo, index) => (

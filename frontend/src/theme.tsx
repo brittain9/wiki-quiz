@@ -1,6 +1,6 @@
 import { createTheme } from '@mui/material/styles';
-import getLPTheme from './getLPTheme';
+import getTheme from './getTheme';
 
-const theme = createTheme(getLPTheme('light'));
+const theme = createTheme(getTheme('light'));
 
 export default theme;

@@ -34,12 +34,12 @@ export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
     }
     timerRef.current = window.setTimeout(() => {
       setVisible(false);
-      console.log('AppBar hidden by timer'); // Debug log
+      console.log('AppBar hidden by timer');
     }, 3000);
   }, []);
 
   React.useEffect(() => {
-    showAppBar(); // Initial show and timer set
+    showAppBar();
 
     const handleScroll = () => {
       showAppBar();
@@ -118,7 +118,7 @@ export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
         >
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
           <Typography color={"black"} pr={4}>
-            Wiki Quiz App
+            {t('appBar.title')}
           </Typography>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button

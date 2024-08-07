@@ -1,5 +1,55 @@
 {
     "appBar": {
+      "title" : "Wiki Quiz App",
       "highlights": "Highlights"
+    },
+    "footer":{
+      "title":"Wikipedia Quiz App"
+    },
+    "hero":{
+      "topics": [
+        "Topic 1",
+        "Topic 2",
+        "Topic 3"
+      ],
+      "generateQuiz": "Generate a quiz about",
+      "topicInfo" : "Enter any topic you're curious about, and we'll generate a custom quiz just for you.",
+      "placeholder" : "Your quiz topic",
+      "generatingButtonText" : "Generating",
+      "startButtonText" : "Start now"
+    },
+    "logoCollection" : {
+      "qualityGuarantee" : "Guaranteed quality using cutting-edge services"
+    },
+    "highlights": {
+      "title": "Highlights",
+      "info": "Explore why our product stands out: adaptability, durability, user-friendly design, and innovation. Enjoy reliable customer support and precision in every detail.",
+      "items" : {
+        "performance" : {
+          "title" : "Adaptable performance",
+          "desc" : "Our product effortlessly adjusts to your needs, boosting efficiency and simplifying your tasks."
+        },
+        "last" : {
+          "title" : "Built to last",
+          "desc" : "Experience unmatched durability that goes above and beyond with lasting investment."
+        },
+        "experience" : {
+          "title" : "Great user experience",
+          "desc" : "Integrate our product into your routine with an intuitive and easy-to-use interface."
+        },
+        "functionality" : {
+          "title" : "Innovative functionality",
+          "desc" : "Stay ahead with features that set new standards, addressing your evolving needs better than the rest."
+        },
+        "support" : {
+          "title" : "Reliable support",
+          "desc" : "Count on our responsive customer support, offering assistance that goes beyond the purchase."
+        },
+        "detail" : {
+          "title" : "Precision in every detail",
+          "desc" : "Enjoy a meticulously crafted product where small touches make a significant impact on your overall experience."
+        }
+      }
     }
   }
+    

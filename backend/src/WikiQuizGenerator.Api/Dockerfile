@@ -1,5 +1,3 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
@@ -21,8 +19,24 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./WikiQuizGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY --from=build /src /src
 
-ENTRYPOINT ["dotnet", "WikiQuizGenerator.Api.dll"]
+# Install EF Core tools
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# Create entry point script
+RUN echo '#!/bin/bash\n\
+cd /src/src/WikiQuizGenerator.Api\n\
+dotnet ef database update\n\
+if [ $? -ne 0 ]; then\n\
+    echo "Migration failed. Continuing with application startup."\n\
+fi\n\
+cd /app\n\
+dotnet WikiQuizGenerator.Api.dll' > /app/entrypoint.sh \
+&& chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]

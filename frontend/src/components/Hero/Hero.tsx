@@ -6,9 +6,10 @@ import InputLabel from '@mui/material/InputLabel';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-
+import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '@mui/utils';
 import { styled } from '@mui/material/styles';
+import AnimatedTopics from './AnimatedTopics';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -32,40 +33,12 @@ const StyledBox = styled('div')(({ theme }) => ({
   }),
 }));
 
-const AnimatedTopics = () => {
-  const topics = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-  const [currentTopic, setCurrentTopic] = React.useState(0);
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTopic((prev) => (prev + 1) % topics.length);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <Typography
-      component="span"
-      variant="h1"
-      sx={(theme) => ({
-        fontSize: 'inherit',
-        color: 'primary.main',
-        transition: 'color 0.5s ease',
-        ...theme.applyStyles('dark', {
-          color: 'primary.light',
-        }),
-      })}
-    >
-      {topics[currentTopic]}
-    </Typography>
-  );
-};
-
 interface HeroProps {
   onStartQuiz: (topic: string) => void;
 }
 
 export default function Hero({ onStartQuiz }: HeroProps) {
+  const { t } = useTranslation();
   const [topic, setTopic] = React.useState('');
   const [isSubmitted, setIsSubmitted] = React.useState(false);
 
@@ -114,7 +87,7 @@ export default function Hero({ onStartQuiz }: HeroProps) {
               fontSize: 'clamp(3rem, 10vw, 3.5rem)',
             }}
           >
-            Generate a quiz about&nbsp;
+            {t('hero.generateQuiz')}&nbsp;
             <AnimatedTopics />
           </Typography>
           <Typography
@@ -124,8 +97,7 @@ export default function Hero({ onStartQuiz }: HeroProps) {
               width: { sm: '100%', md: '80%' },
             }}
           >
-            Enter any topic you're curious about, and we'll generate a custom quiz just for you. 
-            From history to science, literature to pop culture - the possibilities are endless!
+            {t('hero.topicInfo')}
           </Typography>
           <Stack
             component="form"
@@ -144,7 +116,7 @@ export default function Hero({ onStartQuiz }: HeroProps) {
               size="small"
               variant="outlined"
               aria-label="Enter your quiz topic"
-              placeholder="Your quiz topic"
+              placeholder= {t('hero.placeholder')}
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               disabled={isSubmitted}
@@ -161,7 +133,7 @@ export default function Hero({ onStartQuiz }: HeroProps) {
               color="primary"
               disabled={isSubmitted || !topic}
             >
-              {isSubmitted ? 'Quiz Started' : 'Start now'}
+              {isSubmitted ? t('hero.generatingButtonText') : t('hero.startButtonText')}
             </Button>
           </Stack>
         </Stack>

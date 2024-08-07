@@ -1,5 +1,54 @@
 {
-    "appBar": {
-      "highlights": "亮点"
+  "appBar": {
+    "title": "维基问答应用",
+    "highlights": "亮点"
+  },
+  "footer": {
+    "title": "维基百科问答应用"
+  },
+  "hero": {
+    "topics": [
+      "主题1",
+      "主题2",
+      "主题3"
+    ],
+    "generateQuiz": "生成关于以下内容的问答",
+    "topicInfo": "输入任何你感兴趣的主题，我们将为你生成一个定制的问答。",
+    "placeholder": "你的问答主题",
+    "generatingButtonText": "正在生成",
+    "startButtonText": "立即开始"
+  },
+  "logoCollection": {
+    "qualityGuarantee": "使用尖端服务保证质量"
+  },
+  "highlights": {
+    "title": "亮点",
+    "info": "探索我们产品的突出之处：适应性、耐用性、用户友好的设计和创新。享受可靠的客户支持和每一个细节的精准。",
+    "items": {
+      "performance": {
+        "title": "适应性能",
+        "desc": "我们的产品轻松适应你的需求，提高效率并简化你的任务。"
+      },
+      "last": {
+        "title": "经久耐用",
+        "desc": "体验无与伦比的耐用性，超越预期，成为长期投资。"
+      },
+      "experience": {
+        "title": "出色的用户体验",
+        "desc": "通过直观易用的界面，将我们的产品融入你的日常生活。"
+      },
+      "functionality": {
+        "title": "创新功能",
+        "desc": "保持领先，设置新标准的功能，比其他产品更好地满足你不断变化的需求。"
+      },
+      "support": {
+        "title": "可靠支持",
+        "desc": "依靠我们响应迅速的客户支持，提供超越购买的帮助。"
+      },
+      "detail": {
+        "title": "精准到每一个细节",
+        "desc": "享受精心制作的产品，每一个小细节都能对你的整体体验产生重大影响。"
+      }
     }
   }
+}
