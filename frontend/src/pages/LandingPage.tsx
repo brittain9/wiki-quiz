@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { PaletteMode } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -13,6 +13,7 @@ import LogoCollection from '../components/LogoCollection';
 import Highlights from '../components/Highlights';
 import Footer from '../components/Footer';
 import getLPTheme from '../getLPTheme';
+import QuizComponent from '../components/QuizComponent';
 
 interface ToggleCustomThemeProps {
   showCustomTheme: Boolean;
@@ -65,6 +66,12 @@ export default function LandingPage() {
   const LPtheme = createTheme(getLPTheme(mode));
   const defaultTheme = createTheme({ palette: { mode } });
 
+  const [quizTopic, setQuizTopic] = useState<string | null>(null);
+
+  const handleStartQuiz = (topic: string) => {
+    setQuizTopic(topic);
+  };
+
   const toggleColorMode = () => {
     setMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
@@ -77,8 +84,9 @@ export default function LandingPage() {
     <ThemeProvider theme={showCustomTheme ? LPtheme : defaultTheme}>
       <CssBaseline />
       <AppAppBar mode={mode} toggleColorMode={toggleColorMode} />
-      <Hero />
+      <Hero onStartQuiz={handleStartQuiz} />
       <Box sx={{ bgcolor: 'background.default' }}>
+        {quizTopic && <QuizComponent topic={quizTopic} />}
         <LogoCollection />
         <Divider />
         <Highlights />

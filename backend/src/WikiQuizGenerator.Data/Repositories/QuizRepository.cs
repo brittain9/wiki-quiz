@@ -45,6 +45,8 @@ public class QuizRepository : IQuizRepository
         return await _context.Set<Quiz>()
             .Include(q => q.AIResponses)
                 .ThenInclude(ar => ar.Questions)
+            .Include(q => q.AIResponses)
+                .ThenInclude(ar => ar.WikipediaPage)
             .FirstOrDefaultAsync(q => q.Id == id);
     }
 
@@ -70,6 +72,7 @@ public class QuizRepository : IQuizRepository
     {
         return await _context.QuizSubmissions
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
+            .Include(qs => qs.Answers)
             .FirstOrDefaultAsync(qs => qs.Id == submissionId);
     }
 
@@ -77,6 +80,7 @@ public class QuizRepository : IQuizRepository
     {
         return await _context.QuizSubmissions
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
+            .Include(qs => qs.Answers)
             .ToListAsync();
     }
 }

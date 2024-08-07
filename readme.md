@@ -21,7 +21,6 @@ A Cutting-edge application that leverages AI and Wikipedia to create engaging, t
 - Integration with Wikipedia API
 - AI integration using Microsoft Semantic Kernel
 - PostgreSQL database with Entity Framework Core
-- Repository pattern architecture for database operations
 - Containerized using Docker
 
 ## Roadmap:

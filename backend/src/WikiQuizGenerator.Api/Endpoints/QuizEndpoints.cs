@@ -16,7 +16,7 @@ public static class QuizEndpoints
     {
 
         // Returns our DTO
-        app.MapGet("/basicquiz", async(IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
+        app.MapGet("/basicquiz", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
             Log.Verbose($"GET /basicquiz called with topic '{topic}' in {language} with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
 
@@ -50,7 +50,7 @@ public static class QuizEndpoints
                 Log.Error($"Invalid language code: {language}");
                 return Results.BadRequest($"Invalid language code: {language}");
             }
-            catch(ArgumentException ex)
+            catch (ArgumentException ex)
             {
                 Log.Error($"Wikipedia page not found for topic: {topic}");
                 return Results.BadRequest($"Wikipedia page not found for topic: {topic}");
@@ -76,71 +76,66 @@ public static class QuizEndpoints
            return operation;
        });
 
-
         app.MapPost("/submitquiz", async (IQuizRepository quizRepository, QuizSubmissionDto submissionDto) =>
         {
             Log.Verbose($"POST /submitquiz called on quiz Id '{submissionDto.QuizId}'.");
 
-            var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
-
-            if (quiz == null)
+            try
             {
-                return Results.NotFound("Quiz not found");
-            }
+                var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
 
-            var questions = quiz.AIResponses.SelectMany(ar => ar.Questions).ToList();
-
-            if (submissionDto.UserAnswers.Count != questions.Count)
-            {
-                return Results.BadRequest("Number of answers doesn't match number of questions");
-            }
-
-            var result = new QuizResultDto
-            {
-                QuizId = quiz.Id,
-                Questions = new List<QuestionResultDto>(),
-                TotalQuestions = questions.Count
-            };
-
-            for (int i = 0; i < questions.Count; i++)
-            {
-                var question = questions[i];
-                var userAnswer = submissionDto.UserAnswers[i];
-                var isCorrect = userAnswer == question.CorrectOptionNumber;
-
-                result.Questions.Add(new QuestionResultDto
+                if (quiz == null)
                 {
-                    QuestionId = question.Id,
-                    UserAnswer = userAnswer,
-                    CorrectAnswer = question.CorrectOptionNumber,
-                    IsCorrect = isCorrect
-                });
-
-                if (isCorrect)
-                {
-                    result.Score++;
+                    Log.Warning($"Quiz not found for ID: {submissionDto.QuizId}");
+                    return Results.NotFound("Quiz not found");
                 }
+
+                var questions = quiz.AIResponses?
+                    .SelectMany(ar => ar.Questions ?? Enumerable.Empty<Question>())
+                    .ToList() ?? new List<Question>();
+
+                if (submissionDto.QuestionAnswers.Count > questions.Count)
+                {
+                    Log.Warning($"Submission contains more answers than questions. Quiz ID: {submissionDto.QuizId}");
+                    return Results.BadRequest($"Submission contains more answers ({submissionDto.QuestionAnswers.Count}) than questions in the quiz ({questions.Count})");
+                }
+
+                var submission = QuizSubmissionMapper.ToModel(submissionDto);
+                submission.SubmissionTime = DateTime.UtcNow;
+
+                // Calculate score
+                int correctAnswers = 0;
+                foreach (var answer in submission.Answers)
+                {
+                    var question = questions.FirstOrDefault(q => q.Id == answer.QuestionId);
+                    if (question != null && question.CorrectOptionNumber == answer.SelectedOptionNumber)
+                    {
+                        correctAnswers++;
+                    }
+                }
+
+                // Add submission to database
+                await quizRepository.AddSubmissionAsync(submission);
+
+                // Generate quiz result
+                var result = QuizResultMapper.ToDto(quiz, submission);
+                result.CorrectAnswers = correctAnswers;
+                result.TotalQuestions = questions.Count;
+
+                Log.Information($"Successfully processed submission for quiz ID: {submissionDto.QuizId}. Score: {correctAnswers}/{questions.Count}");
+                return Results.Ok(result);
             }
-
-            // Save the submission
-            var submission = new QuizSubmission
+            catch (Exception ex)
             {
-                QuizId = quiz.Id,
-                Answers = submissionDto.UserAnswers,
-                SubmissionTime = DateTime.UtcNow,
-                Score = result.Score
-            };
-
-            await quizRepository.AddSubmissionAsync(submission);
-
-            return Results.Ok(result);
+                Log.Error(ex, $"Error processing quiz submission for quiz ID: {submissionDto.QuizId}");
+                return Results.BadRequest("An error occurred while processing your submission. Please try again.");
+            }
         })
         .WithName("SubmitQuiz")
         .WithOpenApi(operation =>
         {
             operation.Summary = "Submit answers for a quiz and get results.";
             operation.Description = "This endpoint allows users to submit their answers for a quiz and receive feedback on their performance.";
-
             return operation;
         });
     }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PaletteMode } from '@mui/material';
+import { PaletteMode, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -15,8 +15,6 @@ import ToggleColorMode from './ToggleColorMode';
 import LanguageToggle from './LanguageToggle';
 import { useTranslation } from 'react-i18next';
 
-import Sitemark from './SitemarkIcon';
-
 interface AppAppBarProps {
   mode: PaletteMode;
   toggleColorMode: () => void;
@@ -24,7 +22,46 @@ interface AppAppBarProps {
 
 export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
   const [open, setOpen] = React.useState(false);
+  const [visible, setVisible] = React.useState(true);
   const { t } = useTranslation();
+
+  const timerRef = React.useRef<number | null>(null);
+
+  const showAppBar = React.useCallback(() => {
+    setVisible(true);
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = window.setTimeout(() => {
+      setVisible(false);
+      console.log('AppBar hidden by timer'); // Debug log
+    }, 3000);
+  }, []);
+
+  React.useEffect(() => {
+    showAppBar(); // Initial show and timer set
+
+    const handleScroll = () => {
+      showAppBar();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (e.clientY < 100) {
+        showAppBar();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+      }
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [showAppBar]);
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -47,7 +84,14 @@ export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
   return (
     <AppBar
       position="fixed"
-      sx={{ boxShadow: 0, bgcolor: 'transparent', backgroundImage: 'none', mt: 2 }}
+      sx={{
+        boxShadow: 0,
+        bgcolor: 'transparent',
+        backgroundImage: 'none',
+        mt: 2,
+        transition: 'transform 0.3s ease-in-out',
+        transform: visible ? 'translateY(0)' : 'translateY(-100%)',
+      }}
     >
       <Container maxWidth="lg">
         <Toolbar
@@ -73,7 +117,9 @@ export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
           })}
         >
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
-            <Sitemark />
+          <Typography color={"black"} pr={4}>
+            Wiki Quiz App
+          </Typography>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button
                 variant="text"

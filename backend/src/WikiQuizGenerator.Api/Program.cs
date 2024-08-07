@@ -40,7 +40,7 @@ try
     {
         options.AddPolicy("AllowReactApp",
             builder => builder
-                .WithOrigins("http://localhost:3000") // React app's URL
+                .WithOrigins("http://localhost:5173") // React app's URL
                 .AllowAnyMethod()
                 .AllowAnyHeader());
     });

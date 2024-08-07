@@ -3,7 +3,6 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import InputLabel from '@mui/material/InputLabel';
-import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -33,7 +32,51 @@ const StyledBox = styled('div')(({ theme }) => ({
   }),
 }));
 
-export default function Hero() {
+const AnimatedTopics = () => {
+  const topics = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  const [currentTopic, setCurrentTopic] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTopic((prev) => (prev + 1) % topics.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Typography
+      component="span"
+      variant="h1"
+      sx={(theme) => ({
+        fontSize: 'inherit',
+        color: 'primary.main',
+        transition: 'color 0.5s ease',
+        ...theme.applyStyles('dark', {
+          color: 'primary.light',
+        }),
+      })}
+    >
+      {topics[currentTopic]}
+    </Typography>
+  );
+};
+
+interface HeroProps {
+  onStartQuiz: (topic: string) => void;
+}
+
+export default function Hero({ onStartQuiz }: HeroProps) {
+  const [topic, setTopic] = React.useState('');
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (topic && !isSubmitted) {
+      onStartQuiz(topic);
+      setIsSubmitted(true);
+    }
+  };
+
   return (
     <Box
       id="hero"
@@ -71,20 +114,8 @@ export default function Hero() {
               fontSize: 'clamp(3rem, 10vw, 3.5rem)',
             }}
           >
-            Generate&nbsp;your&nbsp;
-            <Typography
-              component="span"
-              variant="h1"
-              sx={(theme) => ({
-                fontSize: 'inherit',
-                color: 'primary.main',
-                ...theme.applyStyles('dark', {
-                  color: 'primary.light',
-                }),
-              })}
-            >
-              quiz
-            </Typography>
+            Generate a quiz about&nbsp;
+            <AnimatedTopics />
           </Typography>
           <Typography
             sx={{
@@ -93,25 +124,30 @@ export default function Hero() {
               width: { sm: '100%', md: '80%' },
             }}
           >
-            Enter info about quiz generation. I would like to have in the title above a fancy animated thing showcasing
-            random things the user could generate a quiz about. To give them ideas so they are more confident in their choice.
+            Enter any topic you're curious about, and we'll generate a custom quiz just for you. 
+            From history to science, literature to pop culture - the possibilities are endless!
           </Typography>
           <Stack
+            component="form"
+            onSubmit={handleSubmit}
             direction={{ xs: 'column', sm: 'row' }}
             spacing={1}
             useFlexGap
             sx={{ pt: 2, width: { xs: '100%', sm: 'auto' } }}
           >
-            <InputLabel htmlFor="email-hero" sx={visuallyHidden}>
-              QuizTopic
+            <InputLabel htmlFor="quiz-topic" sx={visuallyHidden}>
+              Quiz Topic
             </InputLabel>
             <TextField
-              id="quiz-hero"
+              id="quiz-topic"
               hiddenLabel
               size="small"
               variant="outlined"
               aria-label="Enter your quiz topic"
               placeholder="Your quiz topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              disabled={isSubmitted}
               slotProps={{
                 htmlInput: {
                   autoComplete: 'off',
@@ -119,17 +155,15 @@ export default function Hero() {
                 },
               }}
             />
-            <Button variant="contained" color="primary">
-              Start now
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary"
+              disabled={isSubmitted || !topic}
+            >
+              {isSubmitted ? 'Quiz Started' : 'Start now'}
             </Button>
           </Stack>
-          <Typography variant="caption" sx={{ textAlign: 'center' }}>
-            By clicking &quot;Start now&quot; you agree to our&nbsp;
-            <Link href="#" color="primary">
-              Terms & Conditions
-            </Link>
-            .
-          </Typography>
         </Stack>
       </Container>
     </Box>
