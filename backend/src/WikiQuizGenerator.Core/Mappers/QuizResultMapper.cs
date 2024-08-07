@@ -34,7 +34,7 @@ public static class QuizResultMapper
                         Options = new List<string> { question.Option1, question.Option2, question.Option3, question.Option4, question.Option5 }
                             .Where(o => !string.IsNullOrEmpty(o)).ToList(),
                         CorrectOptionNumber = question.CorrectOptionNumber,
-                        UserSelectedOptionIndex = userSelectedOptionNumber
+                        UserSelectedOption = userSelectedOptionNumber
                     });
                 }
                 else
@@ -47,7 +47,7 @@ public static class QuizResultMapper
                         Options = new List<string> { question.Option1, question.Option2, question.Option3, question.Option4, question.Option5 }
                             .Where(o => !string.IsNullOrEmpty(o)).ToList(),
                         CorrectOptionNumber = question.CorrectOptionNumber,
-                        UserSelectedOptionIndex = null
+                        UserSelectedOption = null
                     });
                 }
             }

@@ -25,5 +25,5 @@ public class QuestionResultDto
     public string Text { get; set; }
     public List<string> Options { get; set; }
     public int CorrectOptionNumber { get; set; }
-    public int? UserSelectedOptionIndex { get; set; }
+    public int? UserSelectedOption { get; set; }
 }

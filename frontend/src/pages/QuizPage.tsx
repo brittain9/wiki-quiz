@@ -13,7 +13,7 @@ import LogoCollection from '../components/LogoCollection';
 import Highlights from '../components/Highlights';
 import Footer from '../components/Footer';
 import getTheme from '../getTheme';
-import QuizComponent from '../components/QuizComponent';
+import QuizComponent from '../components/Quiz/QuizComponent';
 
 interface ToggleCustomThemeProps {
   showCustomTheme: Boolean;

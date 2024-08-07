@@ -21,35 +21,34 @@
     "logoCollection" : {
       "qualityGuarantee" : "Guaranteed quality using cutting-edge services"
     },
-    "highlights": {
-      "title": "Highlights",
-      "info": "Explore why our product stands out: adaptability, durability, user-friendly design, and innovation. Enjoy reliable customer support and precision in every detail.",
-      "items" : {
-        "performance" : {
-          "title" : "Adaptable performance",
-          "desc" : "Our product effortlessly adjusts to your needs, boosting efficiency and simplifying your tasks."
-        },
-        "last" : {
-          "title" : "Built to last",
-          "desc" : "Experience unmatched durability that goes above and beyond with lasting investment."
-        },
-        "experience" : {
-          "title" : "Great user experience",
-          "desc" : "Integrate our product into your routine with an intuitive and easy-to-use interface."
-        },
-        "functionality" : {
-          "title" : "Innovative functionality",
-          "desc" : "Stay ahead with features that set new standards, addressing your evolving needs better than the rest."
-        },
-        "support" : {
-          "title" : "Reliable support",
-          "desc" : "Count on our responsive customer support, offering assistance that goes beyond the purchase."
-        },
-        "detail" : {
-          "title" : "Precision in every detail",
-          "desc" : "Enjoy a meticulously crafted product where small touches make a significant impact on your overall experience."
-        }
-      }
+      "highlights": {
+        "title": "Highlights",
+        "info": "Discover what makes the Wikipedia Quiz Generator exceptional: dynamic quiz creation, multilingual support, intelligent search, seamless AI integration, and meticulous design. Experience reliable performance and precision in every feature.",
+        "items": {
+          "dynamic_quiz": {
+            "title": "Dynamic Quiz Generation",
+            "desc": "Leverage AI and Wikipedia to generate engaging, topic-specific quizzes that adapt to your needs, enhancing user engagement and learning."
+          },
+          "inclusive_design": {
+            "title": "Inclusive Design for All Users",
+            "desc": "Our app is designed to cater to a wide range of users, allowing anyone to explore and pique their interest in a variety of topics."
+          },
+          "multilingual_support": {
+            "title": "Support for 9 Languages",
+            "desc": "Offer quizzes in nine languages including English, Spanish, French, Japanese, Chinese, and more, ensuring accessibility for a global audience."
+          },
+          "intelligent_search": {
+            "title": "Intelligent Search",
+            "desc": "Utilize intelligent search functionality to precisely target topics, providing users with relevant and accurate quiz content from millions of Wikipedia articles."
+          },
+          "ai_integration": {
+            "title": "Seamless AI Integration",
+            "desc": "Integrate effortlessly with leading AI APIs such as OpenAI and Perplexity, ensuring cutting-edge performance and capabilities."
+          },
+          "meticulous_design": {
+            "title": "Precision in Every Detail",
+            "desc": "From the frontend built with React and TypeScript to the backend powered by .NET 8 and PostgreSQL, every component is meticulously crafted for optimal performance."
+          }
+       } 
     }
-  }
-    
+}

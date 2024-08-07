@@ -50,7 +50,6 @@ const LanguageToggle: React.FC = () => {
         <MenuItem onClick={() => changeLanguage('fr')}>Français</MenuItem>
         <MenuItem onClick={() => changeLanguage('it')}>Italiano</MenuItem>
         <MenuItem onClick={() => changeLanguage('pt')}>Português</MenuItem>
-
       </Menu>
     </>
   );

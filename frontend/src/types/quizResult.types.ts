@@ -17,5 +17,5 @@ export interface QuizResult {
     text: string;
     options: string[];
     correctOptionNumber: number;
-    userSelectedOptionIndex: number | null;
+    userSelectedOption: number | null;
   }

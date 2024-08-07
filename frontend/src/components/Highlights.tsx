@@ -19,33 +19,33 @@ export default function Highlights() {
   const items = [
     {
       icon: <SettingsSuggestRoundedIcon />,
-      title: t('highlights.items.performance.title'),
-      description: t('highlights.items.performance.desc'),
+      title: t('highlights.items.dynamic_quiz.title'),
+      description: t('highlights.items.dynamic_quiz.desc'),
     },
     {
       icon: <ConstructionRoundedIcon />,
-      title: t('highlights.items.last.title'),
-      description: t('highlights.items.last.desc'),
+      title: t('highlights.items.inclusive_design.title'),
+      description: t('highlights.items.inclusive_design.desc'),
     },
     {
       icon: <ThumbUpAltRoundedIcon />,
-      title: t('highlights.items.experience.title'),
-      description: t('highlights.items.experience.desc'),
+      title: t('highlights.items.multilingual_support.title'),
+      description: t('highlights.items.multilingual_support.desc'),
     },
     {
       icon: <AutoFixHighRoundedIcon />,
-      title: t('highlights.items.functionality.title'),
-      description: t('highlights.items.functionality.desc'),
+      title: t('highlights.items.intelligent_search.title'),
+      description: t('highlights.items.intelligent_search.desc'),
     },
     {
       icon: <SupportAgentRoundedIcon />,
-      title: t('highlights.items.support.title'),
-      description: t('highlights.items.support.desc'),
+      title: t('highlights.items.ai_integration.title'),
+      description: t('highlights.items.ai_integration.desc'),
     },
     {
       icon: <QueryStatsRoundedIcon />,
-      title: t('highlights.items.detail.title'),
-      description: t('highlights.items.detail.desc'),
+      title: t('highlights.items.meticulous_design.title'),
+      description: t('highlights.items.meticulous_design.desc'),
     },
   ];
 

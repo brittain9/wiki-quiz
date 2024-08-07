@@ -1,9 +1,9 @@
 export interface QuizSubmission {
     quizId: number;
-    userAnswers: UserAnswer[];
+    questionAnswers: QuestionAnswer[];
   }
   
-  export interface UserAnswer {
+  export interface QuestionAnswer {
     questionId: number;
     selectedOptionNumber: number;
   }
