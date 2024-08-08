@@ -7,8 +7,6 @@ import Stack from '@mui/material/Stack';
 import { useTranslation } from 'react-i18next';
 
 import FacebookIcon from '@mui/icons-material/GitHub';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-
 
 export default function Footer() {
   const { t } = useTranslation();

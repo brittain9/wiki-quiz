@@ -12,15 +12,19 @@ import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ToggleColorMode from './ToggleColorMode';
-import LanguageToggle from './LanguageToggle';
+import LanguageToggle from './LanguageSelection';
 import { useTranslation } from 'react-i18next';
+import QuizOptionsComponent from './QuizOptionsComponent';
 
 interface AppAppBarProps {
   mode: PaletteMode;
   toggleColorMode: () => void;
 }
 
-export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
+const AppAppBar: React.FC<AppAppBarProps> = ({ 
+  mode, 
+  toggleColorMode, 
+}) => {
   const [open, setOpen] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
   const { t } = useTranslation();
@@ -117,9 +121,9 @@ export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
           })}
         >
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
-          <Typography color={"black"} pr={4}>
-            {t('appBar.title')}
-          </Typography>
+            <Typography color={"black"} pr={4}>
+              {t('appBar.title')}
+            </Typography>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button
                 variant="text"
@@ -138,6 +142,7 @@ export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
               alignItems: 'center',
             }}
           >
+            <QuizOptionsComponent />
             <LanguageToggle />
             <ToggleColorMode
               data-screenshot="toggle-mode"
@@ -175,3 +180,4 @@ export default function AppAppBar({ mode, toggleColorMode }: AppAppBarProps) {
     </AppBar>
   );
 }
+export default AppAppBar;

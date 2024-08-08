@@ -3,6 +3,8 @@ import { Quiz } from '../types/quiz.types';
 import { QuizSubmission } from '../types/quizSubmission.types';
 import { QuizResult } from '../types/quizResult.types';
 
+// used in the quiz service
+
 const API_BASE_URL = 'http://localhost:5543';
 
 export interface BasicQuizParams {

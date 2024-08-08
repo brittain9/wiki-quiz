@@ -10,6 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { visuallyHidden } from '@mui/utils';
 import { styled } from '@mui/material/styles';
 import AnimatedTopics from './AnimatedTopics';
+import { useGlobalQuiz } from '../../context/GlobalQuizContext';
+import { useQuizService } from '../../services/quizService';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -33,21 +35,30 @@ const StyledBox = styled('div')(({ theme }) => ({
   }),
 }));
 
-interface HeroProps {
-  onStartQuiz: (topic: string) => void;
-}
-
-export default function Hero({ onStartQuiz }: HeroProps) {
+export default function Hero() {
+  const { quizOptions, setTopic, setIsQuizReady, setCurrentQuiz } = useGlobalQuiz();
+  const { generateQuiz } = useQuizService();
   const { t } = useTranslation();
-  const [topic, setTopic] = React.useState('');
-  const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [topicInput, setTopicInput] = React.useState('');
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (topic && !isSubmitted) {
-      onStartQuiz(topic);
-      setIsSubmitted(true);
+    if (topicInput && !quizOptions.isGenerating) {
+      setTopic(topicInput);
+      try {
+        const quiz = await generateQuiz();
+        setCurrentQuiz(quiz);
+        setIsQuizReady(true);
+      } catch (error) {
+        console.error('Failed to generate quiz:', error);
+        // Here show an error message to the user
+      }
     }
+  };
+
+  const handleTopicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTopicInput(event.target.value);
+    setTopic(event.target.value);
   };
 
   return (
@@ -116,10 +127,10 @@ export default function Hero({ onStartQuiz }: HeroProps) {
               size="small"
               variant="outlined"
               aria-label="Enter your quiz topic"
-              placeholder= {t('hero.placeholder')}
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              disabled={isSubmitted}
+              placeholder={t('hero.placeholder')}
+              value={topicInput}
+              onChange={handleTopicChange}
+              disabled={quizOptions.isGenerating}
               slotProps={{
                 htmlInput: {
                   autoComplete: 'off',
@@ -131,9 +142,9 @@ export default function Hero({ onStartQuiz }: HeroProps) {
               type="submit" 
               variant="contained" 
               color="primary"
-              disabled={isSubmitted || !topic}
+              disabled={quizOptions.isGenerating || !topicInput}
             >
-              {isSubmitted ? t('hero.generatingButtonText') : t('hero.startButtonText')}
+              {quizOptions.isGenerating ? t('hero.generatingButtonText') : t('hero.startButtonText')}
             </Button>
           </Stack>
         </Stack>

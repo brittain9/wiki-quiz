@@ -1,10 +1,10 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useGlobalQuiz } from '../../context/GlobalQuizContext';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
 
 const LanguageToggle: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { setLanguage } = useGlobalQuiz(); // get quiz options for debugging language
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -15,8 +15,9 @@ const LanguageToggle: React.FC = () => {
     setAnchorEl(null);
   };
 
+  // The context class will handle the change in i18n
   const changeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
+    setLanguage(lang);
     handleClose();
   };
 
