@@ -5,7 +5,7 @@ public static class LanguagesExtensions
     private static readonly Dictionary<Languages, string> LanguageCodeMap = new()
     {
         { Languages.English, "en" },
-        { Languages.Dutch, "de" },  // Note: Changed from "de" (German) to "nl" (Dutch)
+        { Languages.German, "de" },
         { Languages.Spanish, "es" },
         { Languages.Chinese, "zh" },
         { Languages.Japanese, "ja" },
@@ -31,7 +31,10 @@ public static class LanguagesExtensions
             throw new LanguageException("Language code cannot be null or empty", languageCode ?? "");
         }
 
-        var pair = LanguageCodeMap.FirstOrDefault(x => x.Value.Equals(languageCode, StringComparison.OrdinalIgnoreCase));
+        // Use the first two characters of the language code
+        var languagePart = languageCode.Substring(0, 2);
+
+        var pair = LanguageCodeMap.FirstOrDefault(x => x.Value.Equals(languagePart, StringComparison.OrdinalIgnoreCase));
 
         if (pair.Key != default(Languages) || (pair.Key == Languages.English && pair.Value == "en"))
         {

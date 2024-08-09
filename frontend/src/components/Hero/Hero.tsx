@@ -1,17 +1,17 @@
-import * as React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
-import InputLabel from '@mui/material/InputLabel';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { Paper, List, ListItem, ListItemButton } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { visuallyHidden } from '@mui/utils';
 import { styled } from '@mui/material/styles';
 import AnimatedTopics from './AnimatedTopics';
 import { useGlobalQuiz } from '../../context/GlobalQuizContext';
 import { useQuizService } from '../../services/quizService';
+import { fetchWikipediaTopics } from '../../services/wikiApi';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -36,29 +36,73 @@ const StyledBox = styled('div')(({ theme }) => ({
 }));
 
 export default function Hero() {
-  const { quizOptions, setTopic, setIsQuizReady, setCurrentQuiz } = useGlobalQuiz();
+  const { quizOptions, setTopic, setIsQuizReady, setCurrentQuiz, setIsGenerating } = useGlobalQuiz();
   const { generateQuiz } = useQuizService();
   const { t } = useTranslation();
-  const [topicInput, setTopicInput] = React.useState('');
+  const [topicInput, setTopicInput] = useState('');
+  const [topics, setTopics] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Add event listener to close the dropdown when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setTopics([]);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (topicInput && !quizOptions.isGenerating) {
-      setTopic(topicInput);
+    event.preventDefault(); // Prevent default form submission
+    if (quizOptions.topic && !quizOptions.isGenerating) {
       try {
+        setIsGenerating(true);
         const quiz = await generateQuiz();
         setCurrentQuiz(quiz);
         setIsQuizReady(true);
-      } catch (error) {
-        console.error('Failed to generate quiz:', error);
-        // Here show an error message to the user
+        setError(null);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setIsGenerating(false);
       }
     }
   };
 
   const handleTopicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTopicInput(event.target.value);
     setTopic(event.target.value);
+    setTopicInput(event.target.value);
+    setError(null);
+
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
+    }
+
+    const timeout = window.setTimeout(() => {
+      if (event.target.value) {
+        fetchWikipediaTopics(event.target.value)
+          .then(setTopics)
+          .catch(err => setError(err.message));
+      } else {
+        setTopics([]);
+      }
+    }, 1000);
+
+    setDebounceTimeout(timeout);
+  };
+
+  const handleTopicSelect = (selectedTopic: string) => {
+    if (!quizOptions.isGenerating) {
+      setTopic(selectedTopic);
+      setTopicInput(selectedTopic);
+      setTopics([]);
+    }
   };
 
   return (
@@ -110,34 +154,49 @@ export default function Hero() {
           >
             {t('hero.topicInfo')}
           </Typography>
-          <Stack
-            component="form"
-            onSubmit={handleSubmit}
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={1}
-            useFlexGap
-            sx={{ pt: 2, width: { xs: '100%', sm: 'auto' } }}
-          >
-            <InputLabel htmlFor="quiz-topic" sx={visuallyHidden}>
-              Quiz Topic
-            </InputLabel>
-            <TextField
-              id="quiz-topic"
-              hiddenLabel
-              size="small"
-              variant="outlined"
-              aria-label="Enter your quiz topic"
-              placeholder={t('hero.placeholder')}
-              value={topicInput}
-              onChange={handleTopicChange}
-              disabled={quizOptions.isGenerating}
-              slotProps={{
-                htmlInput: {
-                  autoComplete: 'off',
-                  'aria-label': 'Enter your quiz topic',
-                },
-              }}
-            />
+          <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', width: '60%', maxWidth: 600 }}>
+            <Box sx={{ position: 'relative', flexGrow: 1, mr: 1 }} ref={dropdownRef}>
+              <TextField
+                id="quiz-topic"
+                hiddenLabel
+                size="small"
+                variant="outlined"
+                aria-label="Enter your quiz topic"
+                placeholder={t('hero.placeholder')}
+                value={topicInput}
+                onChange={handleTopicChange}
+                error={!!error}
+                helperText={error}
+                disabled={quizOptions.isGenerating}
+                fullWidth
+                autoComplete="off"
+                inputProps={{ style: { textAlign: 'left' } }}
+              />
+              {topics.length > 0 && (
+                <Paper
+                  elevation={3}
+                  sx={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    zIndex: 1,
+                    maxHeight: 200,
+                    overflow: 'auto',
+                  }}
+                >
+                  <List>
+                    {topics.map((topic, index) => (
+                      <ListItem key={index} disablePadding>
+                        <ListItemButton onClick={() => handleTopicSelect(topic)}>
+                          {topic}
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Paper>
+              )}
+            </Box>
             <Button 
               type="submit" 
               variant="contained" 
@@ -146,7 +205,7 @@ export default function Hero() {
             >
               {quizOptions.isGenerating ? t('hero.generatingButtonText') : t('hero.startButtonText')}
             </Button>
-          </Stack>
+          </form>
         </Stack>
       </Container>
     </Box>

@@ -28,7 +28,7 @@ public class QuestionGenerator : IQuestionGenerator
 
     public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions)
     {
-        _logger.LogTrace($"Generating {numQuestions} questions on page '{page.Title}' in {language.GetWikipediaLanguageCode()} with {numOptions} options and {content.Length} content length");
+        _logger.LogTrace($"Generating {numQuestions} questions on page '{page.Title}' in '{language.GetWikipediaLanguageCode()}' with {numOptions} options and {content.Length} content length");
 
         var quizFunction = _promptManager.GetPromptFunction("Default", language.GetWikipediaLanguageCode());
 

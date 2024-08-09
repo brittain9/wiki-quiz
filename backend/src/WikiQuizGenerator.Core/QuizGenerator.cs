@@ -21,7 +21,7 @@ public class QuizGenerator : IQuizGenerator
 
     public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, int numQuestions, int numOptions, int extractLength)
     {
-        _logger.LogTrace($"Generating a basic quiz on '{topic}' in {language.GetWikipediaLanguageCode()} with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
+        _logger.LogTrace($"Generating a basic quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
 
         WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language);
         if (page == null)

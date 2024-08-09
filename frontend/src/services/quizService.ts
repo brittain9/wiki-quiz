@@ -26,7 +26,6 @@ export const useQuizService = () => {
       setIsQuizReady(true);
       return quiz;
     } catch (error) {
-      console.error('Error generating quiz:', error);
       throw error;
     } finally {
       setIsGenerating(false);
@@ -37,7 +36,6 @@ export const useQuizService = () => {
     try {
       return await api.submitQuiz(submission);
     } catch (error) {
-      console.error('Error submitting quiz:', error);
       throw error;
     }
   };

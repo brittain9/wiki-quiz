@@ -62,7 +62,7 @@ function ToggleCustomTheme({
 }
 
 export default function QuizPage() {
-    const [mode, setMode] = React.useState<PaletteMode>('light');
+  const [mode, setMode] = React.useState<PaletteMode>('light');
   const [showCustomTheme, setShowCustomTheme] = React.useState(true);
   const QPtheme = createTheme(getTheme(mode));
   const defaultTheme = createTheme({ palette: { mode } });

@@ -18,7 +18,7 @@ public static class QuizEndpoints
         // Returns our DTO
         app.MapGet("/basicquiz", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
-            Log.Verbose($"GET /basicquiz called with topic '{topic}' in {language} with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
+            Log.Verbose($"GET /basicquiz called with topic '{topic}' in '{language}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
 
             // Validate input parameters
             if (numQuestions < 1 || numQuestions > 20)
@@ -50,10 +50,10 @@ public static class QuizEndpoints
                 Log.Error($"Invalid language code: {language}");
                 return Results.BadRequest($"Invalid language code: {language}");
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException ex) when (ex.Message.Contains("Wikipedia page"))
             {
                 Log.Error($"Wikipedia page not found for topic: {topic}");
-                return Results.BadRequest($"Wikipedia page not found for topic: {topic}");
+                return Results.NotFound($"Wikipedia page not found for topic: {topic}");
             }
             catch (Exception ex)
             {

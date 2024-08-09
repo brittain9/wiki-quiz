@@ -27,29 +27,24 @@ const Quiz: React.FC = () => {
       }
     }, [quizOptions.currentQuiz]);
   
-    if (!quizOptions.currentQuiz && !quizOptions.currentQuizResult) {
-      return null;
-    }
-  
     if (quizOptions.isGenerating) {
+      // Render loading screen within a fixed-size container
       return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="400px" // Fixed height
+          width="100%" // Full width of the parent container
+        >
           <CircularProgress />
         </Box>
       );
     }
 
-  if (!quizOptions.currentQuiz && !quizOptions.currentQuizResult) {
-    return null;
-  }
-
-  if (quizOptions.isGenerating) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+    if (!quizOptions.currentQuiz && !quizOptions.currentQuizResult) {
+      return null;
+    }
 
   const handleAnswerChange = (questionId: number, selectedOptionNumber: number) => {
     setUserAnswers(prev => {

@@ -39,7 +39,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
     /// <returns>A WikipediaArticle object containing the article information.</returns>
     public async Task<WikipediaPage> GetWikipediaPage(string topic, Languages language)
     {
-        _logger.LogTrace($"Getting wikipedia page content on topic '{topic}' in {nameof(language)}.");
+        _logger.LogTrace($"Getting wikipedia page content on topic '{topic}' in '{language.GetWikipediaLanguageCode()}'.");
 
         if (Language != language) 
             Language = language;
@@ -61,7 +61,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
         // Check if we already have this page.
         if (await _pageRepository.ExistsByTitleAsync(exactTitle, language))
         {
-            _logger.LogInformation($"Got page '{exactTitle}' in language '{nameof(language)}'from the database in {sw.ElapsedMilliseconds} milliseconds");
+            _logger.LogInformation($"Got page '{exactTitle}' in language '{language.GetWikipediaLanguageCode()}' from the database in {sw.ElapsedMilliseconds} milliseconds");
             return await _pageRepository.GetByTitleAsync(exactTitle, language);
         }
 
@@ -118,7 +118,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
 
                 sw.Stop();
                 wikiPage = await _pageRepository.AddAsync(wikiPage);
-                _logger.LogInformation($"Added Wikipedia page '{wikiPage.Title}' with language {nameof(language)} to database in {sw.ElapsedMilliseconds} milliseconds.");
+                _logger.LogInformation($"Added Wikipedia page '{wikiPage.Title}' with language '{language.GetWikipediaLanguageCode()}' to database in {sw.ElapsedMilliseconds} milliseconds.");
                 return wikiPage;
             }
 

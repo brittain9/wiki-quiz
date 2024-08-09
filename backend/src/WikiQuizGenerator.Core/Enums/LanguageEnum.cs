@@ -10,7 +10,7 @@ namespace WikiQuizGenerator.Core;
 public enum Languages
 {
     English,
-    Dutch,
+    German,
     Spanish,
     Chinese,
     // Farci, // This seems too difficult to support as it is read from right to left.
