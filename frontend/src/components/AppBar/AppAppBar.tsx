@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { PaletteMode, Typography } from '@mui/material';
+import { PaletteMode, Typography, IconButton } from '@mui/material';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
@@ -13,8 +12,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ToggleColorMode from './ToggleColorMode';
 import LanguageToggle from './LanguageSelection';
-import { useTranslation } from 'react-i18next';
 import QuizOptionsComponent from './QuizOptionsComponent';
+import { useTranslation } from 'react-i18next';
 
 interface AppAppBarProps {
   mode: PaletteMode;
@@ -38,7 +37,6 @@ const AppAppBar: React.FC<AppAppBarProps> = ({
     }
     timerRef.current = window.setTimeout(() => {
       setVisible(false);
-      console.log('AppBar hidden by timer');
     }, 3000);
   }, []);
 
@@ -107,7 +105,7 @@ const AppAppBar: React.FC<AppAppBarProps> = ({
             flexShrink: 0,
             borderRadius: '999px',
             backdropFilter: 'blur(24px)',
-            maxHeight: 40,
+            height: 40,
             border: '1px solid',
             borderColor: 'divider',
             bgcolor: 'hsla(220, 60%, 99%, 0.6)',
@@ -121,13 +119,13 @@ const AppAppBar: React.FC<AppAppBarProps> = ({
           })}
         >
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
-            <Typography color={"black"} pr={4}>
+            <Typography color="text.primary" sx={{ mr: 2 }}>
               {t('appBar.title')}
             </Typography>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button
                 variant="text"
-                color="info"
+                color="primary"
                 size="small"
                 onClick={() => scrollToSection('highlights')}
               >
@@ -145,13 +143,12 @@ const AppAppBar: React.FC<AppAppBarProps> = ({
             <QuizOptionsComponent />
             <LanguageToggle />
             <ToggleColorMode
-              data-screenshot="toggle-mode"
               mode={mode}
               toggleColorMode={toggleColorMode}
             />
           </Box>
           <Box sx={{ display: { sm: 'flex', md: 'none' } }}>
-            <IconButton aria-label="Menu button" onClick={toggleDrawer(true)}>
+            <IconButton aria-label="Menu button" onClick={toggleDrawer(true)} color="primary">
               <MenuIcon />
             </IconButton>
             <Drawer anchor="top" open={open} onClose={toggleDrawer(false)}>
@@ -168,7 +165,7 @@ const AppAppBar: React.FC<AppAppBarProps> = ({
                     <CloseRoundedIcon />
                   </IconButton>
                 </Box>
-                <Divider sx={{ my: 3 }} />
+                <Divider sx={{ my: 2 }} />
                 <MenuItem onClick={() => scrollToSection('highlights')}>
                   {t('appBar.highlights')}
                 </MenuItem>
@@ -180,4 +177,5 @@ const AppAppBar: React.FC<AppAppBarProps> = ({
     </AppBar>
   );
 }
+
 export default AppAppBar;

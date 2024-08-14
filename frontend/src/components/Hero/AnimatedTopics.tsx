@@ -11,8 +11,8 @@ const PAUSE_BEFORE_NEXT_WORD = 500;
 const AnimatedTopics: React.FC = () => {
   const { t } = useTranslation();
   const topics = React.useMemo(() => {
-    const translatedTopics = t('hero.topics', { returnObjects: true });
-    return Array.isArray(translatedTopics) ? translatedTopics : [];
+  const translatedTopics = t('hero.topics', { returnObjects: true });
+  return Array.isArray(translatedTopics) ? translatedTopics : [];
   }, [t]);
 
   const [currentTopicIndex, setCurrentTopicIndex] = React.useState(0);
@@ -68,6 +68,8 @@ const AnimatedTopics: React.FC = () => {
         fontSize: 'inherit',
         color: 'primary.main',
         transition: 'color 0.5s ease',
+        display: 'inline-block',
+        minWidth: '200px', // Adjust this value as needed
         ...theme.applyStyles('dark', {
           color: 'primary.light',
         }),
@@ -78,5 +80,6 @@ const AnimatedTopics: React.FC = () => {
     </Typography>
   );
 };
+
 
 export default AnimatedTopics;

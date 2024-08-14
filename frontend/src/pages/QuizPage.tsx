@@ -87,8 +87,6 @@ export default function QuizPage() {
         <Hero />
         <Box sx={{ bgcolor: 'background.default' }}>
           <QuizComponent />
-          <LogoCollection />
-          <Divider />
           <Highlights />
           <Divider />
           <Footer />

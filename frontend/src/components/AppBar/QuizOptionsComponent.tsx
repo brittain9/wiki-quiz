@@ -1,103 +1,79 @@
+// QuizOptionsComponent.tsx
 import React from 'react';
-import {
-  Box,
-  IconButton,
-  Tooltip,
-  Menu,
-  MenuItem,
-  TextField,
-  Typography,
-  Slider,
-} from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { Box, IconButton, Tooltip, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import { useGlobalQuiz } from '../../context/GlobalQuizContext';
 
-const QuizOptionsMenu: React.FC = () => {
+const QuizOptionsComponent: React.FC = () => {
+  const [expanded, setExpanded] = React.useState(false);
   const { quizOptions, setNumQuestions, setNumOptions, setExtractLength } = useGlobalQuiz();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const toggleExpanded = () => {
+    setExpanded(!expanded);
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const varietyOptions = [
+    { label: 'Low', value: 1000 },
+    { label: 'Medium', value: 2000 },
+    { label: 'High', value: 5000 },
+    { label: 'Very High', value: 10000 },
+  ];
 
   return (
-    <>
-      <Tooltip title="Quiz Settings">
-        <IconButton
-          onClick={handleClick}
-          size="large"
-          edge="end"
-          color="inherit"
-          aria-label="quiz settings"
-        >
-          <SettingsIcon />
+    <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+      <Tooltip title={expanded ? "Hide options" : "Show options"}>
+        <IconButton onClick={toggleExpanded} color="primary" size="small">
+          {expanded ? <KeyboardDoubleArrowRightIcon /> : <KeyboardDoubleArrowLeftIcon />}
         </IconButton>
       </Tooltip>
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        PaperProps={{
-          elevation: 0,
-          sx: {
-            overflow: 'visible',
-            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-            mt: 1.5,
-            '& .MuiAvatar-root': {
-              width: 32,
-              height: 32,
-              ml: -0.5,
-              mr: 1,
-            },
-          },
-        }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      >
-        <Box sx={{ p: 2, width: 300 }}>
-          <Typography variant="h6" gutterBottom>
-            Quiz Settings
-          </Typography>
-          <TextField
-            label="Number of Questions"
-            type="number"
-            value={quizOptions.numQuestions}
-            onChange={(e) => setNumQuestions(Number(e.target.value))}
-            fullWidth
-            margin="normal"
-            InputProps={{ inputProps: { min: 1, max: 20 } }}
-          />
-          <TextField
-            label="Options per Question"
-            type="number"
-            value={quizOptions.numOptions}
-            onChange={(e) => setNumOptions(Number(e.target.value))}
-            fullWidth
-            margin="normal"
-            InputProps={{ inputProps: { min: 2, max: 5 } }}
-          />
-          <Typography gutterBottom>
-            Extract Length: {quizOptions.extractLength}
-          </Typography>
-          <Slider
-            value={quizOptions.extractLength}
-            onChange={(_, newValue) => setExtractLength(newValue as number)}
-            aria-labelledby="extract-length-slider"
-            valueLabelDisplay="auto"
-            step={250}
-            marks
-            min={500}
-            max={10000}
-          />
+      {expanded && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="questions-label">Questions</InputLabel>
+            <Select
+              labelId="questions-label"
+              value={quizOptions.numQuestions}
+              label="Questions"
+              onChange={(e) => setNumQuestions(Number(e.target.value))}
+            >
+              {[5, 10, 15, 20].map((num) => (
+                <MenuItem key={num} value={num}>{num}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="options-label">Options</InputLabel>
+            <Select
+              labelId="options-label"
+              value={quizOptions.numOptions}
+              label="Options"
+              onChange={(e) => setNumOptions(Number(e.target.value))}
+            >
+              {[2, 3, 4, 5].map((num) => (
+                <MenuItem key={num} value={num}>{num}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel id="variety-label">Variety</InputLabel>
+            <Select
+              labelId="variety-label"
+              value={quizOptions.extractLength}
+              label="Variety"
+              onChange={(e) => setExtractLength(Number(e.target.value))}
+            >
+              {varietyOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
-      </Menu>
-    </>
+      )}
+    </Box>
   );
 };
 
-export default QuizOptionsMenu;
+export default QuizOptionsComponent;
