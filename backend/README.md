@@ -6,7 +6,7 @@ This project generates high-quality quizes based on nearly any topic using Wikip
 - Dynamic quiz generation utilizing semantic kernel prompt templates  
 - Multilingual support for English, Spanish, French, Japanese, Chinese, and more
 - Flexible search bar (Entering Apple Company will give you a quiz about Apple Inc.)
-- Easy integration with various AI APIs, currently supporting OpenAI API and the Perplexity API
+- Easy integration with  various AI APIs, currently supporting OpenAI API and the Perplexity API
 - ASP.NET Core minimal api for quiz generation and submission (coming soon)
 
 ## Requirements:
@@ -18,7 +18,9 @@ This project generates high-quality quizes based on nearly any topic using Wikip
 - Run docker-compose up --build
 - Test API at localhost:5543/swagger
 
-## Fixes:
-- when run using docker-compose, needs to migrate
+## TODO:
+- Add a api endpoint for getting the supported models. 
+- Fix ai service extension to allow for any service with a key to be valid.
+- add model as a parameter to create the quiz
 
 ![ERD Diagram](src/WikiQuizGenerator.Data/WikiQuizGeneratorERD.png)

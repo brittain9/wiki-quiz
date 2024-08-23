@@ -137,15 +137,23 @@ public class WikipediaContentProvider : IWikipediaContentProvider
         _logger.LogTrace($"Getting exact wikipedia title from user topic '{query}'.");
 
         string searchUrl = $"{ApiEndpoint}?action=opensearch&search={query}&limit=1&format=json";
-        var searchResponse = await _client.GetStringAsync(searchUrl);
-        var searchResults = JsonDocument.Parse(searchResponse);
-
-        if (searchResults.RootElement.GetArrayLength() < 2 || !searchResults.RootElement[1].EnumerateArray().MoveNext())
+        try
         {
-            return string.Empty;
-        }
+            var searchResponse = await _client.GetStringAsync(searchUrl); // the wikipedia api may not like vpns
+            var searchResults = JsonDocument.Parse(searchResponse);
 
-        return searchResults.RootElement[1][0].GetString();
+            if (searchResults.RootElement.GetArrayLength() < 2 || !searchResults.RootElement[1].EnumerateArray().MoveNext())
+            {
+                return string.Empty;
+            }
+
+            return searchResults.RootElement[1][0].GetString();
+        }
+        catch (HttpRequestException e)
+        {
+            Console.WriteLine($"Request error: {e.Message}");
+        }
+        return string.Empty;
     }
 
     public static string RemoveFormatting(string input)

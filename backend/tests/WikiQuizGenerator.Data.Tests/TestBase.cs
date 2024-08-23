@@ -115,9 +115,8 @@ public abstract class TestBase : IDisposable
         {
             QuizId = TestQuiz.Id,
             Quiz = TestQuiz,
-            Answers = new List<int> { 1 },
+            Answers = new List<QuestionAnswer> { new QuestionAnswer() },
             SubmissionTime = DateTime.UtcNow,
-            Score = 3
         };
         _context.QuizSubmissions.Add(TestQuizSubmission);
         await _context.SaveChangesAsync();

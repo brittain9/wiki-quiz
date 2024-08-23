@@ -15,26 +15,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog();
 
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-
-    builder.Services.AddSerilog((services, lc) => lc
-        .ReadFrom.Configuration(builder.Configuration) // appsettings.json
-        .ReadFrom.Services(services));
-
-    // TODO: Make both AI services avaliable and able to switch between them
-    builder.Services.AddOpenAIService(builder.Configuration);
-    // builder.Services.AddPerplexityAIService(builder.Configuration);
-
-    builder.Services.AddDataServices();
-
-    builder.Services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
-
-    builder.Services.AddSingleton<PromptManager>();
-    builder.Services.AddScoped<IQuestionGenerator, QuestionGenerator>();
-
-    builder.Services.AddScoped<IQuizGenerator, QuizGenerator>();
-
+    ConfigureServices(builder.Services, builder.Configuration);
 
     builder.Services.AddCors(options =>
     {

@@ -11,42 +11,27 @@ namespace WikiQuizGenerator.LLM;
 // It seems I could just create the kernel in the constructor which would be more efficient.
 // I'll rework this later.
 public static class SemanticKernelServiceExtensions
-{
-    public static IServiceCollection AddOpenAIService(this IServiceCollection services, IConfiguration configuration, string modelId="gpt-4o-mini")
+{ 
+    public static bool IsOpenAiAvailable { get; private set; }
+    public static bool IsPerplexityAvailable { get; private set; }
+    public static IServiceCollection AddAiService(this IServiceCollection services, IConfiguration configuration, string modelId="gpt-4o-mini")
     {
         string? openAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-
-        if(string.IsNullOrEmpty(openAiApiKey))
-        {
-            throw new InvalidOperationException("OpenAI API key not found in environment variables. Please configure the .env file");
-        }
-
-        services.AddSingleton(sp =>
-        {
-            var kernelBulder = Kernel.CreateBuilder()
-                .AddOpenAIChatCompletion(modelId, openAiApiKey);
-
-            return kernelBulder.Build();
-        });
-
-        return services;
-    }
-
-    public static IServiceCollection AddPerplexityAIService(this IServiceCollection services, IConfiguration configuration, string modelId = "llama-3.1-sonar-small-128k-chat")
-    {
         string? perplexityApiKey = Environment.GetEnvironmentVariable("PERPLEXITY_API_KEY");
         
-        if (string.IsNullOrEmpty(perplexityApiKey))
-        {
-            throw new InvalidOperationException("Perplexity API key not found in environment variables. Please configure the .env file");
-        }
-
+        IsOpenAiAvailable = !string.IsNullOrEmpty(openAiApiKey) && !openAiApiKey.Equals("YOUR_OPENAI_KEY_HERE") ? true : false;
+        IsPerplexityAvailable = !string.IsNullOrEmpty(perplexityApiKey) && !perplexityApiKey.Equals("YOUR_PERPLEXITY_KEY_HERE") ? true : false;
+        
         services.AddSingleton(sp =>
         {
-            var kernelBulder = Kernel.CreateBuilder()
-                .AddPerplexityAIChatCompletion(modelId, perplexityApiKey);
-
-            return kernelBulder.Build();
+            var kernelBuilder = Kernel.CreateBuilder();
+            
+            if (IsOpenAiAvailable)
+                kernelBuilder.AddOpenAIChatCompletion(modelId, openAiApiKey!, serviceId: "openai");
+            if (IsPerplexityAvailable)
+                kernelBuilder.AddPerplexityAIChatCompletion(modelId, perplexityApiKey!, serviceId: "perplexity");
+            
+            return kernelBuilder.Build();
         });
 
         return services;

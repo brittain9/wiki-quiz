@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Azure;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Services;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
@@ -29,13 +29,23 @@ public class QuestionGenerator : IQuestionGenerator
     public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions)
     {
         _logger.LogTrace($"Generating {numQuestions} questions on page '{page.Title}' in '{language.GetWikipediaLanguageCode()}' with {numOptions} options and {content.Length} content length");
-
+        
         var quizFunction = _promptManager.GetPromptFunction("Default", language.GetWikipediaLanguageCode());
+        
+        var kernelArgs = new KernelArguments
+        {
+            ["text"] = content,
+            ["numQuestions"] = numQuestions,
+            ["numOptions"] = numOptions,
+            ["language"] = language
+        };
+
+        _kernel.ServiceSelector.SelectAIService<IChatCompletionService>(_kernel, quizFunction, kernelArgs);
 
         Stopwatch sw = Stopwatch.StartNew();
 
         var questions = new List<Question>();
-        FunctionResult result = null!; // this will be our ai response
+        FunctionResult result = null!;
         var generationAttempts = 0;;
 
         do
@@ -43,13 +53,7 @@ public class QuestionGenerator : IQuestionGenerator
             if (generationAttempts > 0)
                 _logger.LogWarning($"Failed extracting questions from response on attempt {generationAttempts}.");
 
-            result = await quizFunction.InvokeAsync(_kernel, new KernelArguments
-            {
-                ["text"] = content,
-                ["numQuestions"] = numQuestions,
-                ["numOptions"] = numOptions,
-                ["language"] = language
-            });
+            result = await quizFunction.InvokeAsync(_kernel, kernelArgs);
 
             var jsonResult = result.GetValue<string>();
 
