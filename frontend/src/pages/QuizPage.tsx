@@ -9,7 +9,6 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AppAppBar from '../components/AppBar/AppAppBar';
 import Hero from '../components/Hero/Hero';
-import LogoCollection from '../components/LogoCollection';
 import Highlights from '../components/Highlights';
 import Footer from '../components/Footer';
 import getTheme from '../getTheme';

@@ -15,15 +15,40 @@ namespace WikiQuizGenerator.LLM;
 
 public class QuestionGenerator : IQuestionGenerator
 {
-    private readonly Kernel _kernel;
     private readonly PromptManager _promptManager;
     private readonly ILogger<QuestionGenerator> _logger;
+    private readonly Kernel _kernel;
 
-    public QuestionGenerator(Kernel kernel, PromptManager promptManager, ILogger<QuestionGenerator> logger)
+    public QuestionGenerator(PromptManager promptManager, ILogger<QuestionGenerator> logger, AiServiceManager aiServiceManager)
     {
-        _kernel = kernel;
         _promptManager = promptManager;
         _logger = logger;
+        
+        // create the kernel with the specified ai service
+        var kernelBuilder = Kernel.CreateBuilder();
+        
+        string modelId = aiServiceManager.SelectedService switch
+        {
+            AiService.OpenAi => AiServiceManager.OpenAiModelNames[aiServiceManager.SelectedOpenAiModel],
+            AiService.Perplexity => AiServiceManager.PerplexityModelNames[aiServiceManager.SelectedPerplexityModel],
+            _ => throw new ArgumentException("Invalid AI service selected.")
+        };
+        
+        switch (aiServiceManager.SelectedService)
+        {
+            case AiService.OpenAi:
+                if (AiServiceManager.IsOpenAiAvailable)
+                    kernelBuilder.AddOpenAIChatCompletion(modelId, AiServiceManager.OpenAiApiKey!);
+                break;
+            case AiService.Perplexity:
+                if (AiServiceManager.IsPerplexityAvailable)
+                    kernelBuilder.AddPerplexityAIChatCompletion(modelId, AiServiceManager.PerplexityApiKey!);
+                break;
+            default:
+                throw new ArgumentException("Invalid AI service selected.");
+        }
+        
+        _kernel = kernelBuilder.Build();
     }
 
     public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions)
@@ -39,9 +64,7 @@ public class QuestionGenerator : IQuestionGenerator
             ["numOptions"] = numOptions,
             ["language"] = language
         };
-
-        _kernel.ServiceSelector.SelectAIService<IChatCompletionService>(_kernel, quizFunction, kernelArgs);
-
+        
         Stopwatch sw = Stopwatch.StartNew();
 
         var questions = new List<Question>();

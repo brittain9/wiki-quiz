@@ -13,22 +13,23 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using WikiQuizGenerator.Core;
 
 public class PerplexityAIChatCompletion : IChatCompletionService
 {
     private readonly string _apiKey;
     private readonly string _apiEndpoint;
-    // Possible values include llama-3.1-sonar-small-128k-chat, llama-3.1-sonar-small-128k-online, llama-3.1-sonar-large-128k-chat,
-    // llama-3.1-sonar-large-128k-online, llama-3.1-8b-instruct, and llama-3.1-70b-instruct.
     private readonly string _model;
     private readonly HttpClient _httpClient;
     private readonly ILogger<PerplexityAIChatCompletion> _logger;
     public IReadOnlyDictionary<string, object?> Attributes { get; }
+    
     public PerplexityAIChatCompletion(string apiKey,
-    string model,
-    string apiEndpoint = "https://api.perplexity.ai/chat/completions",
-    HttpClient? httpClient = null,
-    ILogger<PerplexityAIChatCompletion> logger = null)
+        string model,
+        string apiEndpoint = "https://api.perplexity.ai/chat/completions",
+        HttpClient? httpClient = null,
+        ILogger<PerplexityAIChatCompletion> logger = null
+    )
     {
         _apiKey = apiKey;
         _model = model;
@@ -96,6 +97,4 @@ public class PerplexityAIChatCompletion : IChatCompletionService
     {
         throw new NotImplementedException();
     }
-
-
 }

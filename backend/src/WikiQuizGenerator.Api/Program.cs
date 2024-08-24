@@ -17,20 +17,12 @@ try
 
     ConfigureServices(builder.Services, builder.Configuration);
 
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowReactApp",
-            builder => builder
-                .WithOrigins("http://localhost:5173") // React app's URL
-                .AllowAnyMethod()
-                .AllowAnyHeader());
-    });
-
     var app = builder.Build();
 
     app.UseSerilogRequestLogging();
 
     app.MapQuizEndpoints();
+    app.MapAiServiceEndpoints();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())

@@ -8,28 +8,32 @@ public class QuizGenerator : IQuizGenerator
 {
     private IWikipediaContentProvider _wikipediaContentProvider;
     private readonly IQuizRepository _quizRepository;
-    private readonly IQuestionGenerator _questionGenerator;
+    private readonly AiServiceManager _aiServiceManager;
+    private readonly IQuestionGeneratorFactory _questionGeneratorFactory;
     private readonly ILogger<QuizGenerator> _logger;
 
-    public QuizGenerator(IQuestionGenerator questionGenerator, IWikipediaContentProvider wikipediaContentProvider, ILogger<QuizGenerator> logger, IQuizRepository quizRepository)
+    public QuizGenerator(IQuestionGeneratorFactory questionGeneratorFactory, IWikipediaContentProvider wikipediaContentProvider, AiServiceManager aiServiceManager,ILogger<QuizGenerator> logger, IQuizRepository quizRepository)
     {
         _wikipediaContentProvider = wikipediaContentProvider;
-        _questionGenerator = questionGenerator;
+        _questionGeneratorFactory = questionGeneratorFactory;
+        _aiServiceManager = aiServiceManager;
         _logger = logger;
         _quizRepository = quizRepository;
     }
 
-    public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, int numQuestions, int numOptions, int extractLength)
+    public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, int aiService, int model, int numQuestions, int numOptions, int extractLength)
     {
         _logger.LogTrace($"Generating a basic quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
-
+        
         WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language);
         if (page == null)
             return null; // we got pages, but they aren't valid. Should never happen really, so may change later
 
         var content = RandomContentSections.GetRandomContentSections(page.Extract, extractLength);
 
-        var aiResponse = await _questionGenerator.GenerateQuestionsAsync(page, content, language, numQuestions, numOptions);
+        var questionGenerator = _questionGeneratorFactory.Create(_aiServiceManager, aiService, model);
+
+        var aiResponse = await questionGenerator.GenerateQuestionsAsync(page, content, language, numQuestions, numOptions);
         if (aiResponse == null)
             return null;
 

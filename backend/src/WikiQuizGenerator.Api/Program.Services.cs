@@ -15,17 +15,13 @@ public partial class Program
             .ReadFrom.Configuration(configuration) // appsettings.json
             .ReadFrom.Services(services));
 
-        // add our AI services; only ones with valid keys will be available
-        services.AddAiService(configuration);
-
         services.AddDataServices();
-
         services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
-
         services.AddSingleton<PromptManager>();
-        services.AddScoped<IQuestionGenerator, QuestionGenerator>();
-
-        services.AddScoped<IQuizGenerator, QuizGenerator>();
+        services.AddScoped<AiServiceManager>();
+        
+        services.AddSingleton<IQuestionGeneratorFactory, QuestionGeneratorFactory>();
+        services.AddTransient<IQuizGenerator, QuizGenerator>();
         
         services.AddCors(options =>
         {

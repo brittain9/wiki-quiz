@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -8,43 +8,48 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
 import Button from '@mui/material/Button';
+import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useGlobalQuiz } from '../../context/GlobalQuizContext';
-import { QuestionAnswer } from '../../types/quizSubmission.types';
 import { useQuizService } from '../../services/quizService';
-import { QuizSubmission } from '../../types/quizSubmission.types';
+import { QuizSubmission, QuestionAnswer } from '../../types/quizSubmission.types';
 
 const Quiz: React.FC = () => {
   const theme = useTheme();
   const { quizOptions, setCurrentQuizResult } = useGlobalQuiz();
   const { submitQuiz } = useQuizService();
-  const [userAnswers, setUserAnswers] = React.useState<QuestionAnswer[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<QuestionAnswer[]>([]);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
 
-    // Reset userAnswers when a new quiz is loaded
-    useEffect(() => {
-      if (quizOptions.currentQuiz) {
-        setUserAnswers([]);
-      }
-    }, [quizOptions.currentQuiz]);
-  
-    if (quizOptions.isGenerating) {
-      // Render loading screen within a fixed-size container
-      return (
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          height="400px" // Fixed height
-          width="100%" // Full width of the parent container
-        >
-          <CircularProgress />
-        </Box>
-      );
-    }
+  const currentQuiz = quizOptions.currentQuiz;
+  const totalQuestions = currentQuiz?.aiResponses.reduce(
+    (total, response) => total + response.questions.length,
+    0
+  ) || 0;
 
-    if (!quizOptions.currentQuiz && !quizOptions.currentQuizResult) {
-      return null;
+  useEffect(() => {
+    if (currentQuiz) {
+      setUserAnswers([]);
+      setCurrentQuestionIndex(0);
+      setQuizSubmitted(false);
+      setScore(null);
     }
+  }, [currentQuiz]);
+
+  if (quizOptions.isGenerating) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!currentQuiz) return null;
+
+  const flatQuestions = currentQuiz.aiResponses.flatMap(response => response.questions);
+  const currentQuestion = flatQuestions[currentQuestionIndex];
 
   const handleAnswerChange = (questionId: number, selectedOptionNumber: number) => {
     setUserAnswers(prev => {
@@ -59,157 +64,93 @@ const Quiz: React.FC = () => {
     });
   };
 
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
   const handleSubmit = async () => {
-    if (quizOptions.currentQuiz) {
+    if (currentQuiz) {
       try {
         const quizSubmission: QuizSubmission = {
-          quizId: quizOptions.currentQuiz.id,
-          questionAnswers: userAnswers.map(answer => ({
-            questionId: answer.questionId,
-            selectedOptionNumber: answer.selectedOptionNumber
-          }))
+          quizId: currentQuiz.id,
+          questionAnswers: userAnswers
         };
-  
         const result = await submitQuiz(quizSubmission);
         setCurrentQuizResult(result);
+        setQuizSubmitted(true);
+        setScore((result.correctAnswers / result.totalQuestions) * 100);
       } catch (error) {
         console.error('Failed to submit quiz:', error);
-        // Handle error (e.g., show error message to user)
       }
     }
   };
-  
 
-  if (quizOptions.currentQuizResult) {
-    // Render Quiz Result
-    return (
-      <Box sx={{ maxWidth: 800, margin: 'auto', padding: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Quiz Results: {quizOptions.currentQuizResult.title}
-        </Typography>
-        <Typography variant="h5" gutterBottom>
-          Score: {quizOptions.currentQuizResult.correctAnswers} / {quizOptions.currentQuizResult.totalQuestions}
-        </Typography>
-        {quizOptions.currentQuizResult.aiResponses.map((response, responseIndex) => (
-          <Box key={responseIndex} sx={{ marginBottom: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              {response.responseTopic}
-            </Typography>
-            {response.questions.map((question, questionIndex) => (
-              <Paper 
-                key={question.id} 
-                elevation={3} 
-                sx={{ 
-                  padding: 2, 
-                  marginBottom: 2, 
-                  backgroundColor: questionIndex % 2 === 0 
-                    ? theme.palette.background.default 
-                    : theme.palette.background.paper 
-                }}
-              >
-                <Typography variant="h6" gutterBottom>
-                  {question.text}
-                </Typography>
-                <FormControl component="fieldset">
-                  <RadioGroup
-                    value={question.userSelectedOption?.toString() || ''}
-                  >
-                    {question.options.map((option, optionIndex) => {
-                      const optionNumber = optionIndex + 1;
-                      const isCorrect = optionNumber === question.correctOptionNumber;
-                      const isSelected = optionNumber === question.userSelectedOption;
-                      const isIncorrectSelection = isSelected && !isCorrect;
-
-                      return (
-                        <FormControlLabel
-                          key={optionIndex}
-                          value={optionNumber.toString()}
-                          control={
-                            <Radio 
-                              checked={isSelected || isCorrect}
-                              sx={{
-                                color: isCorrect ? 'green' : isIncorrectSelection ? 'red' : 'inherit',
-                                '&.Mui-checked': {
-                                  color: isCorrect ? 'green' : isIncorrectSelection ? 'red' : 'inherit',
-                                },
-                              }}
-                            />
-                          }
-                          label={
-                            <Typography
-                              sx={{
-                                color: isCorrect ? 'green' : isIncorrectSelection ? 'red' : 'inherit',
-                              }}
-                            >
-                              {option}
-                              {isCorrect && ' ✓'}
-                              {isIncorrectSelection && ' ✗'}
-                            </Typography>
-                          }
-                          sx={{
-                            pointerEvents: 'none',
-                          }}
-                        />
-                      );
-                    })}
-                  </RadioGroup>
-                </FormControl>
-              </Paper>
-            ))}
-          </Box>
-        ))}
-      </Box>
-    );
-  }
-
-  // Render Quiz In Progress
   return (
-    <Box sx={{ maxWidth: 800, margin: 'auto', padding: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Quiz: {quizOptions.currentQuiz?.title}
+    <Box sx={{ maxWidth: 800, mx: 'auto', mb:4 }}>
+      <Typography variant="h4" gutterBottom align="center" sx={{ mb: 3 }}>
+        {currentQuiz.title}
       </Typography>
-      {quizOptions.currentQuiz?.aiResponses.map((response, responseIndex) => (
-        <Box key={responseIndex} sx={{ marginBottom: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            {response.responseTopic}
-          </Typography>
-          {response.questions.map((question, questionIndex) => (
-            <Paper 
-              key={question.id} 
-              elevation={3} 
-              sx={{ 
-                padding: 2, 
-                marginBottom: 2, 
-                backgroundColor: questionIndex % 2 === 0 
-                  ? theme.palette.background.default 
-                  : theme.palette.background.paper 
-              }}
-            >
-              <Typography variant="h6" gutterBottom>
-                {question.text}
-              </Typography>
-              <FormControl component="fieldset">
-                <RadioGroup
-                  value={userAnswers.find(a => a.questionId === question.id)?.selectedOptionNumber.toString() || ''}
-                  onChange={(e) => handleAnswerChange(question.id, parseInt(e.target.value, 10))}
-                >
-                  {question.options.map((option, optionIndex) => (
-                    <FormControlLabel
-                      key={optionIndex}
-                      value={(optionIndex + 1).toString()}
-                      control={<Radio />}
-                      label={option}
-                    />
-                  ))}
-                </RadioGroup>
-              </FormControl>
-            </Paper>
-          ))}
-        </Box>
-      ))}
-      <Button variant="contained" color="primary" onClick={handleSubmit}>
-        Submit Quiz
-      </Button>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        {quizSubmitted ? (
+          <Box>
+            <Typography variant="h5" gutterBottom>Quiz Completed</Typography>
+            <Typography variant="h6" gutterBottom>Your Score: {score?.toFixed(2)}%</Typography>
+            <Button variant="contained" color="primary" onClick={() => setQuizSubmitted(false)}>
+              Review Questions
+            </Button>
+          </Box>
+        ) : (
+          <>
+            <Typography variant="h6" gutterBottom>
+              Question {currentQuestionIndex + 1} of {totalQuestions}
+            </Typography>
+            <LinearProgress 
+              variant="determinate" 
+              value={(currentQuestionIndex + 1) / totalQuestions * 100} 
+              sx={{ mb: 3 }}
+            />
+            <Typography variant="body1" gutterBottom sx={{ mb: 2 }}>{currentQuestion.text}</Typography>
+            <FormControl component="fieldset" sx={{ width: '100%' }}>
+              <RadioGroup
+                value={userAnswers.find(a => a.questionId === currentQuestion.id)?.selectedOptionNumber.toString() || ''}
+                onChange={(e) => handleAnswerChange(currentQuestion.id, parseInt(e.target.value, 10))}
+              >
+                {currentQuestion.options.map((option, optionIndex) => (
+                  <FormControlLabel
+                    key={optionIndex}
+                    value={(optionIndex + 1).toString()}
+                    control={<Radio />}
+                    label={option}
+                    sx={{ mb: 1 }}
+                  />
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
+              <Button 
+                variant="outlined" 
+                color="primary" 
+                onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+                disabled={currentQuestionIndex === 0}
+              >
+                Previous
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={handleNextQuestion}
+                disabled={!userAnswers.find(a => a.questionId === currentQuestion.id)}
+              >
+                {currentQuestionIndex === totalQuestions - 1 ? 'Submit Quiz' : 'Next Question'}
+              </Button>
+            </Box>
+          </>
+        )}
+      </Paper>
     </Box>
   );
 };

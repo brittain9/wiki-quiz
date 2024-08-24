@@ -7,6 +7,7 @@ using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Mappers;
 using WikiQuizGenerator.Core;
 using Microsoft.AspNetCore.SignalR;
+using WikiQuizGenerator.LLM;
 
 namespace WikiQuizGenerator.Api;
 
@@ -16,7 +17,7 @@ public static class QuizEndpoints
     {
 
         // Returns our DTO
-        app.MapGet("/basicquiz", async (IQuizGenerator quizGenerator, string topic, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
+        app.MapGet("/basicquiz", async (IQuizGenerator quizGenerator, string topic, int aiService, int model, string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000) =>
         {
             Log.Verbose($"GET /basicquiz called with topic '{topic}' in '{language}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
 
@@ -40,7 +41,7 @@ public static class QuizEndpoints
             {
                 Languages lang = LanguagesExtensions.GetLanguageFromCode(language); // this will throw error if language is not found
 
-                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, numQuestions, numOptions, extractLength);
+                var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, aiService, model, numQuestions, numOptions, extractLength);
 
                 Log.Verbose($"GET /basicquiz returning quiz with id '{quiz.Id}'.");
                 return Results.Ok(QuizMapper.ToDto(quiz));
