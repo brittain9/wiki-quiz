@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Quiz } from '../types/quiz.types';
 import { QuizResult } from '../types/quizResult.types';
+import { fetchAvailableServices, fetchAvailableModels } from '../services/quizService';
 
 export interface QuizOptions {
   topic: string;
@@ -13,6 +14,12 @@ export interface QuizOptions {
   isQuizReady: boolean;
   currentQuiz: Quiz | null;
   currentQuizResult: QuizResult | null;
+
+  // the numbers will correspond with dictionary received from the endpoint
+  selectedService: number | null;
+  selectedModel: number | null;
+  availableServices: Record<number, string>;
+  availableModels: Record<number, string>;
 }
 
 interface GlobalQuizContextType {
@@ -26,6 +33,9 @@ interface GlobalQuizContextType {
   setIsQuizReady: (isQuizReady: boolean) => void;
   setCurrentQuiz: (quiz: Quiz | null) => void;
   setCurrentQuizResult: (quizResult: QuizResult | null) => void;
+
+  setSelectedService: (serviceId: number | null) => void;
+  setSelectedModel: (modelId: number | null) => void;
 }
 
 const GlobalQuizContext = createContext<GlobalQuizContextType | undefined>(undefined);
@@ -42,6 +52,11 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
     isQuizReady: false,
     currentQuiz: null,
     currentQuizResult: null,
+
+    selectedService: null,
+    selectedModel: null,
+    availableServices: {},
+    availableModels: {},
   });
 
   const debugStateChange = <K extends keyof QuizOptions>(
@@ -131,6 +146,66 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
     });
   };
 
+  const setSelectedService = async (serviceId: number | null) => {
+    setQuizOptions(prev => ({
+      ...prev,
+      selectedService: serviceId,
+      selectedModel: null,
+      availableModels: {},
+    }));
+    if (serviceId !== null) {
+      try {
+        const models = await fetchAvailableModels(serviceId);
+        setQuizOptions(prev => ({
+          ...prev,
+          availableModels: models,
+        }));
+      } catch (error) {
+        console.error(`Error fetching models for service ${serviceId}:`, error);
+      }
+    }
+  };
+
+  const setSelectedModel = (modelId: number | null) => {
+    setQuizOptions(prev => ({
+      ...prev,
+      selectedModel: modelId,
+    }));
+  };
+
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        const services = await fetchAvailableServices();
+        console.log('Services loaded:', services);
+        
+        // Get the first service ID
+        const firstServiceId = Object.keys(services)[0] ? parseInt(Object.keys(services)[0]) : null;
+        
+        setQuizOptions(prev => ({
+          ...prev,
+          availableServices: services,
+          selectedService: firstServiceId,
+        }));
+
+        // If we have a service, fetch and set the first model
+        if (firstServiceId !== null) {
+          const models = await fetchAvailableModels(firstServiceId);
+          const firstModelId = Object.keys(models)[0] ? parseInt(Object.keys(models)[0]) : null;
+          
+          setQuizOptions(prev => ({
+            ...prev,
+            availableModels: models,
+            selectedModel: firstModelId,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching available services:', error);
+      }
+    };
+    loadServices();
+  }, []);
+
   return (
     <GlobalQuizContext.Provider value={{
       quizOptions,
@@ -143,6 +218,8 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
       setIsQuizReady,
       setCurrentQuiz,
       setCurrentQuizResult,
+      setSelectedModel,
+      setSelectedService
     }}>
       {children}
     </GlobalQuizContext.Provider>
@@ -154,5 +231,6 @@ export const useGlobalQuiz = () => {
   if (context === undefined) {
     throw new Error('useGlobalQuiz must be used within a GlobalQuizProvider');
   }
+  
   return context;
 };

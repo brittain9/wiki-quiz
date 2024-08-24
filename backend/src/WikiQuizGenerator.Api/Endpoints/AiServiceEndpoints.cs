@@ -8,15 +8,15 @@ public static class AiServiceEndpoints
 {
     public static void MapAiServiceEndpoints(this WebApplication app)
     {
-        app.MapGet("/getAiServices", () =>
+        app.MapGet("/getAiServices", (AiServiceManager aiServiceManager) =>
         {
-            var availableServices = new List<string>();
+            var availableServices = new Dictionary<int, string>();
 
-            if (SemanticKernelServiceExtensions.IsOpenAiAvailable)
-                availableServices.Add("OpenAI");
+            if (AiServiceManager.IsOpenAiAvailable)
+                availableServices.Add((int)AiService.OpenAi, "OpenAI");
 
-            if (SemanticKernelServiceExtensions.IsPerplexityAvailable)
-                availableServices.Add("Perplexity");
+            if (AiServiceManager.IsPerplexityAvailable)
+                availableServices.Add((int)AiService.Perplexity, "Perplexity");
 
             return Results.Ok(availableServices);
         })
@@ -27,27 +27,29 @@ public static class AiServiceEndpoints
             return operation;
         });
         
-        app.MapGet("/getOpenAiModels", () =>
+        app.MapGet("/getModels", (int? aiServiceId) =>
         {
-            var availableModels = AiServiceManager.OpenAiModelNames.Values.ToList();
-            return Results.Ok(availableModels);
+            if (!aiServiceId.HasValue)
+            {
+                return Results.BadRequest("AI Service ID is required");
+            }
+            
+            switch ((AiService)aiServiceId.Value)
+            {
+                case AiService.OpenAi:
+                    return Results.Ok(AiServiceManager.OpenAiModelNames
+                        .ToDictionary(kvp => (int)kvp.Key, kvp => kvp.Value));
+                case AiService.Perplexity:
+                    return Results.Ok(AiServiceManager.PerplexityModelNames
+                        .ToDictionary(kvp => (int)kvp.Key, kvp => kvp.Value));
+                default:
+                    return Results.NotFound();
+            }
         })
         .WithName("GetOpenAiModels")
         .WithOpenApi(operation =>
         {
-            operation.Summary = "Get the available OpenAi models.";
-            return operation;
-        });
-        
-        app.MapGet("/getPerplexityModels", () =>
-        {
-            var availableModels = AiServiceManager.PerplexityModelNames.Values.ToList();
-            return Results.Ok(availableModels);
-        })
-        .WithName("GetPerplexityModels")
-        .WithOpenApi(operation =>
-        {
-            operation.Summary = "Get the available Perplexity models.";
+            operation.Summary = "Get the available models based on the AI service ID.";
             return operation;
         });
     }

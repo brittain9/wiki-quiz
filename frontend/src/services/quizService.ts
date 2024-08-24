@@ -6,7 +6,12 @@ import { QuizResult } from '../types/quizResult.types';
 import api from './api';
 
 export const useQuizService = () => {
-  const { quizOptions, setCurrentQuiz, setIsGenerating, setIsQuizReady } = useGlobalQuiz();
+  const { 
+    quizOptions, 
+    setCurrentQuiz, 
+    setIsGenerating, 
+    setIsQuizReady,
+  } = useGlobalQuiz();
 
   const generateQuiz = async (): Promise<Quiz> => {
     setIsGenerating(true);
@@ -19,6 +24,8 @@ export const useQuizService = () => {
         numQuestions: quizOptions.numQuestions,
         numOptions: quizOptions.numOptions,
         extractLength: quizOptions.extractLength,
+        aiService: quizOptions.selectedService,
+        model: quizOptions.selectedModel,
       };
 
       const quiz = await api.getBasicQuiz(params);
@@ -44,4 +51,25 @@ export const useQuizService = () => {
     generateQuiz,
     submitQuiz,
   };
+};
+
+export const fetchAvailableServices = async () => {
+  try {
+    const services = await api.getAiServices();
+    console.log('Fetched services:', services);
+    return services;
+  } catch (error) {
+    console.error('Failed to fetch available AI services:', error);
+    throw error;
+  }
+};
+
+export const fetchAvailableModels = async (serviceId: number) => {
+  try {
+    const models = await api.getAiModels(serviceId);
+    return models;
+  } catch (error) {
+    console.error(`Failed to fetch available models for service ${serviceId}:`, error);
+    throw error;
+  }
 };
