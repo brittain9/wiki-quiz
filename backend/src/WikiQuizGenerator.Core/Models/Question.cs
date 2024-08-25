@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace WikiQuizGenerator.Core.Models;
 
@@ -28,5 +29,7 @@ public class Question
 
     // Navigational property for one to many relationship between ai response and question
     public int AIResponseId { get; set; }
+    
+    [JsonIgnore]
     public AIResponse AIResponse { get; set; }
 }

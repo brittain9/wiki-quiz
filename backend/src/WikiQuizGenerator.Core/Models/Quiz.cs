@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace WikiQuizGenerator.Core.Models;
 
@@ -10,5 +11,7 @@ public class Quiz
     public DateTime CreatedAt { get; set; }
     // These contain the questions and some extra information
     public IList<AIResponse> AIResponses { get; set; } = new List<AIResponse>();
+    
+    [JsonIgnore]
     public IList<QuizSubmission> QuizSubmissions { get; set; } = new List<QuizSubmission>();
 }

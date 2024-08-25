@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WikiQuizGenerator.Data;
@@ -11,9 +12,11 @@ using WikiQuizGenerator.Data;
 namespace WikiQuizGenerator.Data.Migrations
 {
     [DbContext(typeof(WikiQuizDbContext))]
-    partial class WikiQuizDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240825233148_quizSubmissionCircularRef")]
+    partial class quizSubmissionCircularRef
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,12 +157,17 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int>("QuizId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("QuizId1")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("SubmissionTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("QuizId");
+
+                    b.HasIndex("QuizId1");
 
                     b.ToTable("QuizSubmissions");
                 });
@@ -278,10 +286,14 @@ namespace WikiQuizGenerator.Data.Migrations
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.QuizSubmission", b =>
                 {
                     b.HasOne("WikiQuizGenerator.Core.Models.Quiz", "Quiz")
-                        .WithMany("QuizSubmissions")
+                        .WithMany()
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("WikiQuizGenerator.Core.Models.Quiz", null)
+                        .WithMany("QuizSubmissions")
+                        .HasForeignKey("QuizId1");
 
                     b.Navigation("Quiz");
                 });

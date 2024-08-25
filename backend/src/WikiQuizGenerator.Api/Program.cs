@@ -23,6 +23,7 @@ try
 
     app.MapQuizEndpoints();
     app.MapAiServiceEndpoints();
+    app.MapSubmissionEndpoints();
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())

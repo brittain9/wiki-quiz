@@ -21,6 +21,7 @@ public class QuestionGenerator : IQuestionGenerator
 
     public QuestionGenerator(PromptManager promptManager, ILogger<QuestionGenerator> logger, AiServiceManager aiServiceManager)
     {
+        // created by our factory so this will run each request
         _promptManager = promptManager;
         _logger = logger;
         

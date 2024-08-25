@@ -67,11 +67,21 @@ public class QuizRepository : IQuizRepository
 
         }
     }
-
-    public async Task<QuizSubmission> GetSubmissionByIdAsync(int submissionId)
+    
+    public async Task<IEnumerable<QuizSubmission>> GetRecentQuizSubmissionsAsync(int count)
+    {
+        return await _context.Set<QuizSubmission>()
+            .AsNoTracking()
+            .OrderByDescending(q => q.SubmissionTime)
+            .Take(count)
+            .Include(qs => qs.Quiz)
+            .ToListAsync();
+    }
+    public async Task<QuizSubmission?> GetSubmissionByIdAsync(int submissionId)
     {
         return await _context.QuizSubmissions
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
+            .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.WikipediaPage)
             .Include(qs => qs.Answers)
             .FirstOrDefaultAsync(qs => qs.Id == submissionId);
     }

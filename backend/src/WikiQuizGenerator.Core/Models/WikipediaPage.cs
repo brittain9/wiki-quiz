@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Core.Models;
@@ -16,6 +17,7 @@ public class WikipediaPage
     public int Length { get; set; }
 
     // Navigational Property for one-to-many relationship between WikipediaPage and AIResponse
+    [JsonIgnore]
     public IList<AIResponse> AIResponses { get; set; }
 
     // This gets too complicated trying to keep track of all the incoming and outbound links

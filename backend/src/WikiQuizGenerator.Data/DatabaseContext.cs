@@ -47,13 +47,12 @@ public class WikiQuizDbContext : DbContext
             .WithOne(r => r.WikipediaPage)
             .HasForeignKey(r => r.WikipediaPageId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Quiz - QuizSubmission relationship: one-to-many relationship
-        modelBuilder.Entity<Quiz>()
-            .HasMany(q => q.QuizSubmissions)
-            .WithOne(qs => qs.Quiz)
+        
+        modelBuilder.Entity<QuizSubmission>()
+            .HasOne(qs => qs.Quiz)
+            .WithMany(q => q.QuizSubmissions)
             .HasForeignKey(qs => qs.QuizId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         // This is optional as entity framework would do this anyway, but for learning I will keep it
         // Create the join entity for the many-to-many relationship between page and category
