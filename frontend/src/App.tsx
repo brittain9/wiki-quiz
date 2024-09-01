@@ -8,7 +8,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<QuizPage />} />
         <Route path="/submission/:id" element={<SubmissionDetailPage />} />
-
       </Routes>
     </Router>
   );

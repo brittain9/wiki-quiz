@@ -1,3 +1,5 @@
+import { Quiz } from "./quiz.types";
+
 export interface QuizSubmission {
     quizId: number;
     questionAnswers: QuestionAnswer[];
@@ -18,5 +20,8 @@ export interface QuizSubmission {
 
   export interface SubmissionDetail
   {
-    id: number;
+    quiz: Quiz;
+    questionAnswers: QuestionAnswer[];
+    score: number;
+    submissionTime: Date;
   }

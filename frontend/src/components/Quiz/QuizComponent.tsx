@@ -16,7 +16,7 @@ import { QuizSubmission, QuestionAnswer } from '../../types/quizSubmission.types
 
 const Quiz: React.FC = () => {
   const theme = useTheme();
-  const { quizOptions, setCurrentQuizResult } = useGlobalQuiz();
+  const { quizOptions, setCurrentSubmission } = useGlobalQuiz();
   const { submitQuiz } = useQuizService();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<QuestionAnswer[]>([]);
@@ -80,9 +80,9 @@ const Quiz: React.FC = () => {
           questionAnswers: userAnswers
         };
         const result = await submitQuiz(quizSubmission);
-        setCurrentQuizResult(result);
+        setCurrentSubmission(result);
         setQuizSubmitted(true);
-        setScore((result.correctAnswers / result.totalQuestions) * 100);
+        setScore(result.score);
       } catch (error) {
         console.error('Failed to submit quiz:', error);
       }

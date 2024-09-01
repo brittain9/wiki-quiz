@@ -1,8 +1,7 @@
 import { useGlobalQuiz } from '../context/GlobalQuizContext';
 import { BasicQuizParams } from './api';
 import { Quiz } from '../types/quiz.types';
-import { QuizSubmission } from '../types/quizSubmission.types';
-import { QuizResult } from '../types/quizResult.types';
+import { QuizSubmission, SubmissionResponse } from '../types/quizSubmission.types';
 import api from './api';
 
 export const useQuizService = () => {
@@ -40,7 +39,7 @@ export const useQuizService = () => {
     }
   };
 
-  const submitQuiz = async (submission: QuizSubmission): Promise<QuizResult> => {
+  const submitQuiz = async (submission: QuizSubmission): Promise<SubmissionResponse> => {
     try {
       return await api.postQuiz(submission);
     } catch (error) {
@@ -48,30 +47,29 @@ export const useQuizService = () => {
     }
   };
 
-  const fetchAvailableServices = async () => {
-    try {
-      const services = await api.getAiServices();
-      return services;
-    } catch (error) {
-      console.error('Failed to fetch available AI services:', error);
-      throw error;
-    }
-  };
-
-  const fetchAvailableModels = async (serviceId: number) => {
-    try {
-      const models = await api.getAiModels(serviceId);
-      return models;
-    } catch (error) {
-      console.error(`Failed to fetch available models for service ${serviceId}:`, error);
-      throw error;
-    }
-  };
-
   return {
     generateQuiz,
-    submitQuiz,
-    fetchAvailableServices,
-    fetchAvailableModels
+    submitQuiz
   };
+};
+
+// exported separately to avoid circular dependency with global context.
+export const fetchAvailableServices = async () => {
+  try {
+    const services = await api.getAiServices();
+    return services;
+  } catch (error) {
+    console.error('Failed to fetch available AI services:', error);
+    throw error;
+  }
+};
+
+export const fetchAvailableModels = async (serviceId: number) => {
+  try {
+    const models = await api.getAiModels(serviceId);
+    return models;
+  } catch (error) {
+    console.error(`Failed to fetch available models for service ${serviceId}:`, error);
+    throw error;
+  }
 };

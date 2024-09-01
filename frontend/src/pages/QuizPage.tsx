@@ -14,6 +14,7 @@ import Footer from '../components/Footer';
 import getTheme from '../getTheme';
 import QuizComponent from '../components/Quiz/QuizComponent';
 import { GlobalQuizProvider } from '../context/GlobalQuizContext'; // this just needs to provide the provider to the children
+import SubmissionHistory from '../components/SubmissionHistory';
 
 interface ToggleCustomThemeProps {
   showCustomTheme: Boolean;
@@ -86,6 +87,9 @@ export default function QuizPage() {
         <Hero />
         <Box sx={{ bgcolor: 'background.default' }}>
           <QuizComponent />
+          <Divider />
+          <SubmissionHistory />
+          <Divider />
           <Highlights />
           <Divider />
           <Footer />

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Quiz } from '../types/quiz.types';
-import { QuizResult } from '../types/quizResult.types';
-import { useQuizService } from '../services/quizService';
+import { SubmissionResponse } from '../types/quizSubmission.types';
+import { fetchAvailableServices, fetchAvailableModels } from '../services/quizService';
 
 export interface QuizOptions {
   // Quiz Options
@@ -21,7 +21,7 @@ export interface QuizOptions {
   isGenerating: boolean;
   isQuizReady: boolean;
   currentQuiz: Quiz | null;
-  currentQuizResult: QuizResult | null;
+  currentSubmission: SubmissionResponse | null;
 }
 
 interface GlobalQuizContextType {
@@ -39,7 +39,7 @@ interface GlobalQuizContextType {
   setIsGenerating: (isGenerating: boolean) => void;
   setIsQuizReady: (isQuizReady: boolean) => void;
   setCurrentQuiz: (quiz: Quiz | null) => void;
-  setCurrentQuizResult: (quizResult: QuizResult | null) => void;
+  setCurrentSubmission: (submissionResponse: SubmissionResponse | null) => void;
 
 }
 
@@ -47,7 +47,6 @@ const GlobalQuizContext = createContext<GlobalQuizContextType | undefined>(undef
 
 export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { i18n } = useTranslation();
-  const {fetchAvailableServices, fetchAvailableModels } = useQuizService();
   
   const [quizOptions, setQuizOptions] = useState<QuizOptions>({
     topic: '',
@@ -64,7 +63,7 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
     isGenerating: false,
     isQuizReady: false,
     currentQuiz: null,
-    currentQuizResult: null,
+    currentSubmission: null,
   });
 
   const setTopic = (topic: string) => {
@@ -130,15 +129,15 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
     setQuizOptions(prev => ({ 
       ...prev, 
       currentQuiz: quiz,
-      currentQuizResult: null,
+      currentSubmission: null,
       isQuizReady: !!quiz
     }));
   };
   
-  const setCurrentQuizResult = (quizResult: QuizResult | null) => {
+  const setCurrentSubmission = (submissionResponse: SubmissionResponse | null) => {
     setQuizOptions(prev => ({ 
       ...prev, 
-      currentQuizResult: quizResult,
+      currentSubmission: submissionResponse,
       isQuizReady: false
     }));
   };
@@ -187,7 +186,7 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
       setIsGenerating,
       setIsQuizReady,
       setCurrentQuiz,
-      setCurrentQuizResult
+      setCurrentSubmission
     }}>
       {children}
     </GlobalQuizContext.Provider>
