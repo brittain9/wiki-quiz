@@ -13,5 +13,5 @@ public class Quiz
     public IList<AIResponse> AIResponses { get; set; } = new List<AIResponse>();
     
     [JsonIgnore]
-    public IList<QuizSubmission> QuizSubmissions { get; set; } = new List<QuizSubmission>();
+    public IList<Submission> QuizSubmissions { get; set; } = new List<Submission>();
 }

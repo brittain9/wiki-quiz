@@ -6,6 +6,7 @@ import { QuizResult } from '../types/quizResult.types';
 import api from './api';
 
 export const useQuizService = () => {
+
   const { 
     quizOptions, 
     setCurrentQuiz, 
@@ -41,8 +42,28 @@ export const useQuizService = () => {
 
   const submitQuiz = async (submission: QuizSubmission): Promise<QuizResult> => {
     try {
-      return await api.submitQuiz(submission);
+      return await api.postQuiz(submission);
     } catch (error) {
+      throw error;
+    }
+  };
+
+  const fetchAvailableServices = async () => {
+    try {
+      const services = await api.getAiServices();
+      return services;
+    } catch (error) {
+      console.error('Failed to fetch available AI services:', error);
+      throw error;
+    }
+  };
+
+  const fetchAvailableModels = async (serviceId: number) => {
+    try {
+      const models = await api.getAiModels(serviceId);
+      return models;
+    } catch (error) {
+      console.error(`Failed to fetch available models for service ${serviceId}:`, error);
       throw error;
     }
   };
@@ -50,26 +71,7 @@ export const useQuizService = () => {
   return {
     generateQuiz,
     submitQuiz,
+    fetchAvailableServices,
+    fetchAvailableModels
   };
-};
-
-export const fetchAvailableServices = async () => {
-  try {
-    const services = await api.getAiServices();
-    console.log('Fetched services:', services);
-    return services;
-  } catch (error) {
-    console.error('Failed to fetch available AI services:', error);
-    throw error;
-  }
-};
-
-export const fetchAvailableModels = async (serviceId: number) => {
-  try {
-    const models = await api.getAiModels(serviceId);
-    return models;
-  } catch (error) {
-    console.error(`Failed to fetch available models for service ${serviceId}:`, error);
-    throw error;
-  }
 };

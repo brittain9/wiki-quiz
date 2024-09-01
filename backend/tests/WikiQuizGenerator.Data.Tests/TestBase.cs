@@ -16,7 +16,7 @@ public abstract class TestBase : IDisposable
     public AIResponse TestAIResponse { get; private set; }
     public Question TestQuestion { get; private set; }
     public Quiz TestQuiz { get; private set; }
-    public QuizSubmission TestQuizSubmission { get; private set; }
+    public Submission TestSubmission { get; private set; }
 
     public TestBase()
     {
@@ -111,18 +111,18 @@ public abstract class TestBase : IDisposable
 
         await _context.SaveChangesAsync();
 
-        TestQuizSubmission = new QuizSubmission
+        TestSubmission = new Submission
         {
             QuizId = TestQuiz.Id,
             Quiz = TestQuiz,
             Answers = new List<QuestionAnswer> { new QuestionAnswer() },
             SubmissionTime = DateTime.UtcNow,
         };
-        _context.QuizSubmissions.Add(TestQuizSubmission);
+        _context.QuizSubmissions.Add(TestSubmission);
         await _context.SaveChangesAsync();
 
         // Update TestQuiz with the new QuizSubmission
-        TestQuiz.QuizSubmissions = new List<QuizSubmission> { TestQuizSubmission };
+        TestQuiz.QuizSubmissions = new List<Submission> { TestSubmission };
         _context.Quizzes.Update(TestQuiz);
 
         await _context.SaveChangesAsync();

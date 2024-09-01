@@ -135,10 +135,10 @@ public class QuizRepositoryTests : TestBase
         await ResetDatabaseAsync();
 
         // Act
-        await _repository.DeleteSubmissionAsync(TestQuizSubmission.Id);
+        await _repository.DeleteSubmissionAsync(TestSubmission.Id);
 
         // Assert
-        var deletedSubmission = await _context.QuizSubmissions.FindAsync(TestQuizSubmission.Id);
+        var deletedSubmission = await _context.QuizSubmissions.FindAsync(TestSubmission.Id);
         Assert.Null(deletedSubmission);
     }
 
@@ -155,7 +155,7 @@ public class QuizRepositoryTests : TestBase
         var deletedQuiz = await _context.Quizzes.FindAsync(TestQuiz.Id);
         Assert.Null(deletedQuiz);
 
-        var deletedSubmission = await _context.QuizSubmissions.FindAsync(TestQuizSubmission.Id);
+        var deletedSubmission = await _context.QuizSubmissions.FindAsync(TestSubmission.Id);
         Assert.Null(deletedSubmission);
     }
 

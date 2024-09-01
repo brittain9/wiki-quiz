@@ -77,32 +77,21 @@ public static class QuizEndpoints
            return operation;
        });
 
-        app.MapPost("/submitquiz", async (IQuizRepository quizRepository, QuizSubmissionDto submissionDto) =>
+        app.MapPost("/submitquiz", async (IQuizRepository quizRepository, SubmissionDto submissionDto) =>
         {
             Log.Verbose($"POST /submitquiz called on quiz Id '{submissionDto.QuizId}'.");
 
             try
             {
-                var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
-
-                if (quiz == null)
-                {
-                    Log.Warning($"Quiz not found for ID: {submissionDto.QuizId}");
-                    return Results.NotFound("Quiz not found");
-                }
-
+                var submission = SubmissionMapper.ToModel(submissionDto);
+                
+                // Get the quiz associated with the submission
+                var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId) 
+                           ?? throw new Exception($"Quiz not found for ID: {submissionDto.QuizId}");
+                
                 var questions = quiz.AIResponses?
                     .SelectMany(ar => ar.Questions ?? Enumerable.Empty<Question>())
                     .ToList() ?? new List<Question>();
-
-                if (submissionDto.QuestionAnswers.Count > questions.Count)
-                {
-                    Log.Warning($"Submission contains more answers than questions. Quiz ID: {submissionDto.QuizId}");
-                    return Results.BadRequest($"Submission contains more answers ({submissionDto.QuestionAnswers.Count}) than questions in the quiz ({questions.Count})");
-                }
-
-                var submission = QuizSubmissionMapper.ToModel(submissionDto);
-                submission.SubmissionTime = DateTime.UtcNow;
 
                 // Calculate score
                 int correctAnswers = 0;
@@ -114,16 +103,14 @@ public static class QuizEndpoints
                         correctAnswers++;
                     }
                 }
-
-                // Add submission to database
+                submission.Score = correctAnswers / questions.Count * 100;      
+                
                 await quizRepository.AddSubmissionAsync(submission);
-
-                // Generate quiz result
-                var result = QuizResultMapper.ToDto(quiz, submission);
-                result.CorrectAnswers = correctAnswers;
-                result.TotalQuestions = questions.Count;
-
-                Log.Information($"Successfully processed submission for quiz ID: {submissionDto.QuizId}. Score: {correctAnswers}/{questions.Count}");
+                
+                // Generate response
+                var result = submission.ToDto();
+                
+                Log.Information($"Successfully processed submission for quiz ID: {submissionDto.QuizId}");
                 return Results.Ok(result);
             }
             catch (Exception ex)

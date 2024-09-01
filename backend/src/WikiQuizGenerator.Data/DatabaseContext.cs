@@ -48,7 +48,7 @@ public class WikiQuizDbContext : DbContext
             .HasForeignKey(r => r.WikipediaPageId)
             .OnDelete(DeleteBehavior.Restrict);
         
-        modelBuilder.Entity<QuizSubmission>()
+        modelBuilder.Entity<Submission>()
             .HasOne(qs => qs.Quiz)
             .WithMany(q => q.QuizSubmissions)
             .HasForeignKey(qs => qs.QuizId)
@@ -69,7 +69,7 @@ public class WikiQuizDbContext : DbContext
     public DbSet<WikipediaPage> WikipediaPages { get; set; }
     public DbSet<WikipediaCategory> WikipediaCategories { get; set; }
 
-    public DbSet<QuizSubmission> QuizSubmissions { get; set; }
+    public DbSet<Submission> QuizSubmissions { get; set; }
 
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<AIResponse> AIResponses { get; set; }

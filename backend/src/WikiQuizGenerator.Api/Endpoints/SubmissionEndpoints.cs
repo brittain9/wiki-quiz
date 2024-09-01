@@ -1,4 +1,7 @@
+using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Interfaces;
+using WikiQuizGenerator.Core.Mappers;
+using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Api;
 
@@ -12,7 +15,8 @@ public static class SubmissionEndpoints
             {
                 var submission = await quizRepository.GetSubmissionByIdAsync(id);
                 if (submission == null) return Results.NotFound();
-                return Results.Ok(submission);
+                
+                return Results.Ok(submission.ToDetailedDto());
             }
             catch (Exception ex)
             {
@@ -23,7 +27,14 @@ public static class SubmissionEndpoints
         app.MapGet("quizsubmission/recent", async (IQuizRepository quizRepository) =>
         {
             var recentQuizzes = await quizRepository.GetRecentQuizSubmissionsAsync();
-            return Results.Ok(recentQuizzes);
+            List<SubmissionResponseDto> recentSubmissionDtos = new();
+
+            foreach (Submission recentSubmission in recentQuizzes)
+            {
+                recentSubmissionDtos.Add(recentSubmission.ToDto());
+            }
+            
+            return Results.Ok(recentSubmissionDtos);
         });
     }
 }

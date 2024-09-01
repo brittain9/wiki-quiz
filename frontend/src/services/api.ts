@@ -1,9 +1,7 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { Quiz } from '../types/quiz.types';
 import { QuizSubmission } from '../types/quizSubmission.types';
 import { QuizResult } from '../types/quizResult.types';
-
-// used in the quiz service
 
 const API_BASE_URL = 'http://localhost:5543';
 
@@ -39,7 +37,7 @@ const api = {
     }
   },
 
-  submitQuiz: async (submission: QuizSubmission): Promise<QuizResult> => {
+  postQuiz: async (submission: QuizSubmission): Promise<QuizResult> => {
     try {
       const response = await axios.post<QuizResult>(`${API_BASE_URL}/submitquiz`, submission);
       return response.data;
@@ -50,7 +48,6 @@ const api = {
           console.error('Network error:', error);
           throw new Error('Network error: Unable to connect to the server. Please check if the API is running.');
         }
-        // Handle other Axios-specific errors
       }
       console.error('Error submitting quiz:', error);
       throw error; // re-throw error to be handled by component

@@ -50,7 +50,7 @@ public class QuizRepository : IQuizRepository
             .FirstOrDefaultAsync(q => q.Id == id);
     }
 
-    public async Task<QuizSubmission> AddSubmissionAsync(QuizSubmission submission)
+    public async Task<Submission> AddSubmissionAsync(Submission submission)
     {
         _context.QuizSubmissions.Add(submission);
         await _context.SaveChangesAsync();
@@ -68,16 +68,16 @@ public class QuizRepository : IQuizRepository
         }
     }
     
-    public async Task<IEnumerable<QuizSubmission>> GetRecentQuizSubmissionsAsync(int count)
+    public async Task<IEnumerable<Submission>> GetRecentQuizSubmissionsAsync(int count)
     {
-        return await _context.Set<QuizSubmission>()
+        return await _context.Set<Submission>()
             .AsNoTracking()
             .OrderByDescending(q => q.SubmissionTime)
             .Take(count)
             .Include(qs => qs.Quiz)
             .ToListAsync();
     }
-    public async Task<QuizSubmission?> GetSubmissionByIdAsync(int submissionId)
+    public async Task<Submission?> GetSubmissionByIdAsync(int submissionId)
     {
         return await _context.QuizSubmissions
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
@@ -86,7 +86,7 @@ public class QuizRepository : IQuizRepository
             .FirstOrDefaultAsync(qs => qs.Id == submissionId);
     }
 
-    public async Task<IEnumerable<QuizSubmission>> GetAllSubmissionsAsync()
+    public async Task<IEnumerable<Submission>> GetAllSubmissionsAsync()
     {
         return await _context.QuizSubmissions
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
