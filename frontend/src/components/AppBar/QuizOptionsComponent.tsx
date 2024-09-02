@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, IconButton, Tooltip, Select, MenuItem, InputLabel, FormControl, SelectChangeEvent } from '@mui/material';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
-import { useGlobalQuiz } from '../../context/GlobalQuizContext';
+import { useQuizOptions } from '../../context/QuizOptionsContext';
 import { fetchAvailableModels } from '../../services/api';
 
 const QuizOptionsComponent: React.FC = () => {
@@ -17,7 +17,7 @@ const QuizOptionsComponent: React.FC = () => {
     setExtractLength,
     setSelectedService,
     setSelectedModel
-  } = useGlobalQuiz();
+  } = useQuizOptions();
 
   useEffect(() => {
     if (quizOptions.selectedService !== null && quizOptions.selectedModel === null) {

@@ -1,6 +1,6 @@
 // components/QuizResultOverlay.tsx
 import React from 'react';
-import { Box, Typography, List, ListItem, ListItemText, CircularProgress } from '@mui/material';
+import { Box, Typography, List, ListItem, Radio, RadioGroup, FormControlLabel, CircularProgress } from '@mui/material';
 import { QuizResult, ResultOption } from '../types/quizResult.types';
 import { Question } from '../types/quiz.types';
 
@@ -46,20 +46,32 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
           const question = getQuestionById(result.questionId);
           return (
             <ListItem key={result.questionId}>
-              <ListItemText
-                primary={`Question ${index + 1}: ${question?.text}`}
-                secondary={
-                  <>
-                    <Typography component="span" variant="body2" color="text.primary">
-                      Correct Answer: {question?.options[result.correctAnswerChoice - 1]}
-                    </Typography>
-                    <br />
-                    <Typography component="span" variant="body2" color={result.correctAnswerChoice === result.selectedAnswerChoice ? "success.main" : "error.main"}>
-                      Your Answer: {question?.options[result.selectedAnswerChoice - 1]}
-                    </Typography>
-                  </>
-                }
-              />
+              <Box>
+                <Typography variant="subtitle1" gutterBottom>
+                  Question {index + 1}: {question?.text}
+                </Typography>
+                <RadioGroup value={result.selectedAnswerChoice}>
+                  {question?.options.map((option, optionIndex) => (
+                    <FormControlLabel
+                      key={optionIndex}
+                      value={optionIndex + 1}
+                      control={<Radio />}
+                      label={option}
+                      sx={{
+                        color: optionIndex + 1 === result.correctAnswerChoice ? 'success.main' :
+                               (optionIndex + 1 === result.selectedAnswerChoice && 
+                                optionIndex + 1 !== result.correctAnswerChoice) ? 'error.main' : 'text.primary',
+                        '& .MuiRadio-root': {
+                          color: optionIndex + 1 === result.correctAnswerChoice ? 'success.main' :
+                                 (optionIndex + 1 === result.selectedAnswerChoice && 
+                                  optionIndex + 1 !== result.correctAnswerChoice) ? 'error.main' : 'inherit',
+                        },
+                      }}
+                      disabled
+                    />
+                  ))}
+                </RadioGroup>
+              </Box>
             </ListItem>
           );
         })}

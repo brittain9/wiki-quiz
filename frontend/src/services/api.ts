@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Quiz } from '../types/quiz.types';
 import { QuizSubmission, SubmissionDetail, SubmissionResponse } from '../types/quizSubmission.types';
 import { QuizResult } from '../types/quizResult.types';
-import { QuizOptions, useGlobalQuiz } from '../context/GlobalQuizContext';
+import { QuizOptions, useGlobalQuiz } from '../context/QuizOptionsContext';
 
 const API_BASE_URL = 'http://localhost:5543';
 

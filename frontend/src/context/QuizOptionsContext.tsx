@@ -1,51 +1,33 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Quiz } from '../types/quiz.types';
-import { SubmissionResponse } from '../types/quizSubmission.types';
 import { fetchAvailableServices, fetchAvailableModels } from '../services/api';
 
-export interface QuizOptions {
-  // Quiz Options
+interface QuizOptions {
   topic: string;
   numQuestions: number;
   numOptions: number;
   extractLength: number;
   language: string;
-  // AI options
   selectedService: number | null;
   selectedModel: number | null;
   availableServices: Record<number, string>;
   availableModels: Record<number, string>;
-
-  // Loading and state
-  isGenerating: boolean;
-  isQuizReady: boolean;
-  currentQuiz: Quiz | null;
-  currentSubmission: SubmissionResponse | null;
 }
 
-interface GlobalQuizContextType {
+interface QuizOptionsContextType {
   quizOptions: QuizOptions;
-
   setTopic: (topic: string) => void;
   setNumQuestions: (numQuestions: number) => void;
   setNumOptions: (numOptions: number) => void;
   setExtractLength: (extractLength: number) => void;
   setLanguage: (language: string) => void;
-
   setSelectedService: (serviceId: number | null) => void;
   setSelectedModel: (modelId: number | null) => void;
-
-  setIsGenerating: (isGenerating: boolean) => void;
-  setIsQuizReady: (isQuizReady: boolean) => void;
-  setCurrentQuiz: (quiz: Quiz | null) => void;
-  setCurrentSubmission: (submissionResponse: SubmissionResponse | null) => void;
-
 }
 
-const GlobalQuizContext = createContext<GlobalQuizContextType | undefined>(undefined);
+const QuizOptionsContext = createContext<QuizOptionsContextType | undefined>(undefined);
 
-export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { i18n } = useTranslation();
   
   const [quizOptions, setQuizOptions] = useState<QuizOptions>({
@@ -54,40 +36,19 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
     numOptions: 4,
     extractLength: 1000,
     language: i18n.language,
-
     selectedService: null,
     selectedModel: null,
     availableServices: {},
     availableModels: {},
-
-    isGenerating: false,
-    isQuizReady: false,
-    currentQuiz: null,
-    currentSubmission: null,
   });
 
-  const setTopic = (topic: string) => {
-    setQuizOptions(prev => ({ ...prev, topic }));
-  };
-  
-  const setNumQuestions = (numQuestions: number) => {
-    setQuizOptions(prev => ({ ...prev, numQuestions }));
-  };
-  
-  const setNumOptions = (numOptions: number) => {
-    setQuizOptions(prev => ({ ...prev, numOptions }));
-  };
-  
-  const setExtractLength = (extractLength: number) => {
-    setQuizOptions(prev => ({ ...prev, extractLength }));
-  };
-
+  const setTopic = (topic: string) => setQuizOptions(prev => ({ ...prev, topic }));
+  const setNumQuestions = (numQuestions: number) => setQuizOptions(prev => ({ ...prev, numQuestions }));
+  const setNumOptions = (numOptions: number) => setQuizOptions(prev => ({ ...prev, numOptions }));
+  const setExtractLength = (extractLength: number) => setQuizOptions(prev => ({ ...prev, extractLength }));
   const setLanguage = (language: string) => {
-    setQuizOptions(prev => {
-      const newState = { ...prev, language };
-      i18n.changeLanguage(language);
-      return newState;
-    });
+    setQuizOptions(prev => ({ ...prev, language }));
+    i18n.changeLanguage(language);
   };
 
   const setSelectedService = async (serviceId: number | null) => {
@@ -109,7 +70,7 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
       }
     }
   };
-  
+
   const setSelectedModel = (modelId: number | null) => {
     setQuizOptions(prev => ({
       ...prev,
@@ -117,36 +78,10 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
     }));
   };
 
-  const setIsGenerating = (isGenerating: boolean) => {
-    setQuizOptions(prev => ({ ...prev, isGenerating }));
-  };
-  
-  const setIsQuizReady = (isQuizReady: boolean) => {
-    setQuizOptions(prev => ({ ...prev, isQuizReady }));
-  };
-  
-  const setCurrentQuiz = (quiz: Quiz | null) => {
-    setQuizOptions(prev => ({ 
-      ...prev, 
-      currentQuiz: quiz,
-      currentSubmission: null,
-      isQuizReady: !!quiz
-    }));
-  };
-  
-  const setCurrentSubmission = (submissionResponse: SubmissionResponse | null) => {
-    setQuizOptions(prev => ({ 
-      ...prev, 
-      currentSubmission: submissionResponse,
-      isQuizReady: false
-    }));
-  };
-
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const services = await fetchAvailableServices();        
-        // Get the first service ID
+        const services = await fetchAvailableServices();
         const firstServiceId = Object.keys(services)[0] ? parseInt(Object.keys(services)[0]) : null;
         
         setQuizOptions(prev => ({
@@ -155,7 +90,6 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
           selectedService: firstServiceId,
         }));
 
-        // If we have a service, fetch and set the first model
         if (firstServiceId !== null) {
           const models = await fetchAvailableModels(firstServiceId);
           const firstModelId = Object.keys(models)[0] ? parseInt(Object.keys(models)[0]) : null;
@@ -174,29 +108,25 @@ export const GlobalQuizProvider: React.FC<React.PropsWithChildren<{}>> = ({ chil
   }, []);
 
   return (
-    <GlobalQuizContext.Provider value={{
+    <QuizOptionsContext.Provider value={{
       quizOptions,
       setTopic,
       setNumQuestions,
       setNumOptions,
       setExtractLength,
       setLanguage,
-      setSelectedModel,
       setSelectedService,
-      setIsGenerating,
-      setIsQuizReady,
-      setCurrentQuiz,
-      setCurrentSubmission
+      setSelectedModel,
     }}>
       {children}
-    </GlobalQuizContext.Provider>
+    </QuizOptionsContext.Provider>
   );
 };
 
-export const useGlobalQuiz = () => {
-  const context = useContext(GlobalQuizContext);
+export const useQuizOptions = () => {
+  const context = useContext(QuizOptionsContext);
   if (context === undefined) {
-    throw new Error('useGlobalQuiz must be used within a GlobalQuizProvider');
+    throw new Error('useQuizOptions must be used within a QuizOptionsProvider');
   }
   return context;
 };

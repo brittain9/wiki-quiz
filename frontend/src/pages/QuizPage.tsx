@@ -13,8 +13,9 @@ import Highlights from '../components/Highlights';
 import Footer from '../components/Footer';
 import getTheme from '../getTheme';
 import QuizComponent from '../components/QuizComponent';
-import { GlobalQuizProvider } from '../context/GlobalQuizContext'; // this just needs to provide the provider to the children
 import SubmissionHistory from '../components/SubmissionHistory';
+import { QuizOptionsProvider } from '../context/QuizOptionsContext';
+import { QuizStateProvider } from '../context/QuizStateContext';
 
 interface ToggleCustomThemeProps {
   showCustomTheme: Boolean;
@@ -76,28 +77,30 @@ export default function QuizPage() {
   };
 
   return (
-    <GlobalQuizProvider>
-      <ThemeProvider theme={showCustomTheme ? QPtheme : defaultTheme}>
-        <CssBaseline />
-        <AppAppBar 
-          mode={mode} 
-          toggleColorMode={toggleColorMode}
-        />
-        <Hero />
-        <Box sx={{ bgcolor: 'background.default' }}>
-          <QuizComponent />
-          <Divider />
-          <SubmissionHistory />
-          <Divider />
-          <Highlights />
-          <Divider />
-          <Footer />
-        </Box>
-        <ToggleCustomTheme
-          showCustomTheme={showCustomTheme}
-          toggleCustomTheme={toggleCustomTheme}
-        />
-      </ThemeProvider>
-    </GlobalQuizProvider>
+    <QuizOptionsProvider>
+      <QuizStateProvider>
+        <ThemeProvider theme={showCustomTheme ? QPtheme : defaultTheme}>
+          <CssBaseline />
+          <AppAppBar 
+            mode={mode} 
+            toggleColorMode={toggleColorMode}
+          />
+          <Hero />
+          <Box sx={{ bgcolor: 'background.default' }}>
+            <QuizComponent />
+            <Divider />
+            <SubmissionHistory />
+            <Divider />
+            <Highlights />
+            <Divider />
+            <Footer />
+          </Box>
+          <ToggleCustomTheme
+            showCustomTheme={showCustomTheme}
+            toggleCustomTheme={toggleCustomTheme}
+          />
+        </ThemeProvider>
+      </QuizStateProvider>
+    </QuizOptionsProvider>
   );
 }

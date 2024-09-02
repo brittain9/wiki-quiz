@@ -1,10 +1,10 @@
 import React from 'react';
-import { useGlobalQuiz } from '../../context/GlobalQuizContext';
+import { useQuizOptions } from '../../context/QuizOptionsContext';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
 
 const LanguageToggle: React.FC = () => {
-  const { setLanguage } = useGlobalQuiz(); // get quiz options for debugging language
+  const { setLanguage } = useQuizOptions(); // get quiz options for debugging language
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {

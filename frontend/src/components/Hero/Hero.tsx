@@ -9,7 +9,8 @@ import { Paper, List, ListItem, ListItemButton } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
 import AnimatedTopics from './AnimatedTopics';
-import { useGlobalQuiz } from '../../context/GlobalQuizContext';
+import { useQuizOptions } from '../../context/QuizOptionsContext';
+import { useQuizState } from '../../context/QuizStateContext';
 import { fetchWikipediaTopics } from '../../services/wikiApi';
 import api from '../../services/api';
 
@@ -36,7 +37,8 @@ const StyledBox = styled('div')(({ theme }) => ({
 }));
 
 export default function Hero() {
-  const { quizOptions, setTopic, setIsQuizReady, setCurrentQuiz, setIsGenerating } = useGlobalQuiz();
+  const { quizOptions, setTopic } = useQuizOptions();
+  const { setIsQuizReady, setCurrentQuiz, setIsGenerating, isGenerating } = useQuizState();
   const { t } = useTranslation();
   const [topicInput, setTopicInput] = useState('');
   const [topics, setTopics] = useState<string[]>([]);
@@ -61,7 +63,7 @@ export default function Hero() {
 
     event.preventDefault(); // Prevent default form submission
     
-    if (quizOptions.topic && !quizOptions.isGenerating) {
+    if (quizOptions.topic && !isGenerating) {
       try {
         setIsGenerating(true);
         setIsQuizReady(false);
@@ -105,7 +107,7 @@ export default function Hero() {
   };
 
   const handleTopicSelect = (selectedTopic: string) => {
-    if (!quizOptions.isGenerating) {
+    if (!isGenerating) {
       setTopic(selectedTopic);
       setTopicInput(selectedTopic);
       setTopics([]);
@@ -174,7 +176,7 @@ export default function Hero() {
                 onChange={handleTopicChange}
                 error={!!error}
                 helperText={error}
-                disabled={quizOptions.isGenerating}
+                disabled={isGenerating}
                 fullWidth
                 autoComplete="off"
                 inputProps={{ style: { textAlign: 'left' } }}
@@ -208,9 +210,9 @@ export default function Hero() {
               type="submit" 
               variant="contained" 
               color="primary"
-              disabled={quizOptions.isGenerating || !topicInput}
+              disabled={isGenerating || !topicInput}
             >
-              {quizOptions.isGenerating ? t('hero.generatingButtonText') : t('hero.startButtonText')}
+              {isGenerating ? t('hero.generatingButtonText') : t('hero.startButtonText')}
             </Button>
           </form>
         </Stack>

@@ -11,40 +11,41 @@ import Button from '@mui/material/Button';
 import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
 import Modal from '@mui/material/Modal';
-import { useGlobalQuiz } from '../context/GlobalQuizContext';
-import { QuizSubmission, QuestionAnswer, SubmissionDetail, SubmissionResponse } from '../types/quizSubmission.types';
+import { useQuizOptions } from '../context/QuizOptionsContext';
+import { useQuizState } from '../context/QuizStateContext';
+import { QuizSubmission, QuestionAnswer, SubmissionResponse } from '../types/quizSubmission.types';
+import { QuizResult } from '../types/quizResult.types';
 import api from '../services/api';
 import QuizResultOverlay from './QuizResultOverlay';
-import { useQuizResultOverlay } from '../hooks/useQuizResultOverlay';
 
 const Quiz: React.FC = () => {
   const theme = useTheme();
-
-  const { quizOptions, setCurrentSubmission } = useGlobalQuiz();
+  const { quizOptions } = useQuizOptions();
+  const { 
+    isGenerating, 
+    isQuizReady, 
+    currentQuiz, 
+    currentSubmission, 
+    setIsGenerating, 
+    setIsQuizReady, 
+    setCurrentQuiz, 
+    setCurrentSubmission,
+    addSubmissionToHistory
+  } = useQuizState();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<QuestionAnswer[]>([]);
-
   const [quizSubmitted, setQuizSubmitted] = useState(false);
-
   const [score, setScore] = useState<number | null>(null);
+  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+  const [isLoadingResult, setIsLoadingResult] = useState(false);
+  const [resultError, setResultError] = useState<string | null>(null);
 
-  const [openDetailedSubmission, setOpenDetailedSubmission] = useState(false);
-
-  const currentQuiz = quizOptions.currentQuiz;
   const totalQuestions = currentQuiz?.aiResponses.reduce(
     (total, response) => total + response.questions.length,
     0
   ) || 0;
-
-  const {
-    isOverlayOpen,
-    quizResult,
-    isLoading,
-    error,
-    openOverlay,
-    closeOverlay,
-  } = useQuizResultOverlay();
 
   useEffect(() => {
     if (currentQuiz) {
@@ -55,7 +56,28 @@ const Quiz: React.FC = () => {
     }
   }, [currentQuiz]);
 
-  if (quizOptions.isGenerating) {
+  const fetchQuizResult = async (submissionId: number) => {
+    setIsLoadingResult(true);
+    setResultError(null);
+    try {
+      const result = await api.getSubmissionById(submissionId);
+      setQuizResult(result);
+    } catch (error) {
+      console.error('Failed to fetch quiz result:', error);
+      setResultError('Failed to load quiz result. Please try again.');
+    } finally {
+      setIsLoadingResult(false);
+    }
+  };
+
+  const handleViewDetailedSubmission = () => {
+    if (currentSubmission) {
+      setIsOverlayOpen(true);
+      fetchQuizResult(currentSubmission.id);
+    }
+  };
+
+  if (isGenerating) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
         <CircularProgress />
@@ -98,17 +120,12 @@ const Quiz: React.FC = () => {
         };
         const result = await api.postQuiz(quizSubmission);
         setCurrentSubmission(result);
+        addSubmissionToHistory(result);
         setQuizSubmitted(true);
         setScore(result.score);
       } catch (error) {
         console.error('Failed to submit quiz:', error);
       }
-    }
-  };
-
-  const handleViewDetailedSubmission = () => {
-    if (quizOptions.currentSubmission) {
-      openOverlay(quizOptions.currentSubmission.id);
     }
   };
 
@@ -178,7 +195,7 @@ const Quiz: React.FC = () => {
       </Paper>
       <Modal
         open={isOverlayOpen}
-        onClose={closeOverlay}
+        onClose={() => setIsOverlayOpen(false)}
         aria-labelledby="detailed-submission-modal"
         aria-describedby="detailed-submission-description"
       >
@@ -195,8 +212,8 @@ const Quiz: React.FC = () => {
           maxHeight: '90vh',
           overflowY: 'auto',
         }}>
-          <QuizResultOverlay quizResult={quizResult} isLoading={isLoading} error={error} />
-          <Button onClick={closeOverlay}>Close</Button>
+          <QuizResultOverlay quizResult={quizResult} isLoading={isLoadingResult} error={resultError} />
+          <Button onClick={() => setIsOverlayOpen(false)}>Close</Button>
         </Box>
       </Modal>
     </Box>
