@@ -4,7 +4,7 @@ import { Box, IconButton, Tooltip, Select, MenuItem, InputLabel, FormControl, Se
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import { useGlobalQuiz } from '../../context/GlobalQuizContext';
-import { fetchAvailableModels } from '../../services/quizService';
+import { fetchAvailableModels } from '../../services/api';
 
 const QuizOptionsComponent: React.FC = () => {
   const [expanded, setExpanded] = React.useState(false);

@@ -18,7 +18,6 @@ internal class WikiQuizDbContextFactory : IDesignTimeDbContextFactory<WikiQuizDb
         optionsBuilder.UseNpgsql(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection"),
             npgsqlOptions => npgsqlOptions.UseNodaTime());
 
-
         return new WikiQuizDbContext(optionsBuilder.Options);
     }
 }

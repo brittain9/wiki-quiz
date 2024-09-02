@@ -16,7 +16,7 @@ public static class SubmissionEndpoints
                 var submission = await quizRepository.GetSubmissionByIdAsync(id);
                 if (submission == null) return Results.NotFound();
                 
-                return Results.Ok(submission.ToDetailedDto());
+                return Results.Ok(QuizResultMapper.ToDto(submission));
             }
             catch (Exception ex)
             {

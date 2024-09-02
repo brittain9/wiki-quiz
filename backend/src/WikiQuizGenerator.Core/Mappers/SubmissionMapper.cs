@@ -31,15 +31,4 @@ public static class SubmissionMapper
         
         return dto;
     }
-
-    public static SubmissionDetailDto ToDetailedDto(this Submission submission)
-    {
-        return new SubmissionDetailDto()
-        {
-            Quiz = submission.Quiz.ToDto(),
-            Answers = submission.Answers,
-            Score = submission.Score,
-            SubmissionTime = submission.SubmissionTime
-        };
-    }
 }

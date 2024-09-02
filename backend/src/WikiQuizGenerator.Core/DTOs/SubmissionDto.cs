@@ -23,11 +23,3 @@ public class SubmissionResponseDto
 
     public DateTime SubmissionTime { get; set; }
 }
-
-public class SubmissionDetailDto
-{
-    public QuizDto Quiz { get; set; }
-    public List<QuestionAnswer> Answers { get; set; }
-    public DateTime SubmissionTime { get; set; }
-    public int Score { get; set; }
-}

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Quiz } from '../types/quiz.types';
 import { SubmissionResponse } from '../types/quizSubmission.types';
-import { fetchAvailableServices, fetchAvailableModels } from '../services/quizService';
+import { fetchAvailableServices, fetchAvailableModels } from '../services/api';
 
 export interface QuizOptions {
   // Quiz Options

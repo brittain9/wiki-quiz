@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { Quiz } from '../types/quiz.types';
 import { QuizSubmission, SubmissionDetail, SubmissionResponse } from '../types/quizSubmission.types';
+import { QuizResult } from '../types/quizResult.types';
+import { QuizOptions, useGlobalQuiz } from '../context/GlobalQuizContext';
 
 const API_BASE_URL = 'http://localhost:5543';
 
@@ -16,10 +18,24 @@ export interface BasicQuizParams {
 
 const api = {
 
-  getBasicQuiz: async (params: BasicQuizParams): Promise<Quiz> => {
+  getBasicQuiz: async (
+    quizOptions: QuizOptions,
+  ): Promise<Quiz> => {
+    
     try {
-      const response = await axios.get<Quiz>(`${API_BASE_URL}/basicquiz`, { params });
-      return response.data;
+      const params: BasicQuizParams = {
+        topic: quizOptions.topic,
+        aiService: quizOptions.selectedService,
+        model: quizOptions.selectedModel,
+        language: quizOptions.language,
+        numQuestions: quizOptions.numQuestions,
+        numOptions: quizOptions.numOptions,
+        extractLength: quizOptions.extractLength,
+      };
+
+      const { data: quiz } = await axios.get<Quiz>(`${API_BASE_URL}/basicquiz`, { params });
+
+      return quiz;
     } 
     catch (error) {
       if (axios.isAxiosError(error)) {
@@ -75,9 +91,19 @@ const api = {
     }
   },
 
-  getSubmissionById: async (id: number): Promise<SubmissionDetail> => {
+  getRecentSubmissions: async (): Promise<SubmissionResponse[]> => {
     try {
-      const response = await axios.get<SubmissionDetail>(`${API_BASE_URL}/quizsubmission/${id}`);
+      const response = await axios.get<SubmissionResponse[]>(`${API_BASE_URL}/quizsubmission/recent`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching recent submissions:', error);
+      throw error;
+    }
+  },
+
+  getSubmissionById: async (id: number): Promise<QuizResult> => {
+    try {
+      const response = await axios.get<QuizResult>(`${API_BASE_URL}/quizsubmission/${id}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -90,15 +116,26 @@ const api = {
     }
   },
 
-  getRecentSubmissions: async (): Promise<SubmissionResponse[]> => {
-    try {
-      const response = await axios.get<SubmissionResponse[]>(`${API_BASE_URL}/quizsubmission/recent`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching recent submissions:', error);
-      throw error;
-    }
-  }
-
 };
 export default api;
+
+// exported separately to avoid circular dependency with global context.
+export const fetchAvailableServices = async () => {
+  try {
+    const services = await api.getAiServices();
+    return services;
+  } catch (error) {
+    console.error('Failed to fetch available AI services:', error);
+    throw error;
+  }
+};
+
+export const fetchAvailableModels = async (serviceId: number) => {
+  try {
+    const models = await api.getAiModels(serviceId);
+    return models;
+  } catch (error) {
+    console.error(`Failed to fetch available models for service ${serviceId}:`, error);
+    throw error;
+  }
+};

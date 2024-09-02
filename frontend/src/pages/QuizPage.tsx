@@ -12,7 +12,7 @@ import Hero from '../components/Hero/Hero';
 import Highlights from '../components/Highlights';
 import Footer from '../components/Footer';
 import getTheme from '../getTheme';
-import QuizComponent from '../components/Quiz/QuizComponent';
+import QuizComponent from '../components/QuizComponent';
 import { GlobalQuizProvider } from '../context/GlobalQuizContext'; // this just needs to provide the provider to the children
 import SubmissionHistory from '../components/SubmissionHistory';
 
@@ -75,7 +75,6 @@ export default function QuizPage() {
     setShowCustomTheme((prev) => !prev);
   };
 
-  // Hero will set the topic and contain the button for generation, appbar will set the other settings, quiz component will render the quiz
   return (
     <GlobalQuizProvider>
       <ThemeProvider theme={showCustomTheme ? QPtheme : defaultTheme}>

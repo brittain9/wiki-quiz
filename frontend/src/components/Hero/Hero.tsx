@@ -10,8 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { styled } from '@mui/material/styles';
 import AnimatedTopics from './AnimatedTopics';
 import { useGlobalQuiz } from '../../context/GlobalQuizContext';
-import { useQuizService } from '../../services/quizService';
 import { fetchWikipediaTopics } from '../../services/wikiApi';
+import api from '../../services/api';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -37,7 +37,6 @@ const StyledBox = styled('div')(({ theme }) => ({
 
 export default function Hero() {
   const { quizOptions, setTopic, setIsQuizReady, setCurrentQuiz, setIsGenerating } = useGlobalQuiz();
-  const { generateQuiz } = useQuizService();
   const { t } = useTranslation();
   const [topicInput, setTopicInput] = useState('');
   const [topics, setTopics] = useState<string[]>([]);
@@ -59,17 +58,25 @@ export default function Hero() {
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
+
     event.preventDefault(); // Prevent default form submission
+    
     if (quizOptions.topic && !quizOptions.isGenerating) {
       try {
         setIsGenerating(true);
-        const quiz = await generateQuiz();
+        setIsQuizReady(false);
+
+        const quiz = await api.getBasicQuiz(quizOptions);
+
         setCurrentQuiz(quiz);
         setIsQuizReady(true);
+
         setError(null);
-      } catch (error: any) {
+      } 
+      catch (error: any) {
         setError(error.message);
-      } finally {
+      } 
+      finally{
         setIsGenerating(false);
       }
     }
