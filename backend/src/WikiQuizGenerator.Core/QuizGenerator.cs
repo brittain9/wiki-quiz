@@ -8,11 +8,11 @@ public class QuizGenerator : IQuizGenerator
 {
     private IWikipediaContentProvider _wikipediaContentProvider;
     private readonly IQuizRepository _quizRepository;
-    private readonly AiServiceManager _aiServiceManager;
+    private readonly IAiServiceManager _aiServiceManager;
     private readonly IQuestionGeneratorFactory _questionGeneratorFactory;
     private readonly ILogger<QuizGenerator> _logger;
 
-    public QuizGenerator(IQuestionGeneratorFactory questionGeneratorFactory, IWikipediaContentProvider wikipediaContentProvider, AiServiceManager aiServiceManager,ILogger<QuizGenerator> logger, IQuizRepository quizRepository)
+    public QuizGenerator(IQuestionGeneratorFactory questionGeneratorFactory, IWikipediaContentProvider wikipediaContentProvider, IAiServiceManager aiServiceManager, ILogger<QuizGenerator> logger, IQuizRepository quizRepository)
     {
         _wikipediaContentProvider = wikipediaContentProvider;
         _questionGeneratorFactory = questionGeneratorFactory;

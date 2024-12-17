@@ -16,9 +16,11 @@ public partial class Program
             .ReadFrom.Services(services));
 
         services.AddDataServices();
+
+        // TODO: These lifetimes could use work
         services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
         services.AddSingleton<PromptManager>();
-        services.AddScoped<AiServiceManager>();
+        services.AddScoped<IAiServiceManager, AiServiceManager>();
         
         services.AddSingleton<IQuestionGeneratorFactory, QuestionGeneratorFactory>();
         services.AddTransient<IQuizGenerator, QuizGenerator>();

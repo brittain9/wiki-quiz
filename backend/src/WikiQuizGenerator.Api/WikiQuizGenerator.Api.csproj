@@ -30,4 +30,8 @@
     <ProjectReference Include="..\WikiQuizGenerator.LLM\WikiQuizGenerator.LLM.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="logs\" />
+  </ItemGroup>
+
 </Project>

@@ -19,7 +19,7 @@ public class QuestionGenerator : IQuestionGenerator
     private readonly ILogger<QuestionGenerator> _logger;
     private readonly Kernel _kernel;
 
-    public QuestionGenerator(PromptManager promptManager, ILogger<QuestionGenerator> logger, AiServiceManager aiServiceManager)
+    public QuestionGenerator(PromptManager promptManager, AiServiceManager aiServiceManager, ILogger<QuestionGenerator> logger)
     {
         // created by our factory so this will run each request
         _promptManager = promptManager;
@@ -27,7 +27,7 @@ public class QuestionGenerator : IQuestionGenerator
         
         // create the kernel with the specified ai service
         var kernelBuilder = Kernel.CreateBuilder();
-        
+
         string modelId = aiServiceManager.SelectedService switch
         {
             AiService.OpenAi => AiServiceManager.OpenAiModelNames[aiServiceManager.SelectedOpenAiModel],

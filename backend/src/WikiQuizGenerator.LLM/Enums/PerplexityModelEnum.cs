@@ -1,4 +1,4 @@
-namespace WikiQuizGenerator.Core;
+namespace WikiQuizGenerator.LLM;
 
 public enum PerplexityModel
 {
