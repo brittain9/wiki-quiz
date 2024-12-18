@@ -77,6 +77,7 @@ public class QuizRepository : IQuizRepository
             .Include(qs => qs.Quiz)
             .ToListAsync();
     }
+
     public async Task<Submission?> GetSubmissionByIdAsync(int submissionId)
     {
         return await _context.QuizSubmissions

@@ -10,6 +10,7 @@ const QuizOptionsComponent: React.FC = () => {
   const [expanded, setExpanded] = React.useState(false);
   const [availableServices, setAvailableServices] = useState<Record<number, string>>({});
   const [availableModels, setAvailableModels] = useState<Record<number, string>>({});
+
   const { 
     quizOptions, 
     setNumQuestions, 
@@ -89,7 +90,7 @@ const QuizOptionsComponent: React.FC = () => {
             <InputLabel id="variety-label">Variety</InputLabel>
             <Select
               labelId="variety-label"
-              value={quizOptions.extractLength}
+              value={quizOptions.extractLength || 5000} // Default to 5000 (High) if no value is set
               label="Variety"
               onChange={(e) => setExtractLength(Number(e.target.value))}
             >
