@@ -70,12 +70,14 @@ public class QuizRepository : IQuizRepository
     
     public async Task<IEnumerable<Submission>> GetRecentQuizSubmissionsAsync(int count)
     {
-        return await _context.Set<Submission>()
+        var recentSubmissions = await _context.Set<Submission>()
             .AsNoTracking()
             .OrderByDescending(q => q.SubmissionTime)
             .Take(count)
             .Include(qs => qs.Quiz)
             .ToListAsync();
+
+        return recentSubmissions ?? new List<Submission>();
     }
 
     public async Task<Submission?> GetSubmissionByIdAsync(int submissionId)

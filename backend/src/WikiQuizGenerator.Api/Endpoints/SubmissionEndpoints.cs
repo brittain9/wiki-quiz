@@ -41,17 +41,26 @@ public static class SubmissionEndpoints
         try
         {
             var recentQuizzes = await quizRepository.GetRecentQuizSubmissionsAsync(num);
+
+            if (recentQuizzes == null || !recentQuizzes.Any())
+            {
+                return Results.Ok(Array.Empty<SubmissionDto>());
+            }
+
             var recentSubmissionDtos = recentQuizzes
                 .Select(submission => submission.ToDto())
                 .ToList();
-
-            if(recentSubmissionDtos.Count <= 0 || recentSubmissionDtos == null) return Results.NotFound();
 
             return Results.Ok(recentSubmissionDtos);
         }
         catch (Exception ex)
         {
-            return Results.BadRequest(ex.Message);
+            return Results.BadRequest(new
+            {
+                Error = ex.Message
+            });
         }
     }
+
+
 }

@@ -4,6 +4,7 @@ using WikiQuizGenerator.Data;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Api;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 // Bootstrap logger for start up
  Log.Logger = new LoggerConfiguration()
@@ -18,6 +19,12 @@ try
     ConfigureServices(builder.Services, builder.Configuration);
 
     var app = builder.Build();
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<WikiQuizDbContext>();
+        dbContext.Database.Migrate();
+    }
 
     app.UseSerilogRequestLogging();
 

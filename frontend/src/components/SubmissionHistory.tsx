@@ -30,6 +30,7 @@ const SubmissionHistory: React.FC = () => {
   const [isResultLoading, setIsResultLoading] = useState(false);
   const [resultError, setResultError] = useState<string | null>(null);
 
+  // Fetch submissions from the backend
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
@@ -45,14 +46,17 @@ const SubmissionHistory: React.FC = () => {
     fetchSubmissions();
   }, []);
 
+  // Merge new submissions into the existing list and remove duplicates
   useEffect(() => {
-    setAllSubmissions(prevSubmissions => {
-      const updatedSubmissions = [...newSubmissions, ...prevSubmissions];
-      // Remove duplicates based on id
-      return Array.from(new Map(updatedSubmissions.map(item => [item.id, item])).values());
-    });
+    if (newSubmissions.length > 0) {
+      setAllSubmissions((prevSubmissions) => {
+        const updatedSubmissions = [...newSubmissions, ...prevSubmissions];
+        return Array.from(new Map(updatedSubmissions.map((item) => [item.id, item])).values());
+      });
+    }
   }, [newSubmissions]);
 
+  // Handle the click on a submission to view details
   const handleSubmissionClick = async (id: number) => {
     setIsResultLoading(true);
     setResultError(null);
@@ -68,11 +72,13 @@ const SubmissionHistory: React.FC = () => {
     }
   };
 
+  // Close the overlay
   const closeOverlay = () => {
     setIsOverlayOpen(false);
     setSelectedQuizResult(null);
   };
 
+  // Render the component
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -96,7 +102,7 @@ const SubmissionHistory: React.FC = () => {
           Recent Submissions
         </Typography>
         {allSubmissions.length === 0 ? (
-          <Typography>No recent submissions found.</Typography>
+          <Typography align="center">Take a quiz to see your history!</Typography>
         ) : (
           <List>
             {allSubmissions.map((submission) => (
@@ -127,25 +133,29 @@ const SubmissionHistory: React.FC = () => {
         aria-labelledby="submission-history-modal"
         aria-describedby="submission-history-description"
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '80%',
-          maxWidth: 800,
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 4,
-          maxHeight: '90vh',
-          overflowY: 'auto',
-        }}>
-          <QuizResultOverlay 
-            quizResult={selectedQuizResult} 
-            isLoading={isResultLoading} 
-            error={resultError} 
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '80%',
+            maxWidth: 800,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            maxHeight: '90vh',
+            overflowY: 'auto',
+          }}
+        >
+          <QuizResultOverlay
+            quizResult={selectedQuizResult}
+            isLoading={isResultLoading}
+            error={resultError}
           />
-          <Button onClick={closeOverlay} sx={{ mt: 2 }}>Close</Button>
+          <Button onClick={closeOverlay} sx={{ mt: 2 }}>
+            Close
+          </Button>
         </Box>
       </Modal>
     </>
