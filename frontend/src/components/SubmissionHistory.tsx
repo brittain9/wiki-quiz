@@ -18,6 +18,8 @@ import { SubmissionResponse } from '../types/quizSubmission.types';
 import { useQuizState } from '../context/QuizStateContext';
 import QuizResultOverlay from './QuizResultOverlay';
 import { QuizResult } from '../types/quizResult.types';
+import { useTranslation } from 'react-i18next';
+
 
 const SubmissionHistory: React.FC = () => {
   const { submissionHistory: newSubmissions } = useQuizState();
@@ -29,6 +31,9 @@ const SubmissionHistory: React.FC = () => {
   const [selectedQuizResult, setSelectedQuizResult] = useState<QuizResult | null>(null);
   const [isResultLoading, setIsResultLoading] = useState(false);
   const [resultError, setResultError] = useState<string | null>(null);
+
+  const { t } = useTranslation();
+  
 
   // Fetch submissions from the backend
   useEffect(() => {
@@ -98,11 +103,11 @@ const SubmissionHistory: React.FC = () => {
   return (
     <>
       <Paper elevation={3} sx={{ padding: 2, maxWidth: 800, margin: 'auto', mt: 5, mb: 5 }}>
-        <Typography variant="h5" gutterBottom>
-          Recent Submissions
+        <Typography variant="h5" gutterBottom align="center">
+          {t('recentSubmissions.title')}
         </Typography>
         {allSubmissions.length === 0 ? (
-          <Typography align="center">Take a quiz to see your history!</Typography>
+          <Typography align="center"> {t('recentSubmissions.noHistory')}</Typography>
         ) : (
           <List>
             {allSubmissions.map((submission) => (
@@ -154,7 +159,7 @@ const SubmissionHistory: React.FC = () => {
             error={resultError}
           />
           <Button onClick={closeOverlay} sx={{ mt: 2 }}>
-            Close
+            {t('button.close')}
           </Button>
         </Box>
       </Modal>

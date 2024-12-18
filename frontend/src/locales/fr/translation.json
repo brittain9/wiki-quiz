@@ -1,6 +1,9 @@
 {
+  "button": {
+      "close": "Fermer"
+    },
   "appBar": {
-    "title": "Application Quiz Wiki",
+    "title": "Wiki Quiz App",
     "highlights": "Points forts"
   },
   "footer": {
@@ -18,37 +21,44 @@
     "generatingButtonText": "Génération en cours",
     "startButtonText": "Commencer maintenant"
   },
-  "logoCollection": {
-    "qualityGuarantee": "Qualité garantie utilisant des services de pointe"
+  "recentSubmissions": {
+    "title": "Soumissions récentes",
+    "noHistory": "Répondez à un quiz pour voir votre histoire !"
+  },
+  "quizresultoverlay" : {
+    "title" : "Résultats du quiz",
+    "score" : "Score",
+    "question": "Question"
   },
   "highlights": {
     "title": "Points forts",
     "info": "Découvrez pourquoi notre produit se démarque : adaptabilité, durabilité, conception conviviale et innovation. Profitez d'un support client fiable et d'une précision dans chaque détail.",
     "items": {
-      "performance": {
-        "title": "Performance adaptable",
-        "desc": "Notre produit s'adapte sans effort à vos besoins, augmentant l'efficacité et simplifiant vos tâches."
+      "dynamic_quiz": {
+        "title": "Génération de Quiz Dynamique",
+        "desc": "Exploitez l'IA et Wikipédia pour générer des quiz captivants et spécifiques aux sujets, qui s'adaptent à vos besoins, améliorant l'engagement des utilisateurs et l'apprentissage."
       },
-      "last": {
-        "title": "Conçu pour durer",
-        "desc": "Expérimentez une durabilité inégalée qui va au-delà avec un investissement durable."
+      "inclusive_design": {
+        "title": "Conception Inclusive pour Tous les Utilisateurs",
+        "desc": "Notre application est conçue pour répondre à un large éventail d'utilisateurs, permettant à chacun d'explorer et de s'intéresser à une variété de sujets."
       },
-      "experience": {
-        "title": "Excellente expérience utilisateur",
-        "desc": "Intégrez notre produit dans votre routine avec une interface intuitive et facile à utiliser."
+      "multilingual_support": {
+        "title": "Support pour 9 Langues",
+        "desc": "Proposez des quiz dans neuf langues, notamment l'anglais, l'espagnol, le français, le japonais, le chinois, et bien plus, garantissant l'accessibilité à une audience mondiale."
       },
-      "functionality": {
-        "title": "Fonctionnalité innovante",
-        "desc": "Restez à la pointe avec des fonctionnalités qui établissent de nouvelles normes, répondant à vos besoins évolutifs mieux que les autres."
+      "intelligent_search": {
+        "title": "Recherche Intelligente",
+        "desc": "Utilisez une recherche intelligente pour cibler précisément les sujets, en fournissant aux utilisateurs un contenu de quiz pertinent et précis à partir de millions d'articles Wikipédia."
       },
-      "support": {
-        "title": "Support fiable",
-        "desc": "Comptez sur notre support client réactif, offrant une assistance qui va au-delà de l'achat."
+      "ai_integration": {
+        "title": "Intégration Transparente de l'IA",
+        "desc": "Intégrez-vous facilement aux principales API d'IA, comme OpenAI et Perplexity, pour garantir des performances et des capacités de pointe."
       },
-      "detail": {
-        "title": "Précision dans chaque détail",
-        "desc": "Profitez d'un produit méticuleusement conçu où les petites touches ont un impact significatif sur votre expérience globale."
+      "meticulous_design": {
+        "title": "Précision dans Chaque Détail",
+        "desc": "Du frontend développé avec React et TypeScript au backend propulsé par .NET 8 et PostgreSQL, chaque composant est méticuleusement conçu pour des performances optimales."
       }
     }
+
   }
 }

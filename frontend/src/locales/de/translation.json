@@ -1,6 +1,9 @@
 {
+  "button": {
+      "close": "Schließen"
+    },
   "appBar": {
-    "title": "Wiki-Quiz-App",
+    "title": "Wiki Quiz App",
     "highlights": "Höhepunkte"
   },
   "footer": {
@@ -18,37 +21,44 @@
     "generatingButtonText": "Wird generiert",
     "startButtonText": "Jetzt starten"
   },
-  "logoCollection": {
-    "qualityGuarantee": "Garantierte Qualität durch modernste Dienste"
+  "recentSubmissions": {
+    "title": "Letzte Einreichungen",
+    "noHistory": "Mach ein Quiz, um deine Geschichte zu sehen!"
+  },
+  "quizresultoverlay" : {
+    "title" : "Quiz-Ergebnisse",
+    "score" : "Punktzahl",
+    "question": "Frage"
   },
   "highlights": {
     "title": "Höhepunkte",
     "info": "Entdecken Sie, warum unser Produkt heraussticht: Anpassungsfähigkeit, Langlebigkeit, benutzerfreundliches Design und Innovation. Genießen Sie zuverlässigen Kundensupport und Präzision in jedem Detail.",
-    "items": {
-      "performance": {
-        "title": "Anpassungsfähige Leistung",
-        "desc": "Unser Produkt passt sich mühelos Ihren Bedürfnissen an, steigert die Effizienz und vereinfacht Ihre Aufgaben."
-      },
-      "last": {
-        "title": "Gebaut für die Ewigkeit",
-        "desc": "Erleben Sie unübertroffene Langlebigkeit, die über das Übliche hinausgeht, mit einer dauerhaften Investition."
-      },
-      "experience": {
-        "title": "Großartige Benutzererfahrung",
-        "desc": "Integrieren Sie unser Produkt in Ihren Alltag mit einer intuitiven und benutzerfreundlichen Oberfläche."
-      },
-      "functionality": {
-        "title": "Innovative Funktionalität",
-        "desc": "Bleiben Sie an der Spitze mit Funktionen, die neue Standards setzen und Ihre sich entwickelnden Bedürfnisse besser erfüllen als andere."
-      },
-      "support": {
-        "title": "Zuverlässiger Support",
-        "desc": "Verlassen Sie sich auf unseren reaktionsschnellen Kundensupport, der Unterstützung über den Kauf hinaus bietet."
-      },
-      "detail": {
-        "title": "Präzision in jedem Detail",
-        "desc": "Genießen Sie ein sorgfältig gestaltetes Produkt, bei dem kleine Details einen großen Einfluss auf Ihr Gesamterlebnis haben."
+      "items": {
+        "dynamic_quiz": {
+          "title": "Dynamische Quiz-Erstellung",
+          "desc": "Nutzen Sie KI und Wikipedia, um spannende, themenspezifische Quizfragen zu erstellen, die sich an Ihre Bedürfnisse anpassen und das Nutzerengagement und Lernen verbessern."
+        },
+        "inclusive_design": {
+          "title": "Inklusives Design für alle Nutzer",
+          "desc": "Unsere App ist so gestaltet, dass sie eine breite Nutzerbasis anspricht und jedem ermöglicht, sich für eine Vielzahl von Themen zu interessieren."
+        },
+        "multilingual_support": {
+          "title": "Unterstützung für 9 Sprachen",
+          "desc": "Bieten Sie Quizfragen in neun Sprachen an, darunter Englisch, Spanisch, Französisch, Japanisch, Chinesisch und mehr, um weltweite Zugänglichkeit zu gewährleisten."
+        },
+        "intelligent_search": {
+          "title": "Intelligente Suche",
+          "desc": "Nutzen Sie intelligente Suchfunktionen, um Themen präzise zu finden und den Nutzern relevante und genaue Quizinhalte aus Millionen von Wikipedia-Artikeln bereitzustellen."
+        },
+        "ai_integration": {
+          "title": "Nahtlose KI-Integration",
+          "desc": "Integrieren Sie sich mühelos mit führenden KI-APIs wie OpenAI und Perplexity, um eine erstklassige Leistung und Fähigkeiten zu gewährleisten."
+        },
+        "meticulous_design": {
+          "title": "Präzision in jedem Detail",
+          "desc": "Vom Frontend mit React und TypeScript bis zum Backend mit .NET 8 und PostgreSQL – jede Komponente ist sorgfältig für optimale Leistung gestaltet."
+        }
       }
     }
   }
-}
+

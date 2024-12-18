@@ -1,6 +1,9 @@
 {
+  "button": {
+      "close": "Fechar"
+    },
   "appBar": {
-    "title": "Aplicativo de Quiz Wiki",
+    "title": "Wiki Quiz App",
     "highlights": "Destaques"
   },
   "footer": {
@@ -18,37 +21,44 @@
     "generatingButtonText": "Gerando",
     "startButtonText": "Começar agora"
   },
-  "logoCollection": {
-    "qualityGuarantee": "Qualidade garantida usando serviços de ponta"
+  "recentSubmissions": {
+    "title": "Submissões recentes",
+    "noHistory": "Faça um teste para ver a sua história!"
+  },
+  "quizresultoverlay" : {
+    "title" : "Resultados do Quiz",
+    "score" : "Pontuação",
+    "question": "Pergunta"
   },
   "highlights": {
     "title": "Destaques",
     "info": "Descubra por que nosso produto se destaca: adaptabilidade, durabilidade, design amigável e inovação. Desfrute de suporte ao cliente confiável e precisão em cada detalhe.",
     "items": {
-      "performance": {
-        "title": "Desempenho adaptável",
-        "desc": "Nosso produto se ajusta sem esforço às suas necessidades, aumentando a eficiência e simplificando suas tarefas."
+      "dynamic_quiz": {
+        "title": "Geração Dinâmica de Questionários",
+        "desc": "Aproveite a IA e a Wikipedia para criar questionários envolventes e específicos para tópicos que se adaptam às suas necessidades, aumentando o engajamento do usuário e o aprendizado."
       },
-      "last": {
-        "title": "Feito para durar",
-        "desc": "Experimente uma durabilidade incomparável que vai além das expectativas com um investimento duradouro."
+      "inclusive_design": {
+        "title": "Design Inclusivo para Todos os Usuários",
+        "desc": "Nosso aplicativo foi projetado para atender a uma ampla gama de usuários, permitindo que qualquer pessoa explore e desperte seu interesse em uma variedade de tópicos."
       },
-      "experience": {
-        "title": "Ótima experiência do usuário",
-        "desc": "Integre nosso produto à sua rotina com uma interface intuitiva e fácil de usar."
+      "multilingual_support": {
+        "title": "Suporte para 9 Idiomas",
+        "desc": "Ofereça questionários em nove idiomas, incluindo inglês, espanhol, francês, japonês, chinês e muito mais, garantindo acessibilidade para um público global."
       },
-      "functionality": {
-        "title": "Funcionalidade inovadora",
-        "desc": "Mantenha-se à frente com recursos que estabelecem novos padrões, atendendo às suas necessidades em evolução melhor do que os demais."
+      "intelligent_search": {
+        "title": "Pesquisa Inteligente",
+        "desc": "Utilize a funcionalidade de pesquisa inteligente para identificar tópicos com precisão, fornecendo aos usuários conteúdo de questionários relevante e preciso a partir de milhões de artigos da Wikipedia."
       },
-      "support": {
-        "title": "Suporte confiável",
-        "desc": "Conte com nosso suporte ao cliente responsivo, oferecendo assistência que vai além da compra."
+      "ai_integration": {
+        "title": "Integração Perfeita com IA",
+        "desc": "Integre-se facilmente às principais APIs de IA, como OpenAI e Perplexity, garantindo desempenho e capacidades de ponta."
       },
-      "detail": {
-        "title": "Precisão em cada detalhe",
-        "desc": "Desfrute de um produto meticulosamente elaborado onde pequenos toques fazem um impacto significativo em sua experiência geral."
+      "meticulous_design": {
+        "title": "Precisão em Cada Detalhe",
+        "desc": "Do frontend construído com React e TypeScript ao backend alimentado por .NET 8 e PostgreSQL, cada componente é meticulosamente projetado para desempenho ideal."
       }
     }
+
   }
 }

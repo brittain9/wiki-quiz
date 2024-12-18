@@ -1,4 +1,7 @@
 {
+    "button": {
+      "close": "Close"
+    },
     "appBar": {
       "title" : "Wiki Quiz App",
       "highlights": "Highlights"
@@ -21,8 +24,14 @@
       "generatingButtonText" : "Generating",
       "startButtonText" : "Start now"
     },
-    "logoCollection" : {
-      "qualityGuarantee" : "Guaranteed quality using cutting-edge services"
+    "recentSubmissions": {
+      "title": "Recent Submissions",
+      "noHistory": "Take a quiz to see your history!"
+    },
+    "quizresultoverlay" : {
+      "title" : "Quiz Results",
+      "score" : "Score",
+      "question": "Question"
     },
       "highlights": {
         "title": "Highlights",

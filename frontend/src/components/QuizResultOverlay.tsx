@@ -3,6 +3,8 @@ import React from 'react';
 import { Box, Typography, List, ListItem, Radio, RadioGroup, FormControlLabel, CircularProgress } from '@mui/material';
 import { QuizResult, ResultOption } from '../types/quizResult.types';
 import { Question } from '../types/quiz.types';
+import { useTranslation } from 'react-i18next';
+
 
 interface QuizResultOverlayProps {
   quizResult: QuizResult | null;
@@ -11,6 +13,9 @@ interface QuizResultOverlayProps {
 }
 
 const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoading, error }) => {
+
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100%">
@@ -39,17 +44,20 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom>Quiz Results</Typography>
-      <Typography variant="h6" gutterBottom>Score: {quizResult.score.toFixed(2)}%</Typography>
+      <Typography variant="h4" gutterBottom align="center">{quizResult.quiz.title} {t('quizresultoverlay.title')} </Typography>
+      <Typography variant="h5" gutterBottom align="center">{t('quizresultoverlay.score')}: {quizResult.score.toFixed(0)}%</Typography>
       <List>
         {quizResult.answers.map((result: ResultOption, index: number) => {
           const question = getQuestionById(result.questionId);
           return (
             <ListItem key={result.questionId}>
               <Box>
-                <Typography variant="subtitle1" gutterBottom>
-                  Question {index + 1}: {question?.text}
-                </Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                <strong>
+                {t('quizresultoverlay.question')} {index + 1}:
+                </strong>{' '}
+                {question?.text}
+              </Typography>
                 <RadioGroup value={result.selectedAnswerChoice}>
                   {question?.options.map((option, optionIndex) => (
                     <FormControlLabel
