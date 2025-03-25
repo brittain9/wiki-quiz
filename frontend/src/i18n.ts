@@ -12,8 +12,6 @@ import frTranslations from './locales/fr/translation.json';
 import itTranslations from './locales/it/translation.json';
 import ptTranslations from './locales/pt/translation.json';
 
-// There is a rare issue I had once where the language detected was en-US. I should handle this so it doesn't cause problems
-
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)

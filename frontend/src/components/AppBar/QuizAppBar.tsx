@@ -15,12 +15,12 @@ import LanguageToggle from './LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
 import { useTranslation } from 'react-i18next';
 
-interface AppAppBarProps {
+interface AppBarProps {
   mode: PaletteMode;
   toggleColorMode: () => void;
 }
 
-const AppAppBar: React.FC<AppAppBarProps> = ({ 
+const QuizAppBar: React.FC<AppBarProps> = ({ 
   mode, 
   toggleColorMode, 
 }) => {
@@ -178,4 +178,4 @@ const AppAppBar: React.FC<AppAppBarProps> = ({
   );
 }
 
-export default AppAppBar;
+export default QuizAppBar;

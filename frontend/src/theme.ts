@@ -136,7 +136,7 @@ const getDesignTokens = (mode: PaletteMode) => ({
   },
 });
 
-function getTheme(mode: PaletteMode): ThemeOptions {
+export const getTheme = (mode: PaletteMode): ThemeOptions => {
   return {
     ...getDesignTokens(mode),
     components: {
@@ -672,11 +672,8 @@ function getTheme(mode: PaletteMode): ThemeOptions {
       },
     },
   };
-}
+};
 
-// Export the theme creation function and default themes
+// Pre-configured themes
 export const lightTheme = createTheme(getTheme('light'));
 export const darkTheme = createTheme(getTheme('dark'));
-
-// Default export for backward compatibility
-export default lightTheme;
