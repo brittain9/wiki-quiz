@@ -47,45 +47,6 @@ export const gray = {
   900: 'hsl(220, 30%, 5%)',
 };
 
-export const green = {
-  50: 'hsl(120, 80%, 98%)',
-  100: 'hsl(120, 75%, 94%)',
-  200: 'hsl(120, 75%, 87%)',
-  300: 'hsl(120, 61%, 77%)',
-  400: 'hsl(120, 44%, 53%)',
-  500: 'hsl(120, 59%, 30%)',
-  600: 'hsl(120, 70%, 25%)',
-  700: 'hsl(120, 75%, 16%)',
-  800: 'hsl(120, 84%, 10%)',
-  900: 'hsl(120, 87%, 6%)',
-};
-
-export const orange = {
-  50: 'hsl(45, 100%, 97%)',
-  100: 'hsl(45, 92%, 90%)',
-  200: 'hsl(45, 94%, 80%)',
-  300: 'hsl(45, 90%, 65%)',
-  400: 'hsl(45, 90%, 40%)',
-  500: 'hsl(45, 90%, 35%)',
-  600: 'hsl(45, 91%, 25%)',
-  700: 'hsl(45, 94%, 20%)',
-  800: 'hsl(45, 95%, 16%)',
-  900: 'hsl(45, 93%, 12%)',
-};
-
-export const red = {
-  50: 'hsl(0, 100%, 97%)',
-  100: 'hsl(0, 92%, 90%)',
-  200: 'hsl(0, 94%, 80%)',
-  300: 'hsl(0, 90%, 65%)',
-  400: 'hsl(0, 90%, 40%)',
-  500: 'hsl(0, 90%, 30%)',
-  600: 'hsl(0, 91%, 25%)',
-  700: 'hsl(0, 94%, 20%)',
-  800: 'hsl(0, 95%, 16%)',
-  900: 'hsl(0, 93%, 12%)',
-};
-
 const getDesignTokens = (mode: PaletteMode) => ({
   palette: {
     mode,
@@ -99,48 +60,6 @@ const getDesignTokens = (mode: PaletteMode) => ({
         light: brand[300],
         main: brand[400],
         dark: brand[800],
-      }),
-    },
-    info: {
-      light: brand[100],
-      main: brand[300],
-      dark: brand[600],
-      contrastText: gray[50],
-      ...(mode === 'dark' && {
-        contrastText: brand[300],
-        light: brand[500],
-        main: brand[700],
-        dark: brand[900],
-      }),
-    },
-    warning: {
-      light: orange[300],
-      main: orange[400],
-      dark: orange[800],
-      ...(mode === 'dark' && {
-        light: orange[400],
-        main: orange[500],
-        dark: orange[700],
-      }),
-    },
-    error: {
-      light: red[300],
-      main: red[400],
-      dark: red[800],
-      ...(mode === 'dark' && {
-        light: red[400],
-        main: red[500],
-        dark: red[700],
-      }),
-    },
-    success: {
-      light: green[300],
-      main: green[400],
-      dark: green[800],
-      ...(mode === 'dark' && {
-        light: green[400],
-        main: green[500],
-        dark: green[700],
       }),
     },
     grey: {
@@ -369,43 +288,6 @@ function getTheme(mode: PaletteMode): ThemeOptions {
               },
               {
                 props: {
-                  color: 'secondary',
-                  variant: 'outlined',
-                },
-                style: {
-                  backgroundColor: alpha(gray[300], 0.1),
-                  borderColor: alpha(gray[300], 0.5),
-                  color: gray[700],
-                  '&:hover': {
-                    backgroundColor: alpha(gray[300], 0.3),
-                    borderColor: alpha(gray[300], 0.5),
-                    boxShadow: 'none',
-                  },
-                  '&:active': {
-                    backgroundColor: alpha(gray[300], 0.4),
-                    boxShadow: `inset 0 2.5px 0 ${alpha(gray[400], 0.2)}`,
-                    backgroundImage: 'none',
-                  },
-                  ...theme.applyStyles('dark', {
-                    color: gray[300],
-                    backgroundColor: alpha(gray[600], 0.1),
-                    borderColor: alpha(gray[700], 0.5),
-                    boxShadow: `inset 0 2.5px ${alpha(gray[600], 0.1)}, inset 0 -2px ${alpha(gray[900], 0.5)}`,
-                    '&:hover': {
-                      backgroundColor: alpha(gray[700], 0.2),
-                      borderColor: alpha(gray[700], 0.5),
-                      boxShadow: 'none',
-                    },
-                    '&:active': {
-                      backgroundColor: alpha(gray[800], 0.2),
-                      boxShadow: `inset 0 2.5px 0 ${alpha(gray[900], 0.4)}`,
-                      backgroundImage: 'none',
-                    },
-                  }),
-                },
-              },
-              {
-                props: {
                   color: 'primary',
                   variant: 'text',
                 },
@@ -418,24 +300,6 @@ function getTheme(mode: PaletteMode): ThemeOptions {
                     color: brand[200],
                     '&:hover': {
                       backgroundColor: alpha(brand[700], 0.3),
-                    },
-                  }),
-                },
-              },
-              {
-                props: {
-                  color: 'info',
-                  variant: 'text',
-                },
-                style: {
-                  color: gray[700],
-                  '&:hover': {
-                    backgroundColor: alpha(gray[300], 0.3),
-                  },
-                  ...theme.applyStyles('dark', {
-                    color: gray[200],
-                    '&:hover': {
-                      backgroundColor: alpha(gray[700], 0.3),
                     },
                   }),
                 },
@@ -699,27 +563,6 @@ function getTheme(mode: PaletteMode): ThemeOptions {
                 outlineOffset: '2px',
               },
             }),
-            variants: [
-              {
-                props: {
-                  color: 'error',
-                },
-                style: {
-                  borderColor: red[200],
-                  color: red[500],
-                  '& + .MuiFormHelperText-root': {
-                    color: red[500],
-                  },
-                  ...theme.applyStyles('dark', {
-                    borderColor: red[700],
-                    color: red[300],
-                    '& + .MuiFormHelperText-root': {
-                      color: red[300],
-                    },
-                  }),
-                },
-              },
-            ],
           }),
         },
       },
