@@ -11,7 +11,7 @@ import AppAppBar from '../components/AppBar/AppAppBar';
 import Hero from '../components/Hero/Hero';
 import Highlights from '../components/Highlights';
 import Footer from '../components/Footer';
-import getTheme from '../getTheme';
+import { getTheme } from '../getTheme';
 import QuizComponent from '../components/QuizComponent';
 import SubmissionHistory from '../components/SubmissionHistory';
 import { QuizOptionsProvider } from '../context/QuizOptionsContext';

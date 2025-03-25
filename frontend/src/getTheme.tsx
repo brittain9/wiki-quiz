@@ -217,7 +217,7 @@ const getDesignTokens = (mode: PaletteMode) => ({
   },
 });
 
-export default function getTheme(mode: PaletteMode): ThemeOptions {
+function getTheme(mode: PaletteMode): ThemeOptions {
   return {
     ...getDesignTokens(mode),
     components: {
@@ -830,3 +830,8 @@ export default function getTheme(mode: PaletteMode): ThemeOptions {
     },
   };
 }
+
+// Create and export the default light theme
+export const theme = createTheme(getTheme('light'));
+
+export { getTheme };

@@ -10,3 +10,8 @@
     100% { opacity: 0; }
   }
   
+.animated-topic-container {
+  position: relative;
+  overflow: visible;
+}
+  

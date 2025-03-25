@@ -151,7 +151,7 @@ export default function Hero() {
               fontSize: 'clamp(3rem, 10vw, 3.5rem)',
             }}
           >
-            {t('hero.generateQuiz')}&nbsp;
+            <span style={{ whiteSpace: 'nowrap' }}>{t('hero.generateQuiz')}&nbsp;</span>
             <AnimatedTopics />
           </Typography>
           <Typography

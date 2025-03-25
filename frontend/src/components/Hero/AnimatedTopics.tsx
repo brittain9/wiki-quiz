@@ -61,23 +61,34 @@ const AnimatedTopics: React.FC = () => {
   }
 
   return (
-    <Typography
-      component="span"
-      variant="h1"
-      sx={(theme) => ({
-        fontSize: 'inherit',
-        color: 'primary.main',
-        transition: 'color 0.5s ease',
-        display: 'inline-block',
-        minWidth: '200px', // Adjust this value as needed
-        ...theme.applyStyles('dark', {
-          color: 'primary.light',
-        }),
-      })}
+    <span 
+      className="animated-topic-container"
+      style={{ 
+        display: 'inline-flex', 
+        alignItems: 'baseline',
+        justifyContent: 'flex-start',
+        textAlign: 'left',
+        minWidth: '200px' // Provide enough space for most words
+      }}
     >
-      {displayText}
+      <Typography
+        component="span"
+        variant="h1"
+        sx={(theme) => ({
+          fontSize: 'inherit',
+          color: 'primary.main',
+          transition: 'color 0.5s ease',
+          display: 'inline',
+          whiteSpace: 'nowrap',
+          ...theme.applyStyles('dark', {
+            color: 'primary.light',
+          }),
+        })}
+      >
+        {displayText}
+      </Typography>
       <span className="cursor">|</span>
-    </Typography>
+    </span>
   );
 };
 
