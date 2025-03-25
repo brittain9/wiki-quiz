@@ -22,29 +22,29 @@ declare module '@mui/material/styles/createPalette' {
 const customTheme = createTheme();
 
 export const brand = {
-  50: 'hsl(210, 100%, 97%)',
-  100: 'hsl(210, 100%, 90%)',
-  200: 'hsl(210, 100%, 80%)',
-  300: 'hsl(210, 100%, 65%)',
-  400: 'hsl(210, 98%, 48%)',
-  500: 'hsl(210, 98%, 42%)',
-  600: 'hsl(210, 98%, 55%)',
-  700: 'hsl(210, 100%, 35%)',
-  800: 'hsl(210, 100%, 16%)',
-  900: 'hsl(210, 100%, 21%)',
+  50: 'hsl(145, 100%, 97%)',
+  100: 'hsl(145, 100%, 90%)',
+  200: 'hsl(145, 90%, 80%)',
+  300: 'hsl(145, 85%, 65%)',
+  400: 'hsl(145, 80%, 48%)',
+  500: 'hsl(145, 80%, 42%)',
+  600: 'hsl(145, 80%, 35%)',
+  700: 'hsl(145, 85%, 30%)',
+  800: 'hsl(145, 90%, 16%)',
+  900: 'hsl(145, 95%, 12%)',
 };
 
 export const gray = {
-  50: 'hsl(220, 60%, 99%)',
-  100: 'hsl(220, 35%, 94%)',
-  200: 'hsl(220, 35%, 88%)',
-  300: 'hsl(220, 25%, 80%)',
-  400: 'hsl(220, 20%, 65%)',
-  500: 'hsl(220, 20%, 42%)',
-  600: 'hsl(220, 25%, 35%)',
-  700: 'hsl(220, 25%, 25%)',
-  800: 'hsl(220, 25%, 10%)',
-  900: 'hsl(220, 30%, 5%)',
+  50: 'hsl(210, 20%, 99%)',
+  100: 'hsl(210, 15%, 94%)',
+  200: 'hsl(210, 15%, 88%)',
+  300: 'hsl(210, 10%, 80%)',
+  400: 'hsl(210, 10%, 65%)',
+  500: 'hsl(210, 10%, 50%)',
+  600: 'hsl(210, 10%, 35%)',
+  700: 'hsl(210, 15%, 25%)',
+  800: 'hsl(210, 15%, 15%)',
+  900: 'hsl(210, 20%, 5%)',
 };
 
 const getDesignTokens = (mode: PaletteMode) => ({
@@ -674,7 +674,9 @@ function getTheme(mode: PaletteMode): ThemeOptions {
   };
 }
 
-// Create and export the default light theme
-export const theme = createTheme(getTheme('light'));
+// Export the theme creation function and default themes
+export const lightTheme = createTheme(getTheme('light'));
+export const darkTheme = createTheme(getTheme('dark'));
 
-export { getTheme };
+// Default export for backward compatibility
+export default lightTheme;
