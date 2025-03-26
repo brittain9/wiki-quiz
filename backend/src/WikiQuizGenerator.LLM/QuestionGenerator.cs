@@ -104,16 +104,16 @@ public class QuestionGenerator : IQuestionGenerator
             ResponseTime = sw.ElapsedMilliseconds,
         };
 
-        if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
-        {
-            aiResponse.PromptTokenUsage = usage.PromptTokens;
-            aiResponse.CompletionTokenUsage = usage.CompletionTokens;
-        } 
-        else if (result.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
-        {
-            aiResponse.PromptTokenUsage = perUsage.PromptTokens;
-            aiResponse.CompletionTokenUsage = perUsage.CompletionTokens;
-        }
+        //if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
+        //{
+        //    aiResponse.PromptTokenUsage = usage.PromptTokens;
+        //    aiResponse.CompletionTokenUsage = usage.CompletionTokens;
+        //} 
+        //else if (result.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
+        //{
+        //    aiResponse.PromptTokenUsage = perUsage.PromptTokens;
+        //    aiResponse.CompletionTokenUsage = perUsage.CompletionTokens;
+        //}
 
         return aiResponse;
     }
