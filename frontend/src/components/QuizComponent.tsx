@@ -275,10 +275,11 @@ const Quiz: React.FC = () => {
                 mb: 3, 
                 fontWeight: 500, 
                 fontSize: '1.1rem',
-                bgcolor: 'grey.50',
+                bgcolor: 'background.paper',
                 p: 2,
                 borderRadius: 1,
-                boxShadow: 1
+                boxShadow: 1,
+                color: 'text.primary'
               }}
             >
               {currentQuestion.text}
