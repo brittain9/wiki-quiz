@@ -1,13 +1,11 @@
-using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.LLM;
-using WikiQuizGenerator.Data;
-using WikiQuizGenerator.Core;
-using WikiQuizGenerator.Api;
-using Serilog;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using WikiQuizGenerator.Api;
+using WikiQuizGenerator.Data;
+using WikiQuizGenerator.Extensions;
 
 // Bootstrap logger for start up
- Log.Logger = new LoggerConfiguration()
+Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
 
@@ -28,8 +26,12 @@ try
 
     app.UseSerilogRequestLogging();
 
+    app.UseMiddleware<ErrorHandlerMiddleware>();
+
     app.MapQuizEndpoints();
+
     app.MapAiServiceEndpoints();
+
     app.MapSubmissionEndpoints();
 
     // Configure the HTTP request pipeline.

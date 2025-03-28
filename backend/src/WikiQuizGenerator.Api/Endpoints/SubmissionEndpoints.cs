@@ -1,8 +1,6 @@
-using System;
 using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Mappers;
-using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Api;
 
@@ -23,44 +21,27 @@ public static class SubmissionEndpoints
 
     private static async Task<IResult> GetQuizSubmissionById(int id, IQuizRepository quizRepository)
     {
-        try
-        {
-            var submission = await quizRepository.GetSubmissionByIdAsync(id);
-            if (submission == null) return Results.NotFound();
 
-            return Results.Ok(QuizResultMapper.ToDto(submission));
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        var submission = await quizRepository.GetSubmissionByIdAsync(id);
+        if (submission == null) return Results.NotFound();
+
+        return Results.Ok(QuizResultMapper.ToDto(submission));
+
     }
 
     private static async Task<IResult> GetRecentQuizSubmissions(int num, IQuizRepository quizRepository)
     {
-        try
+        var recentQuizzes = await quizRepository.GetRecentQuizSubmissionsAsync(num);
+
+        if (recentQuizzes == null || !recentQuizzes.Any())
         {
-            var recentQuizzes = await quizRepository.GetRecentQuizSubmissionsAsync(num);
-
-            if (recentQuizzes == null || !recentQuizzes.Any())
-            {
-                return Results.Ok(Array.Empty<SubmissionDto>());
-            }
-
-            var recentSubmissionDtos = recentQuizzes
-                .Select(submission => submission.ToDto())
-                .ToList();
-
-            return Results.Ok(recentSubmissionDtos);
+            return Results.Ok(Array.Empty<SubmissionDto>());
         }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(new
-            {
-                Error = ex.Message
-            });
-        }
+
+        var recentSubmissionDtos = recentQuizzes
+            .Select(submission => submission.ToDto())
+            .ToList();
+
+        return Results.Ok(recentSubmissionDtos);
     }
-
-
 }
