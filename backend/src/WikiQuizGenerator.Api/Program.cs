@@ -1,57 +1,48 @@
 using Microsoft.EntityFrameworkCore;
-using Serilog;
 using WikiQuizGenerator.Api;
 using WikiQuizGenerator.Data;
-using WikiQuizGenerator.Extensions;
+using WikiQuizGenerator.Middleware;
 
-// Bootstrap logger for start up
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+var builder = WebApplication.CreateBuilder(args);
 
-try
+// Configure services
+ConfigureServices(builder.Services, builder.Configuration);
+
+// Add logging configuration
+builder.Services.AddLogging(loggingBuilder =>
 {
-    var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog();
+    loggingBuilder.AddConfiguration(builder.Configuration.GetSection("Logging"));
+    loggingBuilder.AddConsole();
+    loggingBuilder.AddDebug();
+});
 
-    ConfigureServices(builder.Services, builder.Configuration);
+var app = builder.Build();
 
-    var app = builder.Build();
-
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<WikiQuizDbContext>();
-        dbContext.Database.Migrate();
-    }
-
-    app.UseSerilogRequestLogging();
-
-    app.UseMiddleware<ErrorHandlerMiddleware>();
-
-    app.MapQuizEndpoints();
-
-    app.MapAiServiceEndpoints();
-
-    app.MapSubmissionEndpoints();
-
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-
-    app.UseCors("AllowReactApp");
-
-    Log.Information("The web api is now running!");
-    app.Run();
-}
-catch (Exception ex)
+// Database migration
+using (var scope = app.Services.CreateScope())
 {
-    Log.Fatal(ex, "Application terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
+    var dbContext = scope.ServiceProvider.GetRequiredService<WikiQuizDbContext>();
+    dbContext.Database.Migrate();
 }
 
+// Middleware pipeline
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
+// Endpoints
+app.MapQuizEndpoints();
+app.MapAiServiceEndpoints();
+app.MapSubmissionEndpoints();
+
+// Development configuration
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseCors("AllowReactApp");
+
+app.Logger.LogInformation("The web api is now running!");
+
+app.Run();

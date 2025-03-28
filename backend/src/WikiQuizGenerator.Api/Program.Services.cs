@@ -2,7 +2,6 @@ using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.LLM;
 using WikiQuizGenerator.Data;
 using WikiQuizGenerator.Core;
-using Serilog;
 
 public partial class Program
 {
@@ -10,10 +9,6 @@ public partial class Program
     {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
-        
-        services.AddSerilog((services, lc) => lc
-            .ReadFrom.Configuration(configuration) // appsettings.json
-            .ReadFrom.Services(services));
 
         services.AddDataServices();
 

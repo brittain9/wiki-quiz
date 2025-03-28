@@ -1,9 +1,8 @@
-﻿using WikiQuizGenerator.Core.Interfaces;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using Serilog;
 using WikiQuizGenerator.Core.DTOs;
+using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Mappers;
-using Microsoft.AspNetCore.SignalR;
 using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Api;
@@ -14,102 +13,82 @@ public static class QuizEndpoints
     {
         app.MapGet("/basicquiz", HandleGetBasicQuiz)
            .WithName("GetBasicQuiz")
-           .WithOpenApi(operation =>
+           .WithOpenApi(operation => new()
            {
-               operation.Summary = "Generate a basic quiz based on a given topic and language.";
-               operation.Description =
-                   "This endpoint generates a quiz only on the topic entered. The user can specify the topic that matches the language code entered (e.g., en, fr, zh, es). " +
-                   "Extract Length is the amount of Wikipedia content used in the prompt and is directly correlated with prompt token usage and question variety and quality.";
-
-               operation.Responses.Add("204", new OpenApiResponse
+               Summary = "Generate basic quiz from topic/language",
+               Description = "Creates quiz using Wikipedia content. Language codes: en, fr, zh, es. Extract length affects token usage and question quality.",
+               Parameters = new List<OpenApiParameter>
                {
-                   Description = "No content. The Wikipedia page could not be found for the given topic."
-               });
-
-               return operation;
-           });
+                   new() { Name = "topic", In = ParameterLocation.Query, Required = true },
+                   new() { Name = "aiService", In = ParameterLocation.Query, Required = true },
+                   new() { Name = "model", In = ParameterLocation.Query, Required = true },
+                   new() { Name = "language", In = ParameterLocation.Query },
+                   new() { Name = "numQuestions", In = ParameterLocation.Query },
+                   new() { Name = "numOptions", In = ParameterLocation.Query },
+                   new() { Name = "extractLength", In = ParameterLocation.Query }
+               }
+           })
+           .Produces<QuizDto>(StatusCodes.Status200OK)
+           .Produces(StatusCodes.Status400BadRequest)
+           .Produces(StatusCodes.Status204NoContent);
 
         app.MapPost("/submitquiz", HandleSubmitQuiz)
            .WithName("SubmitQuiz")
-           .WithOpenApi(operation =>
+           .WithOpenApi(operation => new()
            {
-               operation.Summary = "Submit answers for a quiz and get results.";
-               operation.Description = "This endpoint allows users to submit their answers for a quiz and receive feedback on their performance.";
-               return operation;
-           });
+               Summary = "Submit quiz answers",
+               Description = "Processes user answers and returns score"
+           })
+           .Produces<SubmissionDto>(StatusCodes.Status200OK)
+           .Produces(StatusCodes.Status404NotFound);
     }
 
-    private static async Task<IResult> HandleGetBasicQuiz(IQuizGenerator quizGenerator, string topic, int aiService, int model,
-        string language = "en", int numQuestions = 5, int numOptions = 4, int extractLength = 1000)
+    private static async Task<IResult> HandleGetBasicQuiz(
+        [FromServices] IQuizGenerator quizGenerator,
+        [FromQuery] string topic,
+        [FromQuery] int aiService,
+        [FromQuery] int model,
+        [FromQuery] string language = "en",
+        [FromQuery] int numQuestions = 5,
+        [FromQuery] int numOptions = 4,
+        [FromQuery] int extractLength = 1000)
     {
-        Log.Verbose($"GET /basicquiz called with topic '{topic}' in '{language}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
+        ValidateBasicQuizParameters(numQuestions, numOptions, extractLength);
+        var lang = LanguagesExtensions.GetLanguageFromCode(language);
+        var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, aiService, model, numQuestions, numOptions, extractLength);
 
-        var validationResult = ValidateBasicQuizParameters(numQuestions, numOptions, extractLength);
-        if (validationResult is not null)
-            return validationResult;
-
-        try
-        {
-            var lang = LanguagesExtensions.GetLanguageFromCode(language);
-            var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, aiService, model, numQuestions, numOptions, extractLength);
-
-            Log.Verbose($"GET /basicquiz returning quiz with id '{quiz.Id}'.");
-            return Results.Ok(QuizMapper.ToDto(quiz));
-        }
-        catch (LanguageException)
-        {
-            Log.Error($"Invalid language code: {language}");
-            return Results.BadRequest($"Invalid language code: {language}");
-        }
-        catch (ArgumentException ex) when (ex.Message.Contains("Wikipedia page"))
-        {
-            Log.Error($"Wikipedia page not found for topic: {topic}");
-            return Results.NotFound($"Wikipedia page not found for topic: {topic}");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, $"Failed generating basic quiz on {topic}.");
-            return Results.NoContent();
-        }
+        return TypedResults.Ok(QuizMapper.ToDto(quiz));
     }
 
-    private static async Task<IResult> HandleSubmitQuiz(IQuizRepository quizRepository, SubmissionDto submissionDto)
+    private static async Task<IResult> HandleSubmitQuiz(
+        [FromServices] IQuizRepository quizRepository,
+        [FromBody] SubmissionDto submissionDto)
     {
-        Log.Verbose($"POST /submitquiz called on quiz Id '{submissionDto.QuizId}'.");
-
-        try
+        var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
+        if (quiz is null)
         {
-            var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
-            if (quiz is null)
-                return Results.NotFound($"Quiz with ID {submissionDto.QuizId} not found.");
-
-            var submission = SubmissionMapper.ToModel(submissionDto);
-            submission.Quiz = quiz;
-            submission.Score = CalculateScore(submissionDto, quiz);
-
-            await quizRepository.AddSubmissionAsync(submission);
-
-            return Results.Ok(submission.ToDto());
+            return TypedResults.NotFound();
         }
-        catch (Exception ex)
-        {
-            Log.Error(ex, $"Error processing quiz submission for quiz ID: {submissionDto.QuizId}");
-            return Results.BadRequest("An error occurred while processing your submission. Please try again.");
-        }
+
+        var submission = SubmissionMapper.ToModel(submissionDto);
+        submission.Quiz = quiz;
+        submission.Score = CalculateScore(submissionDto, quiz);
+
+        await quizRepository.AddSubmissionAsync(submission);
+        return TypedResults.Ok(submission.ToDto());
     }
 
-    private static IResult? ValidateBasicQuizParameters(int numQuestions, int numOptions, int extractLength)
+
+    private static void ValidateBasicQuizParameters(int numQuestions, int numOptions, int extractLength)
     {
         if (numQuestions < 1 || numQuestions > 20)
-            return Results.BadRequest("Number of questions must be between 1 and 20.");
+            throw new ArgumentException("Number of questions must be between 1 and 20.");
 
         if (numOptions < 2 || numOptions > 5)
-            return Results.BadRequest("Number of options must be between 2 and 5.");
+            throw new ArgumentException("Number of options must be between 2 and 5.");
 
         if (extractLength < 100 || extractLength > 50000)
-            return Results.BadRequest("Extract length must be between 100 and 50000 characters.");
-
-        return null;
+            throw new ArgumentException("Extract length must be between 100 and 50000 characters.");
     }
 
     private static int CalculateScore(SubmissionDto submissionDto, Quiz quiz)

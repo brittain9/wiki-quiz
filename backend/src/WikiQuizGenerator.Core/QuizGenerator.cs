@@ -25,9 +25,7 @@ public class QuizGenerator : IQuizGenerator
     {
         _logger.LogTrace($"Generating a basic quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
         
-        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language);
-        if (page == null)
-            return null; // we got pages, but they aren't valid. Should never happen really, so may change later
+        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language); // throws error and returns result in middleware if page doesn't exist
 
         var content = RandomContentSections.GetRandomContentSections(page.Extract, extractLength);
 

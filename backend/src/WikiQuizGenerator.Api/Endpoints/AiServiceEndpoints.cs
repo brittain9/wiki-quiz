@@ -1,7 +1,4 @@
-using Microsoft.OpenApi.Models;
-using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.LLM;
 
 namespace WikiQuizGenerator.Api;
 
@@ -10,7 +7,7 @@ public static class AiServiceEndpoints
     public static void MapAiServiceEndpoints(this WebApplication app)
     {
         // Endpoint for getting available AI services
-        app.MapGet("/getAiServices", (IAiServiceManager aiServiceManager) 
+        app.MapGet("/getAiServices", (IAiServiceManager aiServiceManager)
             => Results.Ok(aiServiceManager.GetAvailableAiServices()))
         .WithName("GetAiServices")
         .WithOpenApi(operation =>
@@ -20,7 +17,7 @@ public static class AiServiceEndpoints
         });
 
         // Endpoint for getting models based on AI service ID
-        app.MapGet("/getModels", (IAiServiceManager aiServiceManager, int ? aiServiceId)
+        app.MapGet("/getModels", (IAiServiceManager aiServiceManager, int? aiServiceId)
             => Results.Ok(aiServiceManager.GetModels(aiServiceId)))
         .WithName("GetModels")
         .WithOpenApi(operation =>

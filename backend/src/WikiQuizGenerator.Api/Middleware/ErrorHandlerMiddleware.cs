@@ -1,9 +1,9 @@
-﻿using WikiQuizGenerator.Core.Models;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mime;
 using System.Text.Json;
+using WikiQuizGenerator.Core.Models;
 
-namespace WikiQuizGenerator.Extensions
+namespace WikiQuizGenerator.Middleware
 {
     public class ErrorHandlerMiddleware
     {
@@ -44,9 +44,14 @@ namespace WikiQuizGenerator.Extensions
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     response.Message = $"Invalid language code: {langEx.Message}";
                     break;
+
                 case ArgumentException argEx when argEx.Message.Contains("Wikipedia page"):
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                     response.Message = $"Wikipedia page not found: {argEx.Message}";
+                    break;
+                case ArgumentException argEx:
+                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    response.Message = $"Invalid argument: {argEx.Message}";
                     break;
                 case KeyNotFoundException:
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
