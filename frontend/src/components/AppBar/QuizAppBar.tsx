@@ -1,30 +1,28 @@
-import * as React from 'react';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import MenuIcon from '@mui/icons-material/Menu';
 import { PaletteMode, Typography, IconButton } from '@mui/material';
-import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
 import Drawer from '@mui/material/Drawer';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import ToggleColorMode from './ToggleColorMode';
+import MenuItem from '@mui/material/MenuItem';
+import Toolbar from '@mui/material/Toolbar';
+import * as React from 'react';
+import { useTranslation } from 'react-i18next';
+
 import LanguageToggle from './LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
+import ToggleColorMode from './ToggleColorMode';
 import LoginButton from '../Auth/LoginButton';
-import { useTranslation } from 'react-i18next';
 
 interface AppBarProps {
   mode: PaletteMode;
   toggleColorMode: () => void;
 }
 
-const QuizAppBar: React.FC<AppBarProps> = ({ 
-  mode, 
-  toggleColorMode, 
-}) => {
+const QuizAppBar: React.FC<AppBarProps> = ({ mode, toggleColorMode }) => {
   const [open, setOpen] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
   const { t } = useTranslation();
@@ -119,7 +117,9 @@ const QuizAppBar: React.FC<AppBarProps> = ({
             }),
           })}
         >
-          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}>
+          <Box
+            sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}
+          >
             <Typography color="text.primary" sx={{ mr: 2 }}>
               {t('appBar.title')}
             </Typography>
@@ -143,14 +143,15 @@ const QuizAppBar: React.FC<AppBarProps> = ({
           >
             <QuizOptionsComponent />
             <LanguageToggle />
-            <ToggleColorMode
-              mode={mode}
-              toggleColorMode={toggleColorMode}
-            />
+            <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
             <LoginButton />
           </Box>
           <Box sx={{ display: { sm: 'flex', md: 'none' } }}>
-            <IconButton aria-label="Menu button" onClick={toggleDrawer(true)} color="primary">
+            <IconButton
+              aria-label="Menu button"
+              onClick={toggleDrawer(true)}
+              color="primary"
+            >
               <MenuIcon />
             </IconButton>
             <Drawer anchor="top" open={open} onClose={toggleDrawer(false)}>
@@ -162,7 +163,10 @@ const QuizAppBar: React.FC<AppBarProps> = ({
                     justifyContent: 'space-between',
                   }}
                 >
-                  <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
+                  <ToggleColorMode
+                    mode={mode}
+                    toggleColorMode={toggleColorMode}
+                  />
                   <IconButton onClick={toggleDrawer(false)}>
                     <CloseRoundedIcon />
                   </IconButton>
@@ -181,6 +185,6 @@ const QuizAppBar: React.FC<AppBarProps> = ({
       </Container>
     </AppBar>
   );
-}
+};
 
 export default QuizAppBar;

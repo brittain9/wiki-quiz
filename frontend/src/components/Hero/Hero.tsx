@@ -1,18 +1,19 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { Paper, List, ListItem, ListItemButton } from '@mui/material';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { Paper, List, ListItem, ListItemButton } from '@mui/material';
+import React, { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { styled } from '@mui/material/styles';
+
 import AnimatedTopics from './AnimatedTopics';
 import { useQuizOptions } from '../../context/QuizOptionsContext';
 import { useQuizState } from '../../context/QuizStateContext';
-import { fetchWikipediaTopics } from '../../services/wikiApi';
 import api from '../../services/api';
+import { fetchWikipediaTopics } from '../../services/wikiApi';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -38,7 +39,8 @@ const StyledBox = styled('div')(({ theme }) => ({
 
 export default function Hero() {
   const { quizOptions, setTopic } = useQuizOptions();
-  const { setIsQuizReady, setCurrentQuiz, setIsGenerating, isGenerating } = useQuizState();
+  const { setIsQuizReady, setCurrentQuiz, setIsGenerating, isGenerating } =
+    useQuizState();
   const { t } = useTranslation();
   const [topicInput, setTopicInput] = useState('');
   const [topics, setTopics] = useState<string[]>([]);
@@ -49,7 +51,10 @@ export default function Hero() {
   useEffect(() => {
     // Add event listener to close the dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setTopics([]);
       }
     };
@@ -60,9 +65,8 @@ export default function Hero() {
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
-
     event.preventDefault(); // Prevent default form submission
-    
+
     if (quizOptions.topic && !isGenerating) {
       try {
         setIsGenerating(true);
@@ -74,11 +78,9 @@ export default function Hero() {
         setIsQuizReady(true);
 
         setError(null);
-      } 
-      catch (error: any) {
+      } catch (error: any) {
         setError(error.message);
-      } 
-      finally{
+      } finally {
         setIsGenerating(false);
       }
     }
@@ -97,7 +99,7 @@ export default function Hero() {
       if (event.target.value) {
         fetchWikipediaTopics(event.target.value)
           .then(setTopics)
-          .catch(err => setError(err.message));
+          .catch((err) => setError(err.message));
       } else {
         setTopics([]);
       }
@@ -151,7 +153,9 @@ export default function Hero() {
               fontSize: 'clamp(3rem, 10vw, 3.5rem)',
             }}
           >
-            <span style={{ whiteSpace: 'nowrap' }}>{t('hero.generateQuiz')}&nbsp;</span>
+            <span style={{ whiteSpace: 'nowrap' }}>
+              {t('hero.generateQuiz')}&nbsp;
+            </span>
             <AnimatedTopics />
           </Typography>
           <Typography
@@ -163,8 +167,19 @@ export default function Hero() {
           >
             {t('hero.topicInfo')}
           </Typography>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', width: '60%', maxWidth: 600 }}>
-            <Box sx={{ position: 'relative', flexGrow: 1, mr: 1 }} ref={dropdownRef}>
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '60%',
+              maxWidth: 600,
+            }}
+          >
+            <Box
+              sx={{ position: 'relative', flexGrow: 1, mr: 1 }}
+              ref={dropdownRef}
+            >
               <TextField
                 id="quiz-topic"
                 hiddenLabel
@@ -197,7 +212,9 @@ export default function Hero() {
                   <List>
                     {topics.map((topic, index) => (
                       <ListItem key={index} disablePadding>
-                        <ListItemButton onClick={() => handleTopicSelect(topic)}>
+                        <ListItemButton
+                          onClick={() => handleTopicSelect(topic)}
+                        >
                           {topic}
                         </ListItemButton>
                       </ListItem>
@@ -206,13 +223,15 @@ export default function Hero() {
                 </Paper>
               )}
             </Box>
-            <Button 
-              type="submit" 
-              variant="contained" 
+            <Button
+              type="submit"
+              variant="contained"
               color="primary"
               disabled={isGenerating || !topicInput}
             >
-              {isGenerating ? t('hero.generatingButtonText') : t('hero.startButtonText')}
+              {isGenerating
+                ? t('hero.generatingButtonText')
+                : t('hero.startButtonText')}
             </Button>
           </form>
         </Stack>

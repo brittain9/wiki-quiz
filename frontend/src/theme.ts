@@ -1,6 +1,6 @@
 import type {} from '@mui/material/themeCssVarsAugmentation';
-import { createTheme, ThemeOptions, alpha } from '@mui/material/styles';
 import { PaletteMode } from '@mui/material';
+import { createTheme, ThemeOptions, alpha } from '@mui/material/styles';
 
 declare module '@mui/material/styles/createPalette' {
   interface ColorRange {
@@ -69,12 +69,18 @@ const getDesignTokens = (mode: PaletteMode) => ({
     background: {
       default: 'hsl(0, 0%, 100%)',
       paper: gray[100],
-      ...(mode === 'dark' && { default: 'hsl(220, 30%, 3%)', paper: gray[900] }),
+      ...(mode === 'dark' && {
+        default: 'hsl(220, 30%, 3%)',
+        paper: gray[900],
+      }),
     },
     text: {
       primary: gray[800],
       secondary: gray[600],
-      ...(mode === 'dark' && { primary: 'hsl(0, 0%, 100%)', secondary: gray[400] }),
+      ...(mode === 'dark' && {
+        primary: 'hsl(0, 0%, 100%)',
+        secondary: gray[400],
+      }),
     },
     action: {
       selected: `${alpha(brand[200], 0.2)}`,

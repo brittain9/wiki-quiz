@@ -1,10 +1,20 @@
 // components/QuizResultOverlay.tsx
+import {
+  Box,
+  Typography,
+  List,
+  ListItem,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  CircularProgress,
+} from '@mui/material';
 import React from 'react';
-import { Box, Typography, List, ListItem, Radio, RadioGroup, FormControlLabel, CircularProgress } from '@mui/material';
-import { QuizResult, ResultOption } from '../types/quizResult.types';
-import { Question } from '../types/quiz.types';
 import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+
+import { Question } from '../types/quiz.types';
+import { QuizResult, ResultOption } from '../types/quizResult.types';
 
 interface QuizResultOverlayProps {
   quizResult: QuizResult | null;
@@ -12,13 +22,21 @@ interface QuizResultOverlayProps {
   error: string | null;
 }
 
-const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoading, error }) => {
-
+const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({
+  quizResult,
+  isLoading,
+  error,
+}) => {
   const { t } = useTranslation();
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100%"
+      >
         <CircularProgress />
       </Box>
     );
@@ -26,7 +44,12 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100%"
+      >
         <Typography color="error">{error}</Typography>
       </Box>
     );
@@ -38,8 +61,8 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
 
   const getQuestionById = (questionId: number): Question | undefined => {
     return quizResult.quiz.aiResponses
-      .flatMap(response => response.questions)
-      .find(question => question.id === questionId);
+      .flatMap((response) => response.questions)
+      .find((question) => question.id === questionId);
   };
 
   // Prepare chart data for score visualization
@@ -47,7 +70,7 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
   const remainingScore = 100 - score;
   const data = [
     { name: 'Score', value: score },
-    { name: 'Remaining', value: remainingScore }
+    { name: 'Remaining', value: remainingScore },
   ];
 
   // Determine color based on score
@@ -61,9 +84,17 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom align="center">{quizResult.quiz.title} {t('quizresultoverlay.title')} </Typography>
-      
-      <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" mb={4}>
+      <Typography variant="h4" gutterBottom align="center">
+        {quizResult.quiz.title} {t('quizresultoverlay.title')}{' '}
+      </Typography>
+
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        flexDirection="column"
+        mb={4}
+      >
         <Box position="relative" width={200} height={200}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -80,7 +111,10 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
                 strokeWidth={0}
               >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
             </PieChart>
@@ -91,7 +125,7 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
             left="50%"
             sx={{
               transform: 'translate(-50%, -50%)',
-              textAlign: 'center'
+              textAlign: 'center',
             }}
           >
             <Typography variant="h3" component="div" fontWeight="bold">
@@ -103,19 +137,19 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
           </Box>
         </Box>
       </Box>
-      
+
       <List>
         {quizResult.answers.map((result: ResultOption, index: number) => {
           const question = getQuestionById(result.questionId);
           return (
             <ListItem key={result.questionId}>
               <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                <strong>
-                {t('quizresultoverlay.question')} {index + 1}:
-                </strong>{' '}
-                {question?.text}
-              </Typography>
+                <Typography variant="subtitle1" gutterBottom>
+                  <strong>
+                    {t('quizresultoverlay.question')} {index + 1}:
+                  </strong>{' '}
+                  {question?.text}
+                </Typography>
                 <RadioGroup value={result.selectedAnswerChoice}>
                   {question?.options.map((option, optionIndex) => (
                     <FormControlLabel
@@ -124,13 +158,22 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({ quizResult, isLoa
                       control={<Radio />}
                       label={option}
                       sx={{
-                        color: optionIndex + 1 === result.correctAnswerChoice ? 'success.main' :
-                               (optionIndex + 1 === result.selectedAnswerChoice && 
-                                optionIndex + 1 !== result.correctAnswerChoice) ? 'error.main' : 'text.primary',
+                        color:
+                          optionIndex + 1 === result.correctAnswerChoice
+                            ? 'success.main'
+                            : optionIndex + 1 === result.selectedAnswerChoice &&
+                                optionIndex + 1 !== result.correctAnswerChoice
+                              ? 'error.main'
+                              : 'text.primary',
                         '& .MuiRadio-root': {
-                          color: optionIndex + 1 === result.correctAnswerChoice ? 'success.main' :
-                                 (optionIndex + 1 === result.selectedAnswerChoice && 
-                                  optionIndex + 1 !== result.correctAnswerChoice) ? 'error.main' : 'inherit',
+                          color:
+                            optionIndex + 1 === result.correctAnswerChoice
+                              ? 'success.main'
+                              : optionIndex + 1 ===
+                                    result.selectedAnswerChoice &&
+                                  optionIndex + 1 !== result.correctAnswerChoice
+                                ? 'error.main'
+                                : 'inherit',
                         },
                       }}
                       disabled

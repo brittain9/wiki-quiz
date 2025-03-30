@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { PaletteMode, useMediaQuery, CssBaseline } from '@mui/material';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useEffect,
+} from 'react';
+
 import { lightTheme, darkTheme } from '../theme';
 
 type ThemeContextType = {
@@ -19,10 +26,12 @@ export const useTheme = (): ThemeContextType => {
   return context;
 };
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   // Check if system prefers dark mode
   const systemPrefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-  
+
   // Try to get the theme from localStorage first, then system preference, defaulting to 'light'
   const [mode, setMode] = useState<PaletteMode>(() => {
     const savedMode = localStorage.getItem('theme-mode');
@@ -65,4 +74,4 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       </MuiThemeProvider>
     </ThemeContext.Provider>
   );
-}; 
+};

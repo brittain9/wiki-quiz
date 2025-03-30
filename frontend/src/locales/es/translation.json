@@ -10,24 +10,20 @@
     "title": "Aplicación de Quiz de Wikipedia"
   },
   "hero": {
-    "topics": [
-      "Tema 1",
-      "Tema 2",
-      "Tema 3"
-    ],
+    "topics": ["Tema 1", "Tema 2", "Tema 3"],
     "generateQuiz": "Generar un quiz sobre",
     "topicInfo": "Ingresa cualquier tema que te interese y generaremos un quiz personalizado solo para ti.",
     "placeholder": "Tu tema de quiz",
     "generatingButtonText": "Generando",
     "startButtonText": "Comenzar ahora"
-  },    
+  },
   "recentSubmissions": {
     "title": "Envíos recientes",
     "noHistory": "¡Haz un cuestionario para ver tu historial!"
   },
-  "quizresultoverlay" : {
-    "title" : "Resultados del cuestionario",
-    "score" : "Puntuación",
+  "quizresultoverlay": {
+    "title": "Resultados del cuestionario",
+    "score": "Puntuación",
     "question": "Pregunta"
   },
   "highlights": {

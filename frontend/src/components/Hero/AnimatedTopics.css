@@ -1,17 +1,26 @@
 .cursor {
-    animation: blink 1.5s infinite; /* Increased duration for slower animation */
+  animation: blink 1.5s infinite; /* Increased duration for slower animation */
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0;
   }
-  
-  @keyframes blink {
-    0% { opacity: 0; }
-    40% { opacity: 0; } /* Added a delay before the cursor appears */
-    50% { opacity: 1; }
-    90% { opacity: 1; } /* Added a delay before the cursor disappears */
-    100% { opacity: 0; }
+  40% {
+    opacity: 0;
+  } /* Added a delay before the cursor appears */
+  50% {
+    opacity: 1;
   }
-  
+  90% {
+    opacity: 1;
+  } /* Added a delay before the cursor disappears */
+  100% {
+    opacity: 0;
+  }
+}
+
 .animated-topic-container {
   position: relative;
   overflow: visible;
 }
-  

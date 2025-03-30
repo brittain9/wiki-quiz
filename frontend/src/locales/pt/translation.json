@@ -1,7 +1,7 @@
 {
   "button": {
-      "close": "Fechar"
-    },
+    "close": "Fechar"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "Destaques"
@@ -10,11 +10,7 @@
     "title": "Aplicativo de Quiz da Wikipédia"
   },
   "hero": {
-    "topics": [
-      "Tópico 1",
-      "Tópico 2",
-      "Tópico 3"
-    ],
+    "topics": ["Tópico 1", "Tópico 2", "Tópico 3"],
     "generateQuiz": "Gerar um quiz sobre",
     "topicInfo": "Digite qualquer tópico que você tenha curiosidade, e nós geraremos um quiz personalizado só para você.",
     "placeholder": "Seu tópico de quiz",
@@ -25,9 +21,9 @@
     "title": "Submissões recentes",
     "noHistory": "Faça um teste para ver a sua história!"
   },
-  "quizresultoverlay" : {
-    "title" : "Resultados do Quiz",
-    "score" : "Pontuação",
+  "quizresultoverlay": {
+    "title": "Resultados do Quiz",
+    "score": "Pontuação",
     "question": "Pergunta"
   },
   "highlights": {
@@ -59,6 +55,5 @@
         "desc": "Do frontend construído com React e TypeScript ao backend alimentado por .NET 8 e PostgreSQL, cada componente é meticulosamente projetado para desempenho ideal."
       }
     }
-
   }
 }

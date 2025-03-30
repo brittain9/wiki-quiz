@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { fetchAvailableServices, fetchAvailableModels } from '../services/api';
 
 interface QuizOptions {
@@ -25,11 +26,15 @@ interface QuizOptionsContextType {
   setSelectedModel: (modelId: number | null) => void;
 }
 
-const QuizOptionsContext = createContext<QuizOptionsContextType | undefined>(undefined);
+const QuizOptionsContext = createContext<QuizOptionsContextType | undefined>(
+  undefined,
+);
 
-export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({
+  children,
+}) => {
   const { i18n } = useTranslation();
-  
+
   const [quizOptions, setQuizOptions] = useState<QuizOptions>({
     topic: '',
     numQuestions: 5,
@@ -42,17 +47,21 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
     availableModels: {},
   });
 
-  const setTopic = (topic: string) => setQuizOptions(prev => ({ ...prev, topic }));
-  const setNumQuestions = (numQuestions: number) => setQuizOptions(prev => ({ ...prev, numQuestions }));
-  const setNumOptions = (numOptions: number) => setQuizOptions(prev => ({ ...prev, numOptions }));
-  const setExtractLength = (extractLength: number) => setQuizOptions(prev => ({ ...prev, extractLength }));
+  const setTopic = (topic: string) =>
+    setQuizOptions((prev) => ({ ...prev, topic }));
+  const setNumQuestions = (numQuestions: number) =>
+    setQuizOptions((prev) => ({ ...prev, numQuestions }));
+  const setNumOptions = (numOptions: number) =>
+    setQuizOptions((prev) => ({ ...prev, numOptions }));
+  const setExtractLength = (extractLength: number) =>
+    setQuizOptions((prev) => ({ ...prev, extractLength }));
   const setLanguage = (language: string) => {
-    setQuizOptions(prev => ({ ...prev, language }));
+    setQuizOptions((prev) => ({ ...prev, language }));
     i18n.changeLanguage(language);
   };
 
   const setSelectedService = async (serviceId: number | null) => {
-    setQuizOptions(prev => ({
+    setQuizOptions((prev) => ({
       ...prev,
       selectedService: serviceId,
       selectedModel: null,
@@ -61,7 +70,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
     if (serviceId !== null) {
       try {
         const models = await fetchAvailableModels(serviceId);
-        setQuizOptions(prev => ({
+        setQuizOptions((prev) => ({
           ...prev,
           availableModels: models,
         }));
@@ -72,7 +81,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
   };
 
   const setSelectedModel = (modelId: number | null) => {
-    setQuizOptions(prev => ({
+    setQuizOptions((prev) => ({
       ...prev,
       selectedModel: modelId,
     }));
@@ -82,9 +91,11 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
     const loadServices = async () => {
       try {
         const services = await fetchAvailableServices();
-        const firstServiceId = Object.keys(services)[0] ? parseInt(Object.keys(services)[0]) : null;
-        
-        setQuizOptions(prev => ({
+        const firstServiceId = Object.keys(services)[0]
+          ? parseInt(Object.keys(services)[0])
+          : null;
+
+        setQuizOptions((prev) => ({
           ...prev,
           availableServices: services,
           selectedService: firstServiceId,
@@ -92,9 +103,11 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
 
         if (firstServiceId !== null) {
           const models = await fetchAvailableModels(firstServiceId);
-          const firstModelId = Object.keys(models)[0] ? parseInt(Object.keys(models)[0]) : null;
-          
-          setQuizOptions(prev => ({
+          const firstModelId = Object.keys(models)[0]
+            ? parseInt(Object.keys(models)[0])
+            : null;
+
+          setQuizOptions((prev) => ({
             ...prev,
             availableModels: models,
             selectedModel: firstModelId,
@@ -108,16 +121,18 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({ chi
   }, []);
 
   return (
-    <QuizOptionsContext.Provider value={{
-      quizOptions,
-      setTopic,
-      setNumQuestions,
-      setNumOptions,
-      setExtractLength,
-      setLanguage,
-      setSelectedService,
-      setSelectedModel,
-    }}>
+    <QuizOptionsContext.Provider
+      value={{
+        quizOptions,
+        setTopic,
+        setNumQuestions,
+        setNumOptions,
+        setExtractLength,
+        setLanguage,
+        setSelectedService,
+        setSelectedModel,
+      }}
+    >
       {children}
     </QuizOptionsContext.Provider>
   );

@@ -26,7 +26,7 @@ const authService = {
     } catch (error) {
       console.error('Error during logout:', error);
     }
-  }
+  },
 };
 
-export default authService; 
+export default authService;

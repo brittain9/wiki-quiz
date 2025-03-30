@@ -1,7 +1,8 @@
-import React from 'react';
-import { useQuizOptions } from '../../context/QuizOptionsContext';
-import { IconButton, Menu, MenuItem } from '@mui/material';
 import LanguageIcon from '@mui/icons-material/Language';
+import { IconButton, Menu, MenuItem } from '@mui/material';
+import React from 'react';
+
+import { useQuizOptions } from '../../context/QuizOptionsContext';
 
 const LanguageToggle: React.FC = () => {
   const { setLanguage } = useQuizOptions(); // get quiz options for debugging language

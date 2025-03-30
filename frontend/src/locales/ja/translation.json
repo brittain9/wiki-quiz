@@ -1,7 +1,7 @@
 {
   "button": {
-      "close": "近い"
-    },
+    "close": "近い"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "ハイライト"
@@ -10,11 +10,7 @@
     "title": "ウィキペディアクイズアプリ"
   },
   "hero": {
-    "topics": [
-      "トピック1",
-      "トピック2",
-      "トピック3"
-    ],
+    "topics": ["トピック1", "トピック2", "トピック3"],
     "generateQuiz": "について、クイズを生成する",
     "topicInfo": "興味のあるトピックを入力してください。あなただけのカスタムクイズを生成します。",
     "placeholder": "あなたのクイズトピック",
@@ -25,9 +21,9 @@
     "title": "最近の投稿",
     "noHistory": "クイズに答えて、あなたの履歴を見てみましょう!"
   },
-  "quizresultoverlay" : {
-    "title" : "クイズ結果",
-    "score" : "スコア",
+  "quizresultoverlay": {
+    "title": "クイズ結果",
+    "score": "スコア",
     "question": "質問"
   },
   "highlights": {
@@ -59,6 +55,5 @@
         "desc": "ReactとTypeScriptで構築されたフロントエンドから、.NET 8とPostgreSQLで動作するバックエンドまで、各コンポーネントは最適なパフォーマンスのために綿密に設計されています。"
       }
     }
-
   }
 }

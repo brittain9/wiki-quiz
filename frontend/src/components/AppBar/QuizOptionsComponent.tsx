@@ -1,27 +1,44 @@
 // QuizOptionsComponent.tsx
-import React, { useEffect, useState } from 'react';
-import { Box, IconButton, Tooltip, Select, MenuItem, InputLabel, FormControl, SelectChangeEvent } from '@mui/material';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import {
+  Box,
+  IconButton,
+  Tooltip,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  SelectChangeEvent,
+} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+
 import { useQuizOptions } from '../../context/QuizOptionsContext';
 import { fetchAvailableModels } from '../../services/api';
 
 const QuizOptionsComponent: React.FC = () => {
   const [expanded, setExpanded] = React.useState(false);
-  const [availableServices, setAvailableServices] = useState<Record<number, string>>({});
-  const [availableModels, setAvailableModels] = useState<Record<number, string>>({});
+  const [availableServices, setAvailableServices] = useState<
+    Record<number, string>
+  >({});
+  const [availableModels, setAvailableModels] = useState<
+    Record<number, string>
+  >({});
 
-  const { 
-    quizOptions, 
-    setNumQuestions, 
-    setNumOptions, 
+  const {
+    quizOptions,
+    setNumQuestions,
+    setNumOptions,
     setExtractLength,
     setSelectedService,
-    setSelectedModel
+    setSelectedModel,
   } = useQuizOptions();
 
   useEffect(() => {
-    if (quizOptions.selectedService !== null && quizOptions.selectedModel === null) {
+    if (
+      quizOptions.selectedService !== null &&
+      quizOptions.selectedModel === null
+    ) {
       // If a service is selected but no model, select the first available model
       const firstModelId = Object.keys(quizOptions.availableModels)[0];
       if (firstModelId) {
@@ -53,13 +70,19 @@ const QuizOptionsComponent: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-      <Tooltip title={expanded ? "Hide options" : "Show options"}>
+      <Tooltip title={expanded ? 'Hide options' : 'Show options'}>
         <IconButton onClick={toggleExpanded} color="primary" size="small">
-          {expanded ? <KeyboardDoubleArrowRightIcon /> : <KeyboardDoubleArrowLeftIcon />}
+          {expanded ? (
+            <KeyboardDoubleArrowRightIcon />
+          ) : (
+            <KeyboardDoubleArrowLeftIcon />
+          )}
         </IconButton>
       </Tooltip>
       {expanded && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}
+        >
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel id="questions-label">Questions</InputLabel>
             <Select
@@ -69,7 +92,9 @@ const QuizOptionsComponent: React.FC = () => {
               onChange={(e) => setNumQuestions(Number(e.target.value))}
             >
               {[5, 10, 15, 20].map((num) => (
-                <MenuItem key={num} value={num}>{num}</MenuItem>
+                <MenuItem key={num} value={num}>
+                  {num}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -82,7 +107,9 @@ const QuizOptionsComponent: React.FC = () => {
               onChange={(e) => setNumOptions(Number(e.target.value))}
             >
               {[2, 3, 4, 5].map((num) => (
-                <MenuItem key={num} value={num}>{num}</MenuItem>
+                <MenuItem key={num} value={num}>
+                  {num}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -111,11 +138,17 @@ const QuizOptionsComponent: React.FC = () => {
               onChange={handleServiceChange}
             >
               {Object.entries(quizOptions.availableServices).length > 0 ? (
-                Object.entries(quizOptions.availableServices).map(([id, name]) => (
-                  <MenuItem key={id} value={id}>{name}</MenuItem>
-                ))
+                Object.entries(quizOptions.availableServices).map(
+                  ([id, name]) => (
+                    <MenuItem key={id} value={id}>
+                      {name}
+                    </MenuItem>
+                  ),
+                )
               ) : (
-                <MenuItem value="" disabled>No services available</MenuItem>
+                <MenuItem value="" disabled>
+                  No services available
+                </MenuItem>
               )}
             </Select>
           </FormControl>
@@ -129,13 +162,16 @@ const QuizOptionsComponent: React.FC = () => {
                 label="AI Model"
                 onChange={handleModelChange}
               >
-                {Object.entries(quizOptions.availableModels).map(([id, name]) => (
-                  <MenuItem key={id} value={id}>{name}</MenuItem>
-                ))}
+                {Object.entries(quizOptions.availableModels).map(
+                  ([id, name]) => (
+                    <MenuItem key={id} value={id}>
+                      {name}
+                    </MenuItem>
+                  ),
+                )}
               </Select>
             </FormControl>
           )}
-          
         </Box>
       )}
     </Box>

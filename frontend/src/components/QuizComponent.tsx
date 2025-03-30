@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import LinearProgress from '@mui/material/LinearProgress';
+import Modal from '@mui/material/Modal';
 import Paper from '@mui/material/Paper';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormControl from '@mui/material/FormControl';
-import Button from '@mui/material/Button';
-import LinearProgress from '@mui/material/LinearProgress';
-import CircularProgress from '@mui/material/CircularProgress';
-import Modal from '@mui/material/Modal';
-import { useQuizState } from '../context/QuizStateContext';
-import { QuizSubmission, QuestionAnswer } from '../types/quizSubmission.types';
-import { QuizResult } from '../types/quizResult.types';
-import api from '../services/api';
-import QuizResultOverlay from './QuizResultOverlay';
+import Typography from '@mui/material/Typography';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
+import QuizResultOverlay from './QuizResultOverlay';
+import { useQuizState } from '../context/QuizStateContext';
+import api from '../services/api';
+import { QuizResult } from '../types/quizResult.types';
+import { QuizSubmission, QuestionAnswer } from '../types/quizSubmission.types';
+
 const Quiz: React.FC = () => {
-  const { 
-    isGenerating, 
-    currentQuiz, 
-    currentSubmission, 
+  const {
+    isGenerating,
+    currentQuiz,
+    currentSubmission,
     setCurrentSubmission,
-    addSubmissionToHistory
+    addSubmissionToHistory,
   } = useQuizState();
 
   // State
@@ -37,7 +38,8 @@ const Quiz: React.FC = () => {
   const [resultError, setResultError] = useState<string | null>(null);
 
   // Computed values
-  const flatQuestions = currentQuiz?.aiResponses.flatMap(response => response.questions) || [];
+  const flatQuestions =
+    currentQuiz?.aiResponses.flatMap((response) => response.questions) || [];
   const totalQuestions = flatQuestions.length;
   const currentQuestion = flatQuestions[currentQuestionIndex];
 
@@ -73,9 +75,14 @@ const Quiz: React.FC = () => {
     }
   };
 
-  const handleAnswerChange = (questionId: number, selectedOptionNumber: number) => {
-    setUserAnswers(prev => {
-      const existingAnswerIndex = prev.findIndex(a => a.questionId === questionId);
+  const handleAnswerChange = (
+    questionId: number,
+    selectedOptionNumber: number,
+  ) => {
+    setUserAnswers((prev) => {
+      const existingAnswerIndex = prev.findIndex(
+        (a) => a.questionId === questionId,
+      );
       if (existingAnswerIndex > -1) {
         const newAnswers = [...prev];
         newAnswers[existingAnswerIndex] = { questionId, selectedOptionNumber };
@@ -87,12 +94,12 @@ const Quiz: React.FC = () => {
   };
 
   const handlePrevious = () => {
-    setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
+    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
   };
 
   const handleNextQuestion = () => {
     if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
     } else {
       handleSubmit();
     }
@@ -100,11 +107,11 @@ const Quiz: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!currentQuiz) return;
-    
+
     try {
       const quizSubmission: QuizSubmission = {
         quizId: currentQuiz.id,
-        questionAnswers: userAnswers
+        questionAnswers: userAnswers,
       };
       const result = await api.postQuiz(quizSubmission);
       setCurrentSubmission(result);
@@ -119,13 +126,13 @@ const Quiz: React.FC = () => {
   // Add score chart data calculation
   const getScoreChartData = () => {
     if (score === null) return [];
-    
+
     const scoreValue = score;
     const remainingScore = 100 - scoreValue;
-    
+
     return [
       { name: 'Score', value: scoreValue },
-      { name: 'Remaining', value: remainingScore }
+      { name: 'Remaining', value: remainingScore },
     ];
   };
 
@@ -140,14 +147,16 @@ const Quiz: React.FC = () => {
   // Loading state
   if (isGenerating) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '400px',
-        flexDirection: 'column',
-        gap: 2
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '400px',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
         <CircularProgress size={50} thickness={4} />
         <Typography variant="h6" color="text.secondary">
           Generating Quiz...
@@ -159,31 +168,33 @@ const Quiz: React.FC = () => {
   if (!currentQuiz) return null;
 
   // Quiz content
-  const currentAnswer = userAnswers.find(a => a.questionId === currentQuestion?.id);
+  const currentAnswer = userAnswers.find(
+    (a) => a.questionId === currentQuestion?.id,
+  );
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', mb: 4 }}>
-      <Typography 
-        variant="h4" 
-        gutterBottom 
-        align="center" 
+      <Typography
+        variant="h4"
+        gutterBottom
+        align="center"
         sx={{ mb: 3, fontWeight: 600, color: 'primary.main' }}
       >
         {currentQuiz.title} Quiz
       </Typography>
-      
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          p: 4, 
-          minHeight: 400, 
-          display: 'flex', 
-          flexDirection: 'column', 
+
+      <Paper
+        elevation={3}
+        sx={{
+          p: 4,
+          minHeight: 400,
+          display: 'flex',
+          flexDirection: 'column',
           justifyContent: 'center',
           borderRadius: 2,
           transition: 'all 0.3s ease',
-          boxShadow: 4
+          boxShadow: 4,
         }}
       >
         {quizSubmitted ? (
@@ -191,9 +202,15 @@ const Quiz: React.FC = () => {
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
               Quiz Completed
             </Typography>
-            
+
             {/* Score Donut Chart */}
-            <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" mb={3}>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              flexDirection="column"
+              mb={3}
+            >
               <Box position="relative" width={200} height={200}>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -210,9 +227,9 @@ const Quiz: React.FC = () => {
                       strokeWidth={0}
                     >
                       {getScoreChartData().map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={index === 0 ? getScoreColor() : '#e0e0e0'} 
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index === 0 ? getScoreColor() : '#e0e0e0'}
                         />
                       ))}
                     </Pie>
@@ -224,7 +241,7 @@ const Quiz: React.FC = () => {
                   left="50%"
                   sx={{
                     transform: 'translate(-50%, -50%)',
-                    textAlign: 'center'
+                    textAlign: 'center',
                   }}
                 >
                   <Typography variant="h3" component="div" fontWeight="bold">
@@ -236,17 +253,17 @@ const Quiz: React.FC = () => {
                 </Box>
               </Box>
             </Box>
-            
-            <Button 
-              variant="contained" 
-              color="primary" 
+
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleViewDetailedSubmission}
-              sx={{ 
-                borderRadius: 2, 
+              sx={{
+                borderRadius: 2,
                 py: 1.2,
                 mt: 2,
                 fontWeight: 600,
-                minWidth: 220
+                minWidth: 220,
               }}
             >
               View Detailed Results
@@ -254,41 +271,57 @@ const Quiz: React.FC = () => {
           </Box>
         ) : (
           <>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1,
+              }}
+            >
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
                 Question {currentQuestionIndex + 1} of {totalQuestions}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Progress: {Math.round((currentQuestionIndex + 1) / totalQuestions * 100)}%
+                Progress:{' '}
+                {Math.round(
+                  ((currentQuestionIndex + 1) / totalQuestions) * 100,
+                )}
+                %
               </Typography>
             </Box>
-            
-            <LinearProgress 
-              variant="determinate" 
-              value={(currentQuestionIndex + 1) / totalQuestions * 100} 
+
+            <LinearProgress
+              variant="determinate"
+              value={((currentQuestionIndex + 1) / totalQuestions) * 100}
               sx={{ mb: 3, height: 8, borderRadius: 4 }}
             />
-            
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                mb: 3, 
-                fontWeight: 500, 
+
+            <Typography
+              variant="body1"
+              sx={{
+                mb: 3,
+                fontWeight: 500,
                 fontSize: '1.1rem',
                 bgcolor: 'background.paper',
                 p: 2,
                 borderRadius: 1,
                 boxShadow: 1,
-                color: 'text.primary'
+                color: 'text.primary',
               }}
             >
               {currentQuestion.text}
             </Typography>
-            
+
             <FormControl component="fieldset" sx={{ width: '100%' }}>
               <RadioGroup
                 value={currentAnswer?.selectedOptionNumber.toString() || ''}
-                onChange={(e) => handleAnswerChange(currentQuestion.id, parseInt(e.target.value, 10))}
+                onChange={(e) =>
+                  handleAnswerChange(
+                    currentQuestion.id,
+                    parseInt(e.target.value, 10),
+                  )
+                }
               >
                 {currentQuestion.options.map((option, optionIndex) => (
                   <FormControlLabel
@@ -296,43 +329,45 @@ const Quiz: React.FC = () => {
                     value={(optionIndex + 1).toString()}
                     control={<Radio color="primary" />}
                     label={option}
-                    sx={{ 
-                      mb: 1.5, 
+                    sx={{
+                      mb: 1.5,
                       p: 1,
                       borderRadius: 1,
                       transition: 'all 0.2s',
                       '&:hover': {
                         bgcolor: 'action.hover',
-                      }
+                      },
                     }}
                   />
                 ))}
               </RadioGroup>
             </FormControl>
-            
-            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
-              <Button 
-                variant="outlined" 
-                color="primary" 
+
+            <Box
+              sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}
+            >
+              <Button
+                variant="outlined"
+                color="primary"
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0}
-                sx={{ 
+                sx={{
                   borderRadius: 2,
-                  px: 3
+                  px: 3,
                 }}
                 startIcon={<span>←</span>}
               >
                 Previous
               </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
+              <Button
+                variant="contained"
+                color="primary"
                 onClick={handleNextQuestion}
                 disabled={!currentAnswer}
-                sx={{ 
+                sx={{
                   borderRadius: 2,
                   px: 3,
-                  fontWeight: 600
+                  fontWeight: 600,
                 }}
                 endIcon={isLastQuestion ? null : <span>→</span>}
               >
@@ -342,33 +377,35 @@ const Quiz: React.FC = () => {
           </>
         )}
       </Paper>
-      
+
       <Modal
         open={isOverlayOpen}
         onClose={() => setIsOverlayOpen(false)}
         aria-labelledby="detailed-submission-modal"
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '90%',
-          maxWidth: 800,
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 4,
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          borderRadius: 2,
-        }}>
-          <QuizResultOverlay 
-            quizResult={quizResult} 
-            isLoading={isLoadingResult} 
-            error={resultError} 
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            maxWidth: 800,
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            borderRadius: 2,
+          }}
+        >
+          <QuizResultOverlay
+            quizResult={quizResult}
+            isLoading={isLoadingResult}
+            error={resultError}
           />
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button 
+            <Button
               onClick={() => setIsOverlayOpen(false)}
               variant="contained"
               color="primary"

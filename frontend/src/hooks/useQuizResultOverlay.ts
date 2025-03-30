@@ -1,7 +1,8 @@
 // hooks/useQuizResultOverlay.ts
 import { useState } from 'react';
-import { QuizResult } from '../types/quizResult.types';
+
 import api from '../services/api';
+import { QuizResult } from '../types/quizResult.types';
 
 export const useQuizResultOverlay = () => {
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);

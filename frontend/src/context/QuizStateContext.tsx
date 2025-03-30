@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+
 import { Quiz } from '../types/quiz.types';
 import { SubmissionResponse } from '../types/quizSubmission.types';
 
@@ -17,14 +18,21 @@ interface QuizStateContextType {
   addSubmissionToHistory: (submission: SubmissionResponse) => void;
 }
 
-const QuizStateContext = createContext<QuizStateContextType | undefined>(undefined);
+const QuizStateContext = createContext<QuizStateContextType | undefined>(
+  undefined,
+);
 
-export const QuizStateProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+export const QuizStateProvider: React.FC<React.PropsWithChildren<{}>> = ({
+  children,
+}) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isQuizReady, setIsQuizReady] = useState(false);
   const [currentQuiz, setCurrentQuiz] = useState<Quiz | null>(null);
-  const [currentSubmission, setCurrentSubmission] = useState<SubmissionResponse | null>(null);
-  const [submissionHistory, setSubmissionHistory] = useState<SubmissionResponse[]>([]);
+  const [currentSubmission, setCurrentSubmission] =
+    useState<SubmissionResponse | null>(null);
+  const [submissionHistory, setSubmissionHistory] = useState<
+    SubmissionResponse[]
+  >([]);
 
   const handleSetCurrentQuiz = (quiz: Quiz | null) => {
     setCurrentQuiz(quiz);
@@ -32,28 +40,32 @@ export const QuizStateProvider: React.FC<React.PropsWithChildren<{}>> = ({ child
     setIsQuizReady(!!quiz);
   };
 
-  const handleSetCurrentSubmission = (submissionResponse: SubmissionResponse | null) => {
+  const handleSetCurrentSubmission = (
+    submissionResponse: SubmissionResponse | null,
+  ) => {
     setCurrentSubmission(submissionResponse);
     setIsQuizReady(false);
   };
 
   const addSubmissionToHistory = (submission: SubmissionResponse) => {
-    setSubmissionHistory(prevHistory => [submission, ...prevHistory]);
+    setSubmissionHistory((prevHistory) => [submission, ...prevHistory]);
   };
 
   return (
-    <QuizStateContext.Provider value={{
-      isGenerating,
-      isQuizReady,
-      currentQuiz,
-      currentSubmission,
-      submissionHistory,
-      setIsGenerating,
-      setIsQuizReady,
-      setCurrentQuiz,
-      setCurrentSubmission,
-      addSubmissionToHistory,
-    }}>
+    <QuizStateContext.Provider
+      value={{
+        isGenerating,
+        isQuizReady,
+        currentQuiz,
+        currentSubmission,
+        submissionHistory,
+        setIsGenerating,
+        setIsQuizReady,
+        setCurrentQuiz,
+        setCurrentSubmission,
+        addSubmissionToHistory,
+      }}
+    >
       {children}
     </QuizStateContext.Provider>
   );

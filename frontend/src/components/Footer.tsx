@@ -1,12 +1,9 @@
+import FacebookIcon from '@mui/icons-material/GitHub';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
-
 import Stack from '@mui/material/Stack';
-
 import { useTranslation } from 'react-i18next';
-
-import FacebookIcon from '@mui/icons-material/GitHub';
 
 export default function Footer() {
   const { t } = useTranslation();
@@ -29,9 +26,7 @@ export default function Footer() {
           width: '100%',
         }}
       >
-        <div>
-          {t('footer.title')}
-        </div>
+        <div>{t('footer.title')}</div>
         <Stack
           direction="row"
           spacing={1}

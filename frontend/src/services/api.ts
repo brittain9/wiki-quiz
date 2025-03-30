@@ -1,8 +1,13 @@
 import axios from 'axios';
+
 import apiClient from './apiClient';
 import { Quiz } from '../types/quiz.types';
-import { QuizSubmission, SubmissionDetail, SubmissionResponse } from '../types/quizSubmission.types';
 import { QuizResult } from '../types/quizResult.types';
+import {
+  QuizSubmission,
+  SubmissionDetail,
+  SubmissionResponse,
+} from '../types/quizSubmission.types';
 
 const API_BASE_URL = 'http://localhost:5543/api';
 
@@ -17,19 +22,15 @@ export interface BasicQuizParams {
 }
 
 const api = {
-
-  getBasicQuiz: async (
-    quizOptions: {
-      topic: string;
-      selectedService: number | null;
-      selectedModel: number | null;
-      language?: string;
-      numQuestions?: number;
-      numOptions?: number;
-      extractLength?: number;
-    },
-  ): Promise<Quiz> => {
-    
+  getBasicQuiz: async (quizOptions: {
+    topic: string;
+    selectedService: number | null;
+    selectedModel: number | null;
+    language?: string;
+    numQuestions?: number;
+    numOptions?: number;
+    extractLength?: number;
+  }): Promise<Quiz> => {
     try {
       const params: BasicQuizParams = {
         topic: quizOptions.topic,
@@ -41,20 +42,24 @@ const api = {
         extractLength: quizOptions.extractLength,
       };
 
-      const { data: quiz } = await axios.get<Quiz>(`${API_BASE_URL}/quiz/basicquiz`, { params });
+      const { data: quiz } = await axios.get<Quiz>(
+        `${API_BASE_URL}/quiz/basicquiz`,
+        { params },
+      );
 
       return quiz;
-    } 
-    catch (error) {
+    } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {
           throw new Error(`Please enter a valid Wikipedia topic.`); // this gets printed in our hero
         }
         if (error.code === 'ERR_NETWORK') {
           console.error('Network error:', error);
-          throw new Error('Network error: Unable to connect to the server. Please check if the API is running.'); // also printed in hero
+          throw new Error(
+            'Network error: Unable to connect to the server. Please check if the API is running.',
+          ); // also printed in hero
         }
-      }      
+      }
       console.error('Error fetching basic quiz:', error);
       throw error; // re-throw error to be handled by component
     }
@@ -62,14 +67,18 @@ const api = {
 
   postQuiz: async (submission: QuizSubmission): Promise<SubmissionResponse> => {
     try {
-      const response = await apiClient.post<SubmissionResponse>('/quiz/submitquiz', submission);
+      const response = await apiClient.post<SubmissionResponse>(
+        '/quiz/submitquiz',
+        submission,
+      );
       return response.data;
-    }
-    catch (error) {
+    } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.code === 'ERR_NETWORK') {
           console.error('Network error:', error);
-          throw new Error('Network error: Unable to connect to the server. Please check if the API is running.');
+          throw new Error(
+            'Network error: Unable to connect to the server. Please check if the API is running.',
+          );
         }
       }
       console.error('Error submitting quiz:', error);
@@ -79,7 +88,9 @@ const api = {
 
   getAiServices: async (): Promise<Record<number, string>> => {
     try {
-      const response = await axios.get<Record<number, string>>(`${API_BASE_URL}/ai/getAiServices`);
+      const response = await axios.get<Record<number, string>>(
+        `${API_BASE_URL}/ai/getAiServices`,
+      );
       return response.data;
     } catch (error) {
       console.error('Error fetching AI services:', error);
@@ -89,19 +100,27 @@ const api = {
 
   getAiModels: async (serviceId: number): Promise<Record<number, string>> => {
     try {
-      const response = await axios.get<Record<number, string>>(`${API_BASE_URL}/ai/getModels`, {
-        params: { aiServiceId: serviceId }
-      });
+      const response = await axios.get<Record<number, string>>(
+        `${API_BASE_URL}/ai/getModels`,
+        {
+          params: { aiServiceId: serviceId },
+        },
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching AI models for service ${serviceId}:`, error);
+      console.error(
+        `Error fetching AI models for service ${serviceId}:`,
+        error,
+      );
       throw error;
     }
   },
 
   getRecentSubmissions: async (): Promise<SubmissionResponse[]> => {
     try {
-      const response = await apiClient.get<SubmissionResponse[]>('/submission/quizsubmission/recent');
+      const response = await apiClient.get<SubmissionResponse[]>(
+        '/submission/quizsubmission/recent',
+      );
       return response.data;
     } catch (error) {
       console.error('Error fetching recent submissions:', error);
@@ -111,7 +130,9 @@ const api = {
 
   getSubmissionById: async (id: number): Promise<QuizResult> => {
     try {
-      const response = await apiClient.get<QuizResult>(`/submission/quizsubmission/${id}`);
+      const response = await apiClient.get<QuizResult>(
+        `/submission/quizsubmission/${id}`,
+      );
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -123,7 +144,6 @@ const api = {
       throw error;
     }
   },
-
 };
 export default api;
 
@@ -143,7 +163,10 @@ export const fetchAvailableModels = async (serviceId: number) => {
     const models = await api.getAiModels(serviceId);
     return models;
   } catch (error) {
-    console.error(`Failed to fetch available models for service ${serviceId}:`, error);
+    console.error(
+      `Failed to fetch available models for service ${serviceId}:`,
+      error,
+    );
     throw error;
   }
 };
