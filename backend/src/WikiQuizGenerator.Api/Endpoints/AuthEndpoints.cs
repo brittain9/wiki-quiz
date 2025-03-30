@@ -89,7 +89,6 @@ public static class AuthEndpoints
                 if (updated) { await dbContext.SaveChangesAsync(); }
             }
             appUserId = user.Id.ToString(); // Replace with your actual ID property
-            // -------------------------------------------------
 
             var jwtToken = GenerateJwtToken(configuration, appUserId, email, name); // Call helper
 

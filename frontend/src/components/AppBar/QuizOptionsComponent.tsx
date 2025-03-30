@@ -14,7 +14,7 @@ import {
 import React, { useEffect, useState } from 'react';
 
 import { useQuizOptions } from '../../context/QuizOptionsContext';
-import { fetchAvailableModels } from '../../services/api';
+import { quizApi } from '../../services';
 
 const QuizOptionsComponent: React.FC = () => {
   const [expanded, setExpanded] = React.useState(false);

@@ -6,7 +6,7 @@ import React, {
   ReactNode,
 } from 'react';
 
-import authService from '../services/auth';
+import { authApi } from '../services';
 
 interface User {
   id: string;
@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       setLoading(true);
-      const userData = await authService.getCurrentUser();
+      const userData = await authApi.getCurrentUser();
       setUser(userData); // Will be null if not authenticated
     } finally {
       setLoading(false);
@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authService.logout();
+      await authApi.logout();
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);

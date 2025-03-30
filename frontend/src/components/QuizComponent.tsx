@@ -14,7 +14,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 import QuizResultOverlay from './QuizResultOverlay';
 import { useQuizState } from '../context/QuizStateContext';
-import api from '../services/api';
+import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';
 import { QuizSubmission, QuestionAnswer } from '../types/quizSubmission.types';
 
@@ -58,7 +58,7 @@ const Quiz: React.FC = () => {
     setIsLoadingResult(true);
     setResultError(null);
     try {
-      const result = await api.getSubmissionById(submissionId);
+      const result = await submissionApi.getSubmissionById(submissionId);
       setQuizResult(result);
     } catch (error) {
       console.error('Failed to fetch quiz result:', error);
@@ -113,7 +113,7 @@ const Quiz: React.FC = () => {
         quizId: currentQuiz.id,
         questionAnswers: userAnswers,
       };
-      const result = await api.postQuiz(quizSubmission);
+      const result = await submissionApi.submitQuiz(quizSubmission);
       setCurrentSubmission(result);
       addSubmissionToHistory(result);
       setQuizSubmitted(true);

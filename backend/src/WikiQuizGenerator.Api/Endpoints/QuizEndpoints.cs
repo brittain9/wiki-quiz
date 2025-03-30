@@ -13,35 +13,34 @@ public static class QuizEndpoints
         var group = app.MapGroup("/api/quiz")
                        .WithTags("Quiz");
 
-        group.MapGet("/basicquiz", HandleGetBasicQuiz)
-             .WithName("GetBasicQuiz")
+        group.MapPost("/basicquiz", HandleGetBasicQuiz)
+             .WithName("GenerateBasicQuiz")
              .WithOpenApi(operation => new(operation)
              {
                  Summary = "Generate basic quiz from topic/language",
                  Description = "Creates quiz using Wikipedia content. Language codes: en, fr, zh, es. Extract length affects token usage and question quality."
              })
-             .Produces<QuizDto>(StatusCodes.Status200OK)
-             .Produces(StatusCodes.Status400BadRequest) // For validation errors caught by middleware
-             .Produces(StatusCodes.Status204NoContent) // Or 404 if generator returns null
-             .Produces(StatusCodes.Status500InternalServerError); // If middleware catches other exceptions
+             .Produces<QuizDto>(StatusCodes.Status201Created)
+             .ProducesValidationProblem() // Handles validation errors (like ArgumentException from Validate)
+             .ProducesProblem(StatusCodes.Status404NotFound) // If quiz generation fails to find content
+             .ProducesProblem(StatusCodes.Status500InternalServerError); // General errors
 
         group.MapPost("/submitquiz", HandleSubmitQuiz)
              .WithName("SubmitQuiz")
              .WithOpenApi(operation => new(operation)
              {
                  Summary = "Submit quiz answers",
-                 Description = "Processes user answers and returns score"
+                 Description = "Processes user answers, creates a submission record, and returns score"
              })
-             .Produces<SubmissionDto>(StatusCodes.Status200OK)
-             .Produces(StatusCodes.Status404NotFound) // If quizId doesn't exist
-             .Produces(StatusCodes.Status400BadRequest) // For invalid submission data or validation errors
-             .Produces(StatusCodes.Status500InternalServerError); // If middleware catches other exceptions
+             .Produces<SubmissionDto>(StatusCodes.Status201Created)
+             .ProducesProblem(StatusCodes.Status404NotFound) // If quizId doesn't exist
+             .ProducesProblem(StatusCodes.Status400BadRequest) // For invalid submission data
+             .ProducesValidationProblem() // For potential future model validation
+             .ProducesProblem(StatusCodes.Status500InternalServerError);
     }
 
     private static async Task<IResult> HandleGetBasicQuiz(
-        // Inject services needed
         [FromServices] IQuizGenerator quizGenerator,
-        // Define query parameters
         [FromQuery] string topic,
         [FromQuery] int aiService,
         [FromQuery] int model,
@@ -50,7 +49,7 @@ public static class QuizEndpoints
         [FromQuery] int numOptions = 4,
         [FromQuery] int extractLength = 1000)
     {
-        // Validation errors will be caught by middleware if they throw ArgumentException
+        // Validation happens here (throws ArgumentException on failure)
         ValidateBasicQuizParameters(numQuestions, numOptions, extractLength);
 
         var lang = LanguagesExtensions.GetLanguageFromCode(language);
@@ -59,42 +58,47 @@ public static class QuizEndpoints
 
         if (quiz == null)
         {
-            return Results.NotFound("Could not generate quiz content for the given topic.");
+            return TypedResults.NotFound("Could not generate quiz content for the given topic.");
         }
 
-        return TypedResults.Ok(QuizMapper.ToDto(quiz));
+        var quizDto = QuizMapper.ToDto(quiz);
+
+        return TypedResults.Created((string?)null, quizDto);
+ 
     }
 
     private static async Task<IResult> HandleSubmitQuiz(
         [FromServices] IQuizRepository quizRepository,
         SubmissionDto submissionDto)
     {
-        if (submissionDto == null || submissionDto.QuestionAnswers == null)
+        if (submissionDto == null || submissionDto.QuestionAnswers == null || submissionDto.QuizId <= 0)
         {
-            return Results.BadRequest(new { message = "Invalid submission data." });
+            return TypedResults.BadRequest("Invalid submission data provided.");
         }
 
         var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId);
         if (quiz is null)
         {
-            return TypedResults.NotFound(new { message = $"Quiz with ID {submissionDto.QuizId} not found." });
+            return TypedResults.NotFound($"Quiz with ID {submissionDto.QuizId} not found.");
         }
 
         var submission = SubmissionMapper.ToModel(submissionDto);
-        submission.Quiz = quiz;
+        submission.Quiz = quiz; // Link to the fetched quiz
         submission.Score = CalculateScore(submissionDto, quiz);
         submission.SubmissionTime = DateTime.UtcNow;
-        // TODO: Link submission to user if needed
 
+        // Assume AddSubmissionAsync populates submission.Id upon successful save
         await quizRepository.AddSubmissionAsync(submission);
 
         var resultDto = SubmissionMapper.ToDto(submission);
-        return TypedResults.Ok(resultDto);
+
+        var submissionUri = $"/api/quiz-submissions/{submission.Id}";
+        return TypedResults.Created(submissionUri, resultDto);
     }
+
 
     private static void ValidateBasicQuizParameters(int numQuestions, int numOptions, int extractLength)
     {
-        // Throws ArgumentException on failure, which should be handled by ErrorHandlerMiddleware
         if (numQuestions < 1 || numQuestions > 20)
             throw new ArgumentException("Number of questions must be between 1 and 20.");
 
@@ -120,6 +124,7 @@ public static class QuizEndpoints
                 correctAnswers++;
             }
         }
-        return (int)Math.Round((double)correctAnswers / totalQuestions * 100);
+        // Avoid division by zero if totalQuestions is somehow zero after checks
+        return totalQuestions > 0 ? (int)Math.Round((double)correctAnswers / totalQuestions * 100) : 0;
     }
 }

@@ -6,11 +6,10 @@ import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import pluginImport from 'eslint-plugin-import';
-import pluginPrettier from 'eslint-plugin-prettier'; // For running prettier as a rule
-import configPrettier from 'eslint-config-prettier'; // For disabling conflicting rules
+import pluginPrettier from 'eslint-plugin-prettier';
+import configPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  // ----- Global Ignores -----
   {
     ignores: [
       'node_modules/',
@@ -23,10 +22,8 @@ export default tseslint.config(
     ],
   },
 
-  // ----- Base ESLint & JS Rules -----
   pluginJs.configs.recommended,
 
-  // ----- TypeScript Rules -----
   ...tseslint.configs.recommended,
   // Optional stricter rule sets:
   // ...tseslint.configs.recommendedTypeChecked,
@@ -46,7 +43,6 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'off', // Allow implicit return types
       '@typescript-eslint/explicit-module-boundary-types': 'off', // Allow implicit boundary types
       '@typescript-eslint/no-explicit-any': 'warn', // Warn on 'any'
-      // Add other TS overrides here
     },
   },
 
@@ -69,16 +65,15 @@ export default tseslint.config(
     },
     settings: {
       react: {
-        version: 'detect', // Automatically detect React version
+        version: 'detect',
       },
     },
     rules: {
       ...pluginReact.configs.recommended.rules,
-      ...pluginReact.configs['jsx-runtime'].rules, // For new JSX transform (React 17+)
+      ...pluginReact.configs['jsx-runtime'].rules,
       ...pluginReactHooks.configs.recommended.rules,
       'react/prop-types': 'off', // Disable prop-types as TypeScript handles this
       'react/display-name': 'warn',
-      // Add other React overrides here
     },
   },
 
@@ -130,11 +125,10 @@ export default tseslint.config(
       ],
       'import/no-unresolved': 'error', // Catch unresolved imports
       'import/prefer-default-export': 'off', // Allow named exports without default
-      // Add other import overrides here
     },
   },
 
-  // ----- Prettier Integration (MUST BE LAST) -----
+  // ----- Prettier Integration -----
   // This setup uses eslint-plugin-prettier to run Prettier as an ESLint rule
   // and eslint-config-prettier to disable any ESLint rules that conflict with Prettier.
   {

@@ -1,17 +1,21 @@
-import apiClient from './apiClient';
+// authApi.ts
+import apiClient from '../apiClient';
+import { parseApiError } from './utils';
 
-interface User {
+export interface User {
   id: string;
   email: string;
   name: string;
   picture?: string;
 }
 
-const authService = {
-  // Get the currently authenticated user
+export const authApi = {
+  /**
+   * Get the currently authenticated user
+   */
   getCurrentUser: async (): Promise<User | null> => {
     try {
-      const response = await apiClient.get('/auth/me');
+      const response = await apiClient.get<User>('/auth/me');
       return response.data;
     } catch (error) {
       console.error('Error getting current user:', error);
@@ -19,14 +23,15 @@ const authService = {
     }
   },
 
-  // Logout the user
+  /**
+   * Logout the user
+   */
   logout: async (): Promise<void> => {
     try {
       await apiClient.post('/auth/logout');
     } catch (error) {
       console.error('Error during logout:', error);
+      throw new Error(`Logout failed: ${parseApiError(error)}`);
     }
   },
 };
-
-export default authService;

@@ -1,7 +1,7 @@
 // hooks/useQuizResultOverlay.ts
 import { useState } from 'react';
 
-import api from '../services/api';
+import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';
 
 export const useQuizResultOverlay = () => {
@@ -14,7 +14,7 @@ export const useQuizResultOverlay = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await api.getSubmissionById(submissionId);
+      const result = await submissionApi.getSubmissionById(submissionId);
       setQuizResult(result);
       setIsOverlayOpen(true);
     } catch (err) {

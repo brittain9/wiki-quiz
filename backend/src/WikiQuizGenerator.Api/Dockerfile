@@ -35,9 +35,11 @@ RUN dotnet publish "./WikiQuizGenerator.Api.csproj" -c $BUILD_CONFIGURATION -o /
 # Stage 3: Final runtime image
 # Use the ASP.NET runtime image, matching the SDK version used for build (.NET 9.0)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
-USER app # Run as non-root user
+# Run as non-root user
+USER app
 WORKDIR /app
-EXPOSE 80 # Ensure this matches the port ASP.NET Core listens on (usually 80 or 8080)
+# Ensure this matches the port ASP.NET Core listens on (usually 80 or 8080)
+EXPOSE 80 
 
 # Copy only the published artifacts from the 'publish' stage
 COPY --from=publish /app/publish .

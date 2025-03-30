@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 import QuizResultOverlay from './QuizResultOverlay';
 import { useQuizState } from '../context/QuizStateContext';
-import api from '../services/api';
+import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';
 import { SubmissionResponse } from '../types/quizSubmission.types';
 
@@ -41,7 +41,7 @@ const SubmissionHistory: React.FC = () => {
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const recentSubmissions = await api.getRecentSubmissions();
+        const recentSubmissions = await submissionApi.getRecentSubmissions();
         setAllSubmissions(recentSubmissions);
       } catch (err) {
         setError('Failed to fetch recent submissions. Please try again later.');
@@ -70,7 +70,7 @@ const SubmissionHistory: React.FC = () => {
     setIsResultLoading(true);
     setResultError(null);
     try {
-      const result = await api.getSubmissionById(id);
+      const result = await submissionApi.getSubmissionById(id);
       setSelectedQuizResult(result);
       setIsOverlayOpen(true);
     } catch (err) {

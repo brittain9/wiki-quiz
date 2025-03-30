@@ -12,8 +12,7 @@ import { useTranslation } from 'react-i18next';
 import AnimatedTopics from './AnimatedTopics';
 import { useQuizOptions } from '../../context/QuizOptionsContext';
 import { useQuizState } from '../../context/QuizStateContext';
-import api from '../../services/api';
-import { fetchWikipediaTopics } from '../../services/wikiApi';
+import { quizApi, wikiApi } from '../../services';
 
 const StyledBox = styled('div')(({ theme }) => ({
   alignSelf: 'center',
@@ -72,7 +71,18 @@ export default function Hero() {
         setIsGenerating(true);
         setIsQuizReady(false);
 
-        const quiz = await api.getBasicQuiz(quizOptions);
+        // Convert from QuizOptions to CreateBasicQuizRequest
+        const requestData = {
+          topic: quizOptions.topic,
+          aiService: quizOptions.selectedService,
+          model: quizOptions.selectedModel,
+          language: quizOptions.language,
+          numQuestions: quizOptions.numQuestions,
+          numOptions: quizOptions.numOptions,
+          extractLength: quizOptions.extractLength,
+        };
+
+        const quiz = await quizApi.createBasicQuiz(requestData);
 
         setCurrentQuiz(quiz);
         setIsQuizReady(true);
@@ -97,7 +107,8 @@ export default function Hero() {
 
     const timeout = window.setTimeout(() => {
       if (event.target.value) {
-        fetchWikipediaTopics(event.target.value)
+        wikiApi
+          .fetchWikipediaTopics(event.target.value)
           .then(setTopics)
           .catch((err) => setError(err.message));
       } else {

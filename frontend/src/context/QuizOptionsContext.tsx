@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fetchAvailableServices, fetchAvailableModels } from '../services/api';
+import { quizApi } from '../services';
 
 interface QuizOptions {
   topic: string;
@@ -69,7 +69,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({
     }));
     if (serviceId !== null) {
       try {
-        const models = await fetchAvailableModels(serviceId);
+        const models = await quizApi.getAiModels(serviceId);
         setQuizOptions((prev) => ({
           ...prev,
           availableModels: models,
@@ -90,7 +90,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const services = await fetchAvailableServices();
+        const services = await quizApi.getAiServices();
         const firstServiceId = Object.keys(services)[0]
           ? parseInt(Object.keys(services)[0])
           : null;
@@ -102,7 +102,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({
         }));
 
         if (firstServiceId !== null) {
-          const models = await fetchAvailableModels(firstServiceId);
+          const models = await quizApi.getAiModels(firstServiceId);
           const firstModelId = Object.keys(models)[0]
             ? parseInt(Object.keys(models)[0])
             : null;

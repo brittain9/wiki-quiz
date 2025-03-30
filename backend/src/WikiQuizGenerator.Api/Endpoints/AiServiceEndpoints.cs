@@ -10,7 +10,7 @@ public static class AiServiceEndpoints
                        .WithTags("AI");
 
         // Endpoint for getting available AI services
-        group.MapGet("/getAiServices", (IAiServiceManager aiServiceManager)
+        group.MapGet("/services", (IAiServiceManager aiServiceManager)
             => Results.Ok(aiServiceManager.GetAvailableAiServices()))
         .WithName("GetAiServices")
         .WithOpenApi(operation =>
@@ -20,9 +20,9 @@ public static class AiServiceEndpoints
         });
 
         // Endpoint for getting models based on AI service ID
-        group.MapGet("/getModels", (IAiServiceManager aiServiceManager, int? aiServiceId)
+        group.MapGet("/models", (IAiServiceManager aiServiceManager, int? aiServiceId)
             => Results.Ok(aiServiceManager.GetModels(aiServiceId)))
-        .WithName("GetModels")
+        .WithName("GetAiModels")
         .WithOpenApi(operation =>
         {
             operation.Summary = "Get the available models based on the AI service ID.";
