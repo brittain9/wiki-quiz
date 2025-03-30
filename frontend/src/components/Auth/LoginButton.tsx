@@ -1,80 +1,40 @@
 import GoogleIcon from '@mui/icons-material/Google';
-import { Button, Box, Typography, Snackbar, Alert } from '@mui/material';
+import { Button, Box, Snackbar, Alert } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 
-import { useAuth } from '../../context/AuthContext';
-
-const API_BASE_URL = 'http://localhost:5543';
-
 const LoginButton: React.FC = () => {
-  const { isAuthenticated, logout, user } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
-  // Check for error params in URL when component mounts
+  // Check for error params passed back from backend redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const errorParam = params.get('error');
 
     if (errorParam) {
-      setError(errorParam.replace(/_/g, ' '));
+      let errorMessage = errorParam.replace(/_/g, ' ');
+      // Make specific error messages more user-friendly if needed
+      if (errorMessage === 'email exists different provider') {
+           errorMessage = 'An account with this email already exists, possibly created directly or via a different method. Please log in using that method.';
+      } else if (errorMessage === 'google auth failed') {
+           errorMessage = 'Authentication with Google failed. Please try again.';
+      } else if (errorMessage === 'google claims missing') {
+           errorMessage = 'Could not retrieve necessary information from Google. Please try again.';
+      }
+      setError(errorMessage);
 
-      // Clean up the URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
+      // Clean up the URL (remove the ?error=... part)
+      const cleanUrl = window.location.pathname + window.location.hash; // Keep hash if any
+      window.history.replaceState({}, document.title, cleanUrl);
     }
   }, []);
 
-  const handleGoogleLogin = () => {
-    // Open the auth endpoint in a popup window
-    const width = 500;
-    const height = 600;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
+  const handleLoginWithGoogle = () => {
+    setError(null); // Clear previous errors
     try {
-      const popup = window.open(
-        `${API_BASE_URL}/api/auth/google-login`,
-        'googleLoginPopup',
-        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes`,
-      );
-
-      if (!popup) {
-        setError('Popup blocked. Please allow popups for this site.');
-        return;
-      }
-
-      // Poll to check if popup is closed
-      const checkPopup = setInterval(() => {
-        try {
-          if (!popup || popup.closed) {
-            clearInterval(checkPopup);
-            console.log('Auth popup closed, refreshing user data');
-
-            // Check for any URL parameters in the popup before refreshing
-            try {
-              // This might throw a cross-origin error if the popup redirected to a different domain
-              const popupUrl = popup?.location?.href;
-              console.log('Popup final URL:', popupUrl);
-            } catch (e) {
-              console.log(
-                'Could not access popup URL due to cross-origin restrictions',
-              );
-            }
-
-            // Wait a moment before refreshing to allow backend session to be fully established
-            setTimeout(() => {
-              console.log('Refreshing page to update auth state');
-              window.location.reload();
-            }, 500);
-          }
-        } catch (e) {
-          clearInterval(checkPopup);
-          console.error('Error monitoring popup:', e);
-        }
-      }, 1000);
+        window.location.href = 'http://localhost:5543/api/auth/login/google?returnUrl=http://localhost:5173';
     } catch (e) {
-      console.error('Error opening popup:', e);
-      setError('Failed to open login popup');
+        console.error('Error initiating navigation:', e);
+        setError('Failed to start the login process.');
     }
   };
 
@@ -82,63 +42,35 @@ const LoginButton: React.FC = () => {
     setError(null);
   };
 
-  if (isAuthenticated && user) {
-    return (
-      <Box display="flex" alignItems="center">
-        {user.picture && (
-          <Box
-            component="img"
-            src={user.picture}
-            alt={user.name}
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              marginRight: 1,
-            }}
-          />
-        )}
-        <Typography variant="body2" sx={{ marginRight: 2 }}>
-          {user.name}
-        </Typography>
-        <Button
-          variant="outlined"
-          color="inherit"
-          size="small"
-          onClick={logout}
-        >
-          Logout
-        </Button>
-      </Box>
-    );
-  }
-
+  // Display login button
   return (
-    <>
+    <Box>
       <Button
         variant="outlined"
         color="primary"
         size="small"
         startIcon={<GoogleIcon />}
-        onClick={handleGoogleLogin}
+        onClick={handleLoginWithGoogle}
       >
         Sign in
       </Button>
 
       <Snackbar
         open={!!error}
-        autoHideDuration={6000}
+        autoHideDuration={8000} // Allow more time for longer messages
         onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
           onClose={handleCloseError}
           severity="error"
           sx={{ width: '100%' }}
+          variant="filled"
         >
-          Authentication error: {error}
+          {error}
         </Alert>
       </Snackbar>
-    </>
+    </Box>
   );
 };
 

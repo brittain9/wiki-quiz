@@ -1,7 +1,6 @@
 // Export all API services from their modules
 export * from './api/quizApi';
 export * from './api/submissionApi';
-export * from './api/authApi';
 export * from './api/wikiApi';
 export * from './api/utils';
 

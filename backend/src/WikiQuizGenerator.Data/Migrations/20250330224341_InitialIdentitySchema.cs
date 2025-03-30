@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WikiQuizGenerator.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class FinalizeModelRelationships : Migration
+    public partial class InitialIdentitySchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,6 +27,35 @@ namespace WikiQuizGenerator.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    LastName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpiresAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    UserName = table.Column<string>(type: "text", nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "text", nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WikipediaCategories",
                 columns: table => new
                 {
@@ -40,34 +69,44 @@ namespace WikiQuizGenerator.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WikipediaLinks",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WikipediaLinks", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "WikipediaPages",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    WikipediaId = table.Column<int>(type: "integer", nullable: false),
                     Language = table.Column<string>(type: "text", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Extract = table.Column<string>(type: "text", nullable: false),
                     LastModified = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Url = table.Column<string>(type: "text", nullable: false),
-                    Length = table.Column<int>(type: "integer", nullable: false)
+                    Length = table.Column<int>(type: "integer", nullable: false),
+                    Links = table.Column<string[]>(type: "text[]", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WikipediaPages", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "QuizSubmissions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    QuizId = table.Column<int>(type: "integer", nullable: false),
+                    SubmissionTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Score = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_QuizSubmissions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_QuizSubmissions_Quizzes_QuizId",
+                        column: x => x.QuizId,
+                        principalTable: "Quizzes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -125,27 +164,23 @@ namespace WikiQuizGenerator.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WikipediaPageLink",
+                name: "QuestionAnswer",
                 columns: table => new
                 {
-                    WikipediaLinkId = table.Column<int>(type: "integer", nullable: false),
-                    WikipediaPageId = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    QuestionId = table.Column<int>(type: "integer", nullable: false),
+                    SelectedOptionNumber = table.Column<int>(type: "integer", nullable: false),
+                    SubmissionId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WikipediaPageLink", x => new { x.WikipediaLinkId, x.WikipediaPageId });
+                    table.PrimaryKey("PK_QuestionAnswer", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WikipediaPageLink_WikipediaLinks_WikipediaLinkId",
-                        column: x => x.WikipediaLinkId,
-                        principalTable: "WikipediaLinks",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_WikipediaPageLink_WikipediaPages_WikipediaPageId",
-                        column: x => x.WikipediaPageId,
-                        principalTable: "WikipediaPages",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_QuestionAnswer_QuizSubmissions_SubmissionId",
+                        column: x => x.SubmissionId,
+                        principalTable: "QuizSubmissions",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -185,18 +220,23 @@ namespace WikiQuizGenerator.Data.Migrations
                 column: "WikipediaPageId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_QuestionAnswer_SubmissionId",
+                table: "QuestionAnswer",
+                column: "SubmissionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Questions_AIResponseId",
                 table: "Questions",
                 column: "AIResponseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WikipediaPageCategory_WikipediaPageId",
-                table: "WikipediaPageCategory",
-                column: "WikipediaPageId");
+                name: "IX_QuizSubmissions_QuizId",
+                table: "QuizSubmissions",
+                column: "QuizId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WikipediaPageLink_WikipediaPageId",
-                table: "WikipediaPageLink",
+                name: "IX_WikipediaPageCategory_WikipediaPageId",
+                table: "WikipediaPageCategory",
                 column: "WikipediaPageId");
         }
 
@@ -204,22 +244,25 @@ namespace WikiQuizGenerator.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "QuestionAnswer");
+
+            migrationBuilder.DropTable(
                 name: "Questions");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "WikipediaPageCategory");
 
             migrationBuilder.DropTable(
-                name: "WikipediaPageLink");
+                name: "QuizSubmissions");
 
             migrationBuilder.DropTable(
                 name: "AIResponses");
 
             migrationBuilder.DropTable(
                 name: "WikipediaCategories");
-
-            migrationBuilder.DropTable(
-                name: "WikipediaLinks");
 
             migrationBuilder.DropTable(
                 name: "Quizzes");

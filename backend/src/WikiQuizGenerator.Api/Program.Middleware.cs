@@ -6,14 +6,14 @@ public partial class Program
 {
     private static void ConfigurePipeline(WebApplication app)
     {
+        app.UseCors("AllowReactApp"); // Use CORS policy (BEFORE Authentication/Authorization)
+
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ErrorHandlerMiddleware>();
 
         // app.UseHttpsRedirection();
 
         app.UseRouting();
-
-        app.UseCors("AllowReactApp"); // Use CORS policy (BEFORE Authentication/Authorization)
 
         app.UseAuthentication();
         app.UseAuthorization();

@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Data;
 
-public class WikiQuizDbContext : DbContext
+public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     private const string TimestampColumnType = "timestamp with time zone";
 
@@ -16,14 +18,11 @@ public class WikiQuizDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<User>(entity =>
-        {
-            // Ensure Email is unique
-            entity.HasIndex(e => e.Email).IsUnique();
+        modelBuilder.Entity<User>()
+            .Property(u => u.FirstName).HasMaxLength(256);
 
-            // Index GoogleId for faster lookups
-            entity.HasIndex(e => e.GoogleId);
-        });
+        modelBuilder.Entity<User>()
+            .Property(u => u.LastName).HasMaxLength(256);
 
         modelBuilder.Entity<WikipediaPage>()
             .Property(e => e.LastModified)

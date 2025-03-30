@@ -12,15 +12,15 @@ using WikiQuizGenerator.Data;
 namespace WikiQuizGenerator.Data.Migrations
 {
     [DbContext(typeof(WikiQuizDbContext))]
-    [Migration("20240825233604_quizSubmissionCircularRef2")]
-    partial class quizSubmissionCircularRef2
+    [Migration("20250330224341_InitialIdentitySchema")]
+    partial class InitialIdentitySchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "9.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -113,15 +113,15 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("QuizSubmissionId")
+                    b.Property<int>("SelectedOptionNumber")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SelectedOptionNumber")
+                    b.Property<int?>("SubmissionId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuizSubmissionId");
+                    b.HasIndex("SubmissionId");
 
                     b.ToTable("QuestionAnswer");
                 });
@@ -146,7 +146,7 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.ToTable("Quizzes");
                 });
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.QuizSubmission", b =>
+            modelBuilder.Entity("WikiQuizGenerator.Core.Models.Submission", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -157,6 +157,9 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int>("QuizId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("SubmissionTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -165,6 +168,75 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.HasIndex("QuizId");
 
                     b.ToTable("QuizSubmissions");
+                });
+
+            modelBuilder.Entity("WikiQuizGenerator.Core.Models.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RefreshTokenExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.WikipediaCategory", b =>
@@ -206,7 +278,7 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int>("Length")
                         .HasColumnType("integer");
 
-                    b.Property<string[]>("Links")
+                    b.PrimitiveCollection<string[]>("Links")
                         .IsRequired()
                         .HasColumnType("text[]");
 
@@ -273,12 +345,12 @@ namespace WikiQuizGenerator.Data.Migrations
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.QuestionAnswer", b =>
                 {
-                    b.HasOne("WikiQuizGenerator.Core.Models.QuizSubmission", null)
+                    b.HasOne("WikiQuizGenerator.Core.Models.Submission", null)
                         .WithMany("Answers")
-                        .HasForeignKey("QuizSubmissionId");
+                        .HasForeignKey("SubmissionId");
                 });
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.QuizSubmission", b =>
+            modelBuilder.Entity("WikiQuizGenerator.Core.Models.Submission", b =>
                 {
                     b.HasOne("WikiQuizGenerator.Core.Models.Quiz", "Quiz")
                         .WithMany("QuizSubmissions")
@@ -316,7 +388,7 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Navigation("QuizSubmissions");
                 });
 
-            modelBuilder.Entity("WikiQuizGenerator.Core.Models.QuizSubmission", b =>
+            modelBuilder.Entity("WikiQuizGenerator.Core.Models.Submission", b =>
                 {
                     b.Navigation("Answers");
                 });
