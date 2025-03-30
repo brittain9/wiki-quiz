@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿
 <Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
   <PropertyGroup Label="Globals">
     <ProjectVersion>2.1</ProjectVersion>
@@ -8,6 +8,7 @@
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
     <DockerServiceName>wikiquizgenerator.api</DockerServiceName>
+    <UserSecretsId>9770bdf7-f026-42af-8b0f-6bbd8117003f</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

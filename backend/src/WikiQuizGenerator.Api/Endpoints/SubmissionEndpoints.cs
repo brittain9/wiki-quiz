@@ -8,12 +8,15 @@ public static class SubmissionEndpoints
 {
     public static void MapSubmissionEndpoints(this WebApplication app)
     {
-        app.MapGet("quizsubmission/{id}", async (int id, IQuizRepository quizRepository) =>
+        var group = app.MapGroup("/api/submission")
+                       .WithTags("Submission");
+
+        group.MapGet("/quizsubmission/{id}", async (int id, IQuizRepository quizRepository) =>
         {
             return await GetQuizSubmissionById(id, quizRepository);
         });
 
-        app.MapGet("quizsubmission/recent", async (IQuizRepository quizRepository, int num = 10) =>
+        group.MapGet("/quizsubmission/recent", async (IQuizRepository quizRepository, int num = 10) =>
         {
             return await GetRecentQuizSubmissions(num, quizRepository);
         });

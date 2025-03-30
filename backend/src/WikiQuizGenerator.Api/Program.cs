@@ -1,12 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using WikiQuizGenerator.Api;
 using WikiQuizGenerator.Data;
-using WikiQuizGenerator.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Configure services
-ConfigureServices(builder.Services, builder.Configuration);
 
 // Add logging configuration
 builder.Services.AddLogging(loggingBuilder =>
@@ -15,6 +10,9 @@ builder.Services.AddLogging(loggingBuilder =>
     loggingBuilder.AddConsole();
     loggingBuilder.AddDebug();
 });
+
+// Configure services (calls your partial method)
+ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
@@ -25,23 +23,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-// Middleware pipeline
-app.UseMiddleware<RequestLoggingMiddleware>();
-app.UseMiddleware<ErrorHandlerMiddleware>();
-
-// Endpoints
-app.MapQuizEndpoints();
-app.MapAiServiceEndpoints();
-app.MapSubmissionEndpoints();
-
-// Development configuration
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseCors("AllowReactApp");
+ConfigurePipeline(app);
 
 app.Logger.LogInformation("The web api is now running!");
 

@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 
 services:
   wikiquizgenerator.api:
@@ -8,30 +8,26 @@ services:
       dockerfile: src/WikiQuizGenerator.Api/Dockerfile
     ports:
       - "5543:80"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=db;Database=WikiQuizGenerator;Username=postgres;Password=YourStrongPassword!
-      - ASPNETCORE_HTTP_PORTS=80 # this fixes annoying warning
-    depends_on:
+    env_file:
+      - .env
+    depends_on: 
       db:
         condition: service_healthy
+
   db:
-    image: postgres:latest
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=YourStrongPassword!
-      - POSTGRES_DB=WikiQuizGenerator
+    image: postgres:17
+    env_file:
+      - .env
     ports:
       - "5542:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 volumes:
   db-data:

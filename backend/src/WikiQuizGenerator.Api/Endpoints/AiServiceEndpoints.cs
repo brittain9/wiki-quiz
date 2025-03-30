@@ -6,8 +6,11 @@ public static class AiServiceEndpoints
 {
     public static void MapAiServiceEndpoints(this WebApplication app)
     {
+        var group = app.MapGroup("/api/ai")
+                       .WithTags("AI");
+
         // Endpoint for getting available AI services
-        app.MapGet("/getAiServices", (IAiServiceManager aiServiceManager)
+        group.MapGet("/getAiServices", (IAiServiceManager aiServiceManager)
             => Results.Ok(aiServiceManager.GetAvailableAiServices()))
         .WithName("GetAiServices")
         .WithOpenApi(operation =>
@@ -17,7 +20,7 @@ public static class AiServiceEndpoints
         });
 
         // Endpoint for getting models based on AI service ID
-        app.MapGet("/getModels", (IAiServiceManager aiServiceManager, int? aiServiceId)
+        group.MapGet("/getModels", (IAiServiceManager aiServiceManager, int? aiServiceId)
             => Results.Ok(aiServiceManager.GetModels(aiServiceId)))
         .WithName("GetModels")
         .WithOpenApi(operation =>

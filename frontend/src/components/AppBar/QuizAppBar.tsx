@@ -13,6 +13,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import ToggleColorMode from './ToggleColorMode';
 import LanguageToggle from './LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
+import LoginButton from '../Auth/LoginButton';
 import { useTranslation } from 'react-i18next';
 
 interface AppBarProps {
@@ -146,6 +147,7 @@ const QuizAppBar: React.FC<AppBarProps> = ({
               mode={mode}
               toggleColorMode={toggleColorMode}
             />
+            <LoginButton />
           </Box>
           <Box sx={{ display: { sm: 'flex', md: 'none' } }}>
             <IconButton aria-label="Menu button" onClick={toggleDrawer(true)} color="primary">
@@ -168,6 +170,9 @@ const QuizAppBar: React.FC<AppBarProps> = ({
                 <Divider sx={{ my: 2 }} />
                 <MenuItem onClick={() => scrollToSection('highlights')}>
                   {t('appBar.highlights')}
+                </MenuItem>
+                <MenuItem>
+                  <LoginButton />
                 </MenuItem>
               </Box>
             </Drawer>

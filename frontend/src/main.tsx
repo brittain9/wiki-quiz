@@ -8,17 +8,20 @@ import App from './App';
 import { QuizOptionsProvider } from './context/QuizOptionsContext';
 import { QuizStateProvider } from './context/QuizStateContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <CssBaseline />
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
-        <QuizOptionsProvider>
-          <QuizStateProvider>
-            <App />
-          </QuizStateProvider>
-        </QuizOptionsProvider>
+        <AuthProvider>
+          <QuizOptionsProvider>
+            <QuizStateProvider>
+              <App />
+            </QuizStateProvider>
+          </QuizOptionsProvider>
+        </AuthProvider>
       </ThemeProvider>
     </I18nextProvider>
   </React.StrictMode>

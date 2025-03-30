@@ -1,10 +1,10 @@
 import axios from 'axios';
+import apiClient from './apiClient';
 import { Quiz } from '../types/quiz.types';
 import { QuizSubmission, SubmissionDetail, SubmissionResponse } from '../types/quizSubmission.types';
 import { QuizResult } from '../types/quizResult.types';
-import { QuizOptions, useGlobalQuiz } from '../context/QuizOptionsContext';
 
-const API_BASE_URL = 'http://localhost:5543';
+const API_BASE_URL = 'http://localhost:5543/api';
 
 export interface BasicQuizParams {
   topic: string;
@@ -19,7 +19,15 @@ export interface BasicQuizParams {
 const api = {
 
   getBasicQuiz: async (
-    quizOptions: QuizOptions,
+    quizOptions: {
+      topic: string;
+      selectedService: number | null;
+      selectedModel: number | null;
+      language?: string;
+      numQuestions?: number;
+      numOptions?: number;
+      extractLength?: number;
+    },
   ): Promise<Quiz> => {
     
     try {
@@ -33,7 +41,7 @@ const api = {
         extractLength: quizOptions.extractLength,
       };
 
-      const { data: quiz } = await axios.get<Quiz>(`${API_BASE_URL}/basicquiz`, { params });
+      const { data: quiz } = await axios.get<Quiz>(`${API_BASE_URL}/quiz/basicquiz`, { params });
 
       return quiz;
     } 
@@ -54,7 +62,7 @@ const api = {
 
   postQuiz: async (submission: QuizSubmission): Promise<SubmissionResponse> => {
     try {
-      const response = await axios.post<SubmissionResponse>(`${API_BASE_URL}/submitquiz`, submission);
+      const response = await apiClient.post<SubmissionResponse>('/quiz/submitquiz', submission);
       return response.data;
     }
     catch (error) {
@@ -71,7 +79,7 @@ const api = {
 
   getAiServices: async (): Promise<Record<number, string>> => {
     try {
-      const response = await axios.get<Record<number, string>>(`${API_BASE_URL}/getAiServices`);
+      const response = await axios.get<Record<number, string>>(`${API_BASE_URL}/ai/getAiServices`);
       return response.data;
     } catch (error) {
       console.error('Error fetching AI services:', error);
@@ -81,7 +89,7 @@ const api = {
 
   getAiModels: async (serviceId: number): Promise<Record<number, string>> => {
     try {
-      const response = await axios.get<Record<number, string>>(`${API_BASE_URL}/getModels`, {
+      const response = await axios.get<Record<number, string>>(`${API_BASE_URL}/ai/getModels`, {
         params: { aiServiceId: serviceId }
       });
       return response.data;
@@ -93,7 +101,7 @@ const api = {
 
   getRecentSubmissions: async (): Promise<SubmissionResponse[]> => {
     try {
-      const response = await axios.get<SubmissionResponse[]>(`${API_BASE_URL}/quizsubmission/recent`);
+      const response = await apiClient.get<SubmissionResponse[]>('/submission/quizsubmission/recent');
       return response.data;
     } catch (error) {
       console.error('Error fetching recent submissions:', error);
@@ -103,7 +111,7 @@ const api = {
 
   getSubmissionById: async (id: number): Promise<QuizResult> => {
     try {
-      const response = await axios.get<QuizResult>(`${API_BASE_URL}/quizsubmission/${id}`);
+      const response = await apiClient.get<QuizResult>(`/submission/quizsubmission/${id}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

@@ -14,8 +14,16 @@ public class WikiQuizDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // fluent api model configuration
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            // Ensure Email is unique
+            entity.HasIndex(e => e.Email).IsUnique();
+
+            // Index GoogleId for faster lookups
+            entity.HasIndex(e => e.GoogleId);
+        });
 
         modelBuilder.Entity<WikipediaPage>()
             .Property(e => e.LastModified)
@@ -47,7 +55,7 @@ public class WikiQuizDbContext : DbContext
             .WithOne(r => r.WikipediaPage)
             .HasForeignKey(r => r.WikipediaPageId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
         modelBuilder.Entity<Submission>()
             .HasOne(qs => qs.Quiz)
             .WithMany(q => q.QuizSubmissions)
@@ -66,11 +74,10 @@ public class WikiQuizDbContext : DbContext
                 j => j.HasKey("WikipediaCategoryId", "WikipediaPageId"));
     }
 
+    public DbSet<User> Users { get; set; }
     public DbSet<WikipediaPage> WikipediaPages { get; set; }
     public DbSet<WikipediaCategory> WikipediaCategories { get; set; }
-
     public DbSet<Submission> QuizSubmissions { get; set; }
-
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<AIResponse> AIResponses { get; set; }
     public DbSet<Question> Questions { get; set; }
