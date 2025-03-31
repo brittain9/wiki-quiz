@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Linq;
 
 using Microsoft.AspNetCore.Identity;
 using WikiQuizGenerator.Core.Exceptions;
@@ -134,8 +135,6 @@ public class AccountService : IAccountService
                         result.Errors.Select(x => x.Description))}");
             }
 
-            
-
             user = newUser;
         }
         
@@ -143,13 +142,23 @@ public class AccountService : IAccountService
             claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
             "Google");
 
-        var loginResult = await _userManager.AddLoginAsync(user, info);
+        // Check if the user already has this external login
+        var userLogins = await _userManager.GetLoginsAsync(user);
+        var existingLogin = userLogins.FirstOrDefault(l => 
+            l.LoginProvider == info.LoginProvider && 
+            l.ProviderKey == info.ProviderKey);
             
-        if (!loginResult.Succeeded)
+        // Only add the login if it doesn't already exist
+        if (existingLogin == null)
         {
-            throw new ExternalLoginProviderException("Google",
-                $"Unable to login user: {string.Join(", ",
-                    loginResult.Errors.Select(x => x.Description))}");
+            var loginResult = await _userManager.AddLoginAsync(user, info);
+                
+            if (!loginResult.Succeeded)
+            {
+                throw new ExternalLoginProviderException("Google",
+                    $"Unable to login user: {string.Join(", ",
+                        loginResult.Errors.Select(x => x.Description))}");
+            }
         }
         
         var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
