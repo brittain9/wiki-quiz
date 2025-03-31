@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   wikiquizgenerator.api:
@@ -10,7 +10,9 @@ services:
       - "5543:80"
     env_file:
       - .env
-    depends_on: 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
       db:
         condition: service_healthy
 

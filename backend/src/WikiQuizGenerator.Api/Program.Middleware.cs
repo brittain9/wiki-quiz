@@ -1,17 +1,29 @@
 ﻿using WikiQuizGenerator.Api;
 using WikiQuizGenerator.Api.Endpoints;
 using WikiQuizGenerator.Middleware;
+using Microsoft.AspNetCore.HttpOverrides;
 
 public partial class Program
 {
     private static void ConfigurePipeline(WebApplication app)
     {
+        // Configure forwarded headers if behind a proxy
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+        });
+
         app.UseCors("AllowReactApp"); // Use CORS policy (BEFORE Authentication/Authorization)
 
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ErrorHandlerMiddleware>();
 
-        // app.UseHttpsRedirection();
+        // Only use HTTPS redirection in Production
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+            app.UseHsts();
+        }
 
         app.UseRouting();
 
@@ -29,11 +41,6 @@ public partial class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
-        }
-        else
-        {
-            // Optional: Add HSTS for production later
-            // app.UseHsts();
         }
     }
 }

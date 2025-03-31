@@ -1,31 +1,87 @@
-# Wikipedia Quiz Generator
+# Wiki Quiz
 
-A Cutting-edge application that leverages AI and Wikipedia to create engaging, topic-specific quizzes.
+An interactive quiz application that lets users test their knowledge on topics sourced from Wikipedia.
 
-## Features:
-- Dynamic quiz generation powered by Semantic Kernel prompt templates
-- Multilingual support (English, Spanish, French, Japanese, Chinese, and more)
-- Intelligent search functionality for precise topic targeting
-- Seamless integration with leading AI APIs (OpenAI and Perplexity)
-- ASP.NET Core minimal api for quiz generation and submission
+## Project Structure
 
-## Architecture
+The project is organized into frontend and backend directories:
+
+```
+wiki-quiz/
+├── frontend/           # React frontend application
+│   ├── src/
+│   │   ├── components/ # UI components
+│   │   ├── context/    # React context providers
+│   │   ├── hooks/      # Custom React hooks
+│   │   ├── pages/      # Page components
+│   │   ├── services/   # API client and services
+│   │   ├── types/      # TypeScript type definitions
+│   │   └── utils/      # Utility functions
+└── backend/            # Node.js backend application
+```
+
+## Features
+
+- User authentication with Google OAuth
+- Quiz generation from Wikipedia articles
+- Multiple-choice questions with explanations
+- Score tracking and history
+- Responsive design for mobile and desktop
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js (v18+)
+- npm or yarn
+
 ### Frontend
-- React with TypeScript
-- Material-UI component library
-- Vite as the build tool and development server
- 
-### Backend
-- .NET 8 development framework
-- ASP.NET Core minimal API
-- Integration with Wikipedia API
-- AI integration using Microsoft Semantic Kernel
-- PostgreSQL database with Entity Framework Core
-- Containerized using Docker
 
-## Roadmap:
-- Enhance frontend user experience and design
-- Expand prompt templates for diverse languages, difficulty levels, and themes
-- More methods for quiz generation using links and categories
-- Add logic to handle Wikipedia disambiguation pages: https://en.wikipedia.org/wiki/Category:Disambiguation_pages
-- Add instruction to prompt to make sure the answer choices are spread evenly
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### Backend
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+## Authentication
+
+The application uses Google OAuth for authentication. Users can:
+
+- Sign in with their Google account
+- View their quiz history
+- Create custom quizzes
+
+## Logging
+
+The application includes a comprehensive logging system:
+
+- Client-side logging of user interactions
+- Authentication event logging
+- API request/response logging
+- Navigation tracking
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

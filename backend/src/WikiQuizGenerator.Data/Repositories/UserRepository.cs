@@ -19,4 +19,9 @@ public class UserRepository : IUserRepository
 
         return user;
     }
+
+    public async Task<User?> GetUserByIdAsync(Guid userId)
+    {
+        return await _applicationDbContext.Users.FindAsync(userId);
+    }
 }

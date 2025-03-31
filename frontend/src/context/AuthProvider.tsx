@@ -1,4 +1,5 @@
 // frontend/src/context/AuthProvider.tsx
+import { AxiosError } from 'axios';
 import React, {
   createContext,
   useContext,
@@ -9,26 +10,11 @@ import React, {
   useMemo,
 } from 'react';
 
-const API_BASE_URL = 'http://localhost:5543';
-const APP_BASE_URL = 'http://localhost:5173';
+import { authApi } from '../services';
+import { AuthContext as AuthContextType, UserInfo } from '../types/auth';
+import { logAuth, logError } from '../utils/logger';
 
-interface UserInfo {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}
-
-interface AuthContextType {
-  isLoggedIn: boolean;
-  isChecking: boolean;
-  userInfo: UserInfo | null;
-  error: string | null;
-  loginWithGoogle: () => void;
-  logout: () => Promise<void>;
-  clearError: () => void;
-}
-
+// Create context with undefined initial value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
@@ -37,96 +23,132 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [isChecking, setIsChecking] = useState<boolean>(true); // Start checking on load
+  const [isChecking, setIsChecking] = useState<boolean>(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
 
+  // Check if user is logged in by fetching their profile
   const checkLoginStatus = useCallback(async () => {
+    logAuth('Checking login status');
     try {
-      // Use 'no-cache' to ensure freshness, backend should also set appropriate headers
-      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        credentials: 'include', // Important for sending cookies
-        headers: {
-          'Cache-Control': 'no-cache',
-          Pragma: 'no-cache',
-        },
+      // Log cookie information for debugging
+      logAuth('Cookies present', {
+        cookiesLength: document.cookie.length > 0,
+        cookiesParsed: document.cookie
+          .split('; ')
+          .map((c) => c.split('=')[0])
+          .join(', '),
       });
 
-      if (response.ok) {
-        const userData: UserInfo = await response.json();
-        setUserInfo(userData);
-        setIsLoggedIn(true);
-        setError(null); // Clear any previous errors on successful login check
-      } else {
-        // Consider checking response.status for specific handling (e.g., 401 Unauthorized)
-        setIsLoggedIn(false);
-        setUserInfo(null);
-      }
+      // Use the authApi to get the current user
+      const userData = await authApi.getCurrentUser();
+
+      logAuth('User authenticated successfully', {
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+      });
+
+      setUserInfo(userData);
+      setIsLoggedIn(true);
+      setError(null);
     } catch (err) {
-      console.error('Failed to check login status:', err);
+      const axiosError = err as AxiosError;
+      // Don't treat 401 as an error - it just means user isn't logged in
+      if (axiosError.response?.status !== 401) {
+        logError('Failed to check login status', err);
+      } else {
+        logAuth('User not authenticated', { status: 401 });
+      }
+
       setIsLoggedIn(false);
       setUserInfo(null);
     } finally {
-      setIsChecking(false); // Finished checking
+      setIsChecking(false);
     }
   }, []);
 
-  // Effect to run on initial mount and handle post-redirect logic
+  // Effect to run on mount and handle authentication redirects
   useEffect(() => {
-    setIsChecking(true); // Ensure we are in checking state initially
+    logAuth('AuthProvider mounted, initializing auth check');
+    setIsChecking(true);
+
     const params = new URLSearchParams(window.location.search);
     const errorParam = params.get('error');
+    const fromAuthParam = params.get('fromAuth');
+
+    if (fromAuthParam === 'true') {
+      logAuth('Redirected from authentication flow', {
+        url: window.location.href,
+        params: Object.fromEntries([...params.entries()]),
+      });
+    }
 
     if (errorParam) {
       // Handle specific errors passed back from backend redirect
-      setError(
+      const errorMessage =
         errorParam === 'email_exists_different_provider'
           ? 'An account with this email already exists using a different sign-in method.'
-          : 'Authentication failed. Please try again.',
-      );
-      // Clean the URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setIsChecking(false); // Stop checking if we found an error param
-    } else {
-      // No error param, proceed to check login status normally
-      checkLoginStatus();
-    }
-  }, [checkLoginStatus]); // checkLoginStatus as dependency
+          : 'Authentication failed. Please try again.';
 
-  // Redirects user to backend Google login endpoint
-  const loginWithGoogle = useCallback(() => {
-    setError(null); // Clear errors before attempting login
-    // Add timestamp or state param for potential CSRF mitigation if backend supports it
-    const timestamp = new Date().getTime();
-    const returnUrl = encodeURIComponent(`${APP_BASE_URL}`); // No need for query params like fromAuth=true now
-    window.location.href = `${API_BASE_URL}/api/auth/login/google?returnUrl=${returnUrl}&t=${timestamp}`;
-  }, []);
-
-  // Calls backend logout endpoint and updates state
-  const logout = useCallback(async () => {
-    setError(null); // Clear previous errors
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
+      logAuth('Authentication error from redirect', {
+        errorParam,
+        errorMessage,
       });
 
-      if (!response.ok) {
-        throw new Error('Logout request failed');
-      }
+      setError(errorMessage);
+      // Clean the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setIsChecking(false);
+    } else {
+      // No error param, proceed with normal login check
+      checkLoginStatus();
+    }
+  }, [checkLoginStatus]);
 
-      // If logout succeeded on backend (which clears HttpOnly cookie), update frontend state
+  // Initialize Google OAuth login flow
+  const loginWithGoogle = useCallback(() => {
+    logAuth('Initiating Google login');
+    setError(null);
+
+    authApi.initiateGoogleLogin().catch((err) => {
+      logError('Failed to initiate Google login', err);
+      setError('Unable to start Google authentication. Please try again.');
+    });
+  }, []);
+
+  // Log out the current user
+  const logout = useCallback(async () => {
+    logAuth('Initiating logout');
+    setError(null);
+
+    try {
+      await authApi.logout();
+
+      // Update local state
+      logAuth('Logout successful, clearing user state');
       setUserInfo(null);
       setIsLoggedIn(false);
+
+      // Log cookies after logout for debugging
+      setTimeout(() => {
+        logAuth('Cookies after logout', {
+          cookiesLength: document.cookie.length > 0,
+          cookiesParsed: document.cookie
+            .split('; ')
+            .map((c) => c.split('=')[0])
+            .join(', '),
+        });
+      }, 100);
     } catch (err) {
-      console.error('Logout failed:', err);
+      logError('Logout failed', err);
       setError('Failed to log out. Please try again.');
     }
   }, []);
 
-  // Memoize context value to prevent unnecessary re-renders of consumers
+  // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({
       isLoggedIn,
@@ -153,6 +175,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
+// Custom hook to use the auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

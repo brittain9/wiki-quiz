@@ -1,7 +1,8 @@
-// index.ts - Export all API services
-export * from './quizApi';
-export * from './submissionApi';
-export * from './wikiApi';
+// Export all API services
+export { authApi } from './authApi';
+export { quizApi } from './quizApi';
+export { submissionApi } from './submissionApi';
+export { wikiApi } from './wikiApi';
 
-// Also export helper functions
+// Export utility functions
 export * from './utils';

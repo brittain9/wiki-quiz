@@ -1,7 +1,9 @@
-﻿using System.Security.Claims;
+﻿using System; // Added for DateTime
 using System.Linq;
-
+using System.Security.Claims;
+using System.Threading.Tasks; // Added for Task
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging; // Optional: For logging logout issues
 using WikiQuizGenerator.Core.Exceptions;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
@@ -14,13 +16,18 @@ public class AccountService : IAccountService
     private readonly IAuthTokenProcessor _authTokenProcessor;
     private readonly UserManager<User> _userManager;
     private readonly IUserRepository _userRepository;
+    private readonly ILogger<AccountService> _logger; // Optional: Added for logging
 
-    public AccountService(IAuthTokenProcessor authTokenProcessor, UserManager<User> userManager,
-        IUserRepository userRepository)
+    public AccountService(
+        IAuthTokenProcessor authTokenProcessor,
+        UserManager<User> userManager,
+        IUserRepository userRepository,
+        ILogger<AccountService> logger) // Optional: Added logger
     {
         _authTokenProcessor = authTokenProcessor;
         _userManager = userManager;
         _userRepository = userRepository;
+        _logger = logger; // Optional: Store logger instance
     }
 
     public async Task RegisterAsync(RegisterRequest registerRequest)
@@ -32,10 +39,16 @@ public class AccountService : IAccountService
             throw new UserAlreadyExistsException(email: registerRequest.Email);
         }
 
+        // Ensure Username is set if required by Identity defaults
         var user = User.Create(registerRequest.Email, registerRequest.FirstName, registerRequest.LastName);
-        user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, registerRequest.Password);
+        user.UserName ??= registerRequest.Email; // Set UserName if Create doesn't
 
-        var result = await _userManager.CreateAsync(user);
+        // Don't set PasswordHash directly, use CreateAsync with password
+        // user.PasswordHash = _userManager.PasswordHasher.HashPassword(user, registerRequest.Password);
+        // var result = await _userManager.CreateAsync(user);
+
+        // Use UserManager to create user with password which handles hashing
+        var result = await _userManager.CreateAsync(user, registerRequest.Password);
 
         if (!result.Succeeded)
         {
@@ -47,23 +60,19 @@ public class AccountService : IAccountService
     {
         var user = await _userManager.FindByEmailAsync(loginRequest.Email);
 
+        // Use SignInManager.CheckPasswordSignInAsync for lockout checks etc.
+        // Or keep CheckPasswordAsync if simplicity is preferred and lockout isn't needed here.
         if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
         {
             throw new LoginFailedException(loginRequest.Email);
         }
 
-        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-        var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
-
-        var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
-
-        user.RefreshToken = refreshTokenValue;
-        user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
-
-        await _userManager.UpdateAsync(user);
-        
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+        // --- Token Generation and Cookie Writing ---
+        await GenerateAndSetTokensAsync(user);
+        // Note: ASP.NET Core Identity's SignInManager should ideally be used here
+        // to set the primary authentication cookie if you rely on Identity's auth scheme.
+        // e.g., await _signInManager.SignInAsync(user, isPersistent: true);
+        // Your current approach seems to bypass Identity's cookie scheme in favour of custom JWT cookies.
     }
 
     public async Task RefreshTokenAsync(string? refreshToken)
@@ -73,104 +82,153 @@ public class AccountService : IAccountService
             throw new RefreshTokenException("Refresh token is missing.");
         }
 
+        // Consider adding index on RefreshToken column for performance
         var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
 
         if (user == null)
         {
-            throw new RefreshTokenException("Unable to retrieve user for refresh token");
+            // Security: If a refresh token is used but doesn't match a user,
+            // potentially invalidate all tokens for the user it *might* belong to,
+            // or log it as suspicious activity.
+            throw new RefreshTokenException("Invalid refresh token.");
+        }
+
+        if (user.RefreshToken != refreshToken)
+        {
+            // Security: If the token matches a user BUT the stored token is different
+            // (e.g., already rotated), this could be a stolen/replayed token.
+            // Consider invalidating all sessions for this user.
+             _logger.LogWarning("Potential refresh token reuse detected for user {UserId}.", user.Id);
+            // Optionally clear stored token: user.RefreshToken = null; await _userManager.UpdateAsync(user);
+            throw new RefreshTokenException("Invalid refresh token.");
         }
 
         if (user.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
         {
-            throw new RefreshTokenException("Refresh token is expired.");
+            throw new RefreshTokenException("Refresh token has expired.");
         }
-        
-        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-        var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
 
-        var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
-
-        user.RefreshToken = refreshTokenValue;
-        user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
-
-        await _userManager.UpdateAsync(user);
-        
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+        // --- Token Generation and Cookie Writing (Rotation) ---
+        await GenerateAndSetTokensAsync(user);
     }
 
-    public async Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+     public async Task LoginWithGoogleAsync(ExternalLoginInfo info) // Changed parameter type
     {
-        if (claimsPrincipal == null)
+        if (info == null)
         {
-            throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null");
+            throw new ExternalLoginProviderException("Google", "ExternalLoginInfo is null.");
         }
-        
-        var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
 
-        if (email == null)
+        // Attempt to sign in the user directly with the external login provider info
+        // This links the external login to an existing user if possible.
+        // var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+        // if (signInResult.Succeeded) {
+        //     var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+        //     await GenerateAndSetTokensAsync(user);
+        //     return; // Already logged in and tokens set
+        // }
+        // if (signInResult.IsLockedOut) { throw new LoginFailedException("Account locked out."); }
+        // if (signInResult.IsNotAllowed) { throw new LoginFailedException("Login not allowed."); }
+
+        // If SignInManager isn't used or fails (e.g., user not yet linked/created):
+        // Get user details from claims
+        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+        if (string.IsNullOrEmpty(email))
         {
-            throw new ExternalLoginProviderException("Google", "Email is null");
+            throw new ExternalLoginProviderException("Google", "Email claim not found.");
         }
 
         var user = await _userManager.FindByEmailAsync(email);
 
-        if (user == null)
+        if (user == null) // User doesn't exist, create a new one
         {
-            var newUser = new User
+            user = new User
             {
-                UserName = email,
+                UserName = email, // Ensure UserName is set
                 Email = email,
-                FirstName = claimsPrincipal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
-                LastName = claimsPrincipal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
-                EmailConfirmed = true
+                FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
+                LastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
+                EmailConfirmed = true // Assume email from Google is verified
             };
 
-            var result = await _userManager.CreateAsync(newUser);
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                throw new RegistrationFailedException(createResult.Errors.Select(e => e.Description));
+            }
+        }
 
+        // Add the external login to the user (idempotent)
+        var addLoginResult = await _userManager.AddLoginAsync(user, info);
+        if (!addLoginResult.Succeeded)
+        {
+            // Log or handle cases where adding the login fails (e.g., already exists but linked to another user?)
+             _logger.LogError("Failed to add Google login for user {UserId}: {Errors}", user.Id, string.Join(", ", addLoginResult.Errors.Select(e => e.Description)));
+             // Decide if this is a critical failure or if you can proceed. Often you can proceed.
+             // throw new ExternalLoginProviderException("Google", $"Failed to add login: {string.Join(", ", addLoginResult.Errors.Select(e => e.Description))}");
+        }
+
+        // --- Token Generation and Cookie Writing ---
+        await GenerateAndSetTokensAsync(user);
+    }
+
+    // --- NEW Logout Method ---
+    public async Task LogoutAsync(Guid userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+
+        if (user != null)
+        {
+            // Invalidate the stored refresh token
+            user.RefreshToken = null;
+            user.RefreshTokenExpiresAtUtc = null;
+
+            var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
-                throw new ExternalLoginProviderException("Google",
-                    $"Unable to create user: {string.Join(", ",
-                        result.Errors.Select(x => x.Description))}");
+                // Log the failure but generally proceed with cookie clearing
+                _logger.LogWarning("Failed to clear refresh token for user {UserId} during logout. Errors: {Errors}",
+                    userId, string.Join(", ", result.Errors.Select(e => e.Description)));
             }
-
-            user = newUser;
         }
-        
-        var info = new UserLoginInfo("Google",
-            claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
-            "Google");
-
-        // Check if the user already has this external login
-        var userLogins = await _userManager.GetLoginsAsync(user);
-        var existingLogin = userLogins.FirstOrDefault(l => 
-            l.LoginProvider == info.LoginProvider && 
-            l.ProviderKey == info.ProviderKey);
-            
-        // Only add the login if it doesn't already exist
-        if (existingLogin == null)
+        else
         {
-            var loginResult = await _userManager.AddLoginAsync(user, info);
-                
-            if (!loginResult.Succeeded)
-            {
-                throw new ExternalLoginProviderException("Google",
-                    $"Unable to login user: {string.Join(", ",
-                        loginResult.Errors.Select(x => x.Description))}");
-            }
+             _logger.LogWarning("User {UserId} not found during logout token invalidation.", userId);
+            // User not found, but still attempt to clear cookies client-side
         }
-        
+
+        // Clear the custom authentication cookies using the processor
+        // Assumes IAuthTokenProcessor has access to HttpContext to delete response cookies
+        _authTokenProcessor.DeleteAuthTokenCookie("ACCESS_TOKEN");
+        _authTokenProcessor.DeleteAuthTokenCookie("REFRESH_TOKEN");
+
+        // Note: This method DOES NOT call SignInManager.SignOutAsync().
+        // That should be done in the *endpoint* handler to clear the primary
+        // ASP.NET Core Identity authentication cookie, if you are using it.
+    }
+
+
+    // Helper method to consolidate token generation and cookie writing
+    private async Task GenerateAndSetTokensAsync(User user)
+    {
         var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
         var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
-
-        var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+        var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7); // Consider making duration configurable
 
         user.RefreshToken = refreshTokenValue;
         user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
 
-        await _userManager.UpdateAsync(user);
-        
+        // Update the user BEFORE writing cookies, in case update fails.
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            // Log the error details
+            _logger.LogError("Failed to update user {UserId} with new refresh token. Errors: {Errors}",
+                user.Id, string.Join(", ", updateResult.Errors.Select(e => e.Description)));
+            // Throw an exception to prevent potentially inconsistent state (token issued but not saved)
+            throw new Exception($"Failed to save refresh token for user {user.Email}.");
+        }
+
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
     }

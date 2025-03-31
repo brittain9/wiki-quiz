@@ -38,8 +38,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 # Run as non-root user
 USER app
 WORKDIR /app
-# Ensure this matches the port ASP.NET Core listens on (usually 80 or 8080)
-EXPOSE 80 
+# Expose HTTP port
+EXPOSE 80
 
 # Copy only the published artifacts from the 'publish' stage
 COPY --from=publish /app/publish .

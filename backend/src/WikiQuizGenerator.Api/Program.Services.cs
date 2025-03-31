@@ -63,55 +63,88 @@ public partial class Program
         services.AddSingleton<IQuestionGeneratorFactory, QuestionGeneratorFactory>();
         services.AddTransient<IQuizGenerator, QuizGenerator>();
 
-        services.AddAuthentication(opt =>
+        // Configure Authentication with a combined scheme
+        services.AddAuthentication(options =>
         {
-            opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-        }).AddCookie().AddGoogle(options =>
+            // Default scheme for general authentication
+            options.DefaultAuthenticateScheme = "ApplicationScheme";
+            options.DefaultChallengeScheme = "ApplicationScheme";
+            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        })
+        // Add Cookie authentication
+        .AddCookie(options =>
         {
-        var clientId = configuration["Authentication:Google:ClientId"];
+            options.Cookie.SameSite = SameSiteMode.Lax; // Use Lax for development
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow non-HTTPS in development
+            options.Cookie.HttpOnly = true;
+            options.ExpireTimeSpan = TimeSpan.FromHours(1);
+        })
+        // Add Google Authentication
+        .AddGoogle(options =>
+        {
+            var clientId = configuration["Authentication:Google:ClientId"];
+            var clientSecret = configuration["Authentication:Google:ClientSecret"];
 
-        if (clientId == null)
-        {
-            throw new ArgumentNullException(nameof(clientId));
-        }
-        
-        var clientSecret = configuration["Authentication:Google:ClientSecret"];
-    
-        if (clientSecret == null)
-        {
-            throw new ArgumentNullException(nameof(clientSecret));
-        }
-
-        options.ClientId = clientId;
-        options.ClientSecret = clientSecret;
-        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-        }).AddJwtBearer(options =>
-        {
-        var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey)
-            .Get<JwtOptions>() ?? throw new ArgumentException(nameof(JwtOptions));
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOptions.Issuer,
-            ValidAudience = jwtOptions.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret))
-        };    
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
             {
-                context.Token = context.Request.Cookies["ACCESS_TOKEN"];
-                return Task.CompletedTask;
+                throw new ArgumentException("Google OAuth credentials are missing");
             }
-        };
-    });
+
+            options.ClientId = clientId;
+            options.ClientSecret = clientSecret;
+            options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        })
+        // Add JWT Bearer
+        .AddJwtBearer(options =>
+        {
+            var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey)
+                .Get<JwtOptions>() ?? throw new ArgumentException(nameof(JwtOptions));
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret))
+            };
+            
+            // Allow HTTP in development
+            options.RequireHttpsMetadata = false;
+            
+            // Cookie handling
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    context.Token = context.Request.Cookies["ACCESS_TOKEN"];
+                    Console.WriteLine($"OnMessageReceived: Token found: {context.Token != null}");
+                    return Task.CompletedTask;
+                },
+                OnAuthenticationFailed = context =>
+                {
+                    Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                    return Task.CompletedTask;
+                }
+            };
+        })
+        // Add a composite scheme that tries both JWT and Cookie
+        .AddPolicyScheme("ApplicationScheme", "JWT or Cookie", options =>
+        {
+            options.ForwardDefaultSelector = context =>
+            {
+                // Check if the request has the access token cookie
+                if (context.Request.Cookies.ContainsKey("ACCESS_TOKEN"))
+                {
+                    return JwtBearerDefaults.AuthenticationScheme;
+                }
+                
+                // Otherwise use cookie authentication
+                return CookieAuthenticationDefaults.AuthenticationScheme;
+            };
+        });
 
         services.AddAuthorization();
         services.AddHttpContextAccessor();
