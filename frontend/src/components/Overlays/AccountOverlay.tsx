@@ -1,3 +1,5 @@
+import CloseIcon from '@mui/icons-material/Close';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Fade from '@mui/material/Fade';
@@ -5,29 +7,33 @@ import IconButton from '@mui/material/IconButton';
 import Modal from '@mui/material/Modal';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import Avatar from '@mui/material/Avatar';
-import CloseIcon from '@mui/icons-material/Close';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../context/AuthProvider';
+import { useCustomTheme } from '../../context/CustomThemeContext';
 import { useOverlay } from '../../context/OverlayContext';
 
 const AccountOverlay: React.FC = () => {
   const { userInfo } = useAuth();
   const { currentOverlay, hideOverlay } = useOverlay();
   const { t } = useTranslation();
+  const { currentTheme } = useCustomTheme();
 
   const isOpen = currentOverlay === 'account';
 
   // Calculate the avatar initials from first and last name
   const getInitials = () => {
     if (!userInfo) return '?';
-    
+
     const firstName = userInfo.firstName || '';
     const lastName = userInfo.lastName || '';
-    
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || firstName.charAt(0).toUpperCase() || '?';
+
+    return (
+      `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() ||
+      firstName.charAt(0).toUpperCase() ||
+      '?'
+    );
   };
 
   if (!userInfo) {
@@ -40,6 +46,7 @@ const AccountOverlay: React.FC = () => {
       onClose={hideOverlay}
       closeAfterTransition
       aria-labelledby="account-modal-title"
+      className={`theme-${currentTheme}`}
     >
       <Fade in={isOpen}>
         <Box
@@ -50,12 +57,13 @@ const AccountOverlay: React.FC = () => {
             transform: 'translate(-50%, -50%)',
             width: { xs: '90%', sm: 500 },
             maxWidth: 500,
-            bgcolor: 'background.paper',
+            bgcolor: 'var(--bg-color)',
             borderRadius: 2,
             boxShadow: 24,
             p: 0,
             outline: 'none',
           }}
+          className={`theme-${currentTheme}`}
         >
           <Paper
             elevation={0}
@@ -64,6 +72,8 @@ const AccountOverlay: React.FC = () => {
               p: 0,
               borderRadius: 2,
               overflow: 'hidden',
+              backgroundColor: 'var(--bg-color)',
+              color: 'var(--text-color)',
             }}
           >
             <IconButton
@@ -78,6 +88,7 @@ const AccountOverlay: React.FC = () => {
                 '&:hover': {
                   bgcolor: 'rgba(0,0,0,0.4)',
                 },
+                zIndex: 10,
               }}
             >
               <CloseIcon />
@@ -87,8 +98,9 @@ const AccountOverlay: React.FC = () => {
             <Box
               sx={{
                 p: 5,
-                background: 'linear-gradient(120deg, primary.main, primary.dark)',
-                color: 'white',
+                background:
+                  'linear-gradient(120deg, var(--main-color), var(--caret-color))',
+                color: 'var(--bg-color)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -107,8 +119,8 @@ const AccountOverlay: React.FC = () => {
                     height: 120,
                     mb: 3,
                     fontSize: '3rem',
-                    bgcolor: 'primary.light',
-                    color: 'white',
+                    bgcolor: 'var(--main-color-light)',
+                    color: 'var(--bg-color)',
                     boxShadow: 2,
                   }}
                 >
@@ -125,13 +137,24 @@ const AccountOverlay: React.FC = () => {
 
             {/* Footer */}
             <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 2, color: 'var(--sub-color)' }}
+              >
                 {t('account.profileMessage')}
               </Typography>
               <Button
                 variant="outlined"
                 onClick={hideOverlay}
-                sx={{ minWidth: 120 }}
+                sx={{
+                  minWidth: 120,
+                  borderColor: 'var(--main-color)',
+                  color: 'var(--main-color)',
+                  '&:hover': {
+                    borderColor: 'var(--caret-color)',
+                    backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                  },
+                }}
               >
                 {t('button.close')}
               </Button>
@@ -143,4 +166,4 @@ const AccountOverlay: React.FC = () => {
   );
 };
 
-export default AccountOverlay; 
+export default AccountOverlay;

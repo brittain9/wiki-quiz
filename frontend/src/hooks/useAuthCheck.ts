@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 import { useAuth } from '../context/AuthProvider';
 import { useOverlay } from '../context/OverlayContext';
@@ -8,7 +8,7 @@ interface UseAuthCheckOptions {
    * Custom message to show in the login dialog
    */
   message?: string;
-  
+
   /**
    * Callback to run after successful authentication
    */
@@ -21,7 +21,7 @@ interface UseAuthCheckOptions {
  */
 export default function useAuthCheck(options: UseAuthCheckOptions = {}) {
   const { isLoggedIn, isChecking } = useAuth();
-  const { showOverlay, setOverlayProps } = useOverlay();
+  const { showOverlay } = useOverlay();
   const [lastCheckResult, setLastCheckResult] = useState<boolean | null>(null);
 
   // Check authentication and show login overlay if needed
@@ -33,18 +33,17 @@ export default function useAuthCheck(options: UseAuthCheckOptions = {}) {
 
     if (!isLoggedIn) {
       // Show login overlay with custom props
-      setOverlayProps({
+      showOverlay('login', {
         message: options.message,
         onSuccess: options.onAuthSuccess,
       });
-      showOverlay('login');
       setLastCheckResult(false);
       return false;
     }
-    
+
     setLastCheckResult(true);
     return true;
-  }, [isLoggedIn, isChecking, showOverlay, setOverlayProps, options]);
+  }, [isLoggedIn, isChecking, showOverlay, options]);
 
   return {
     checkAuth,
@@ -52,4 +51,4 @@ export default function useAuthCheck(options: UseAuthCheckOptions = {}) {
     isChecking,
     lastCheckResult,
   };
-} 
+}

@@ -68,7 +68,7 @@ export const isLocalStorageAvailable = (): boolean => {
     const result = localStorage.getItem(testKey) === testKey;
     localStorage.removeItem(testKey);
     return result;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 };

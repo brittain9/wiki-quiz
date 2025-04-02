@@ -129,9 +129,9 @@ export const apiGet = async <T>(
 /**
  * Enhanced POST request with logging
  */
-export const apiPost = async <T>(
+export const apiPost = async <T, D = unknown>(
   url: string,
-  data?: any,
+  data?: D,
   config?: AxiosRequestConfig,
 ): Promise<T> => {
   try {

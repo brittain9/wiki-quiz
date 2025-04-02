@@ -1,3 +1,5 @@
+import CloseIcon from '@mui/icons-material/Close';
+import GoogleIcon from '@mui/icons-material/Google';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -7,29 +9,30 @@ import IconButton from '@mui/material/IconButton';
 import Modal from '@mui/material/Modal';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import CloseIcon from '@mui/icons-material/Close';
-import GoogleIcon from '@mui/icons-material/Google';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../context/AuthProvider';
+import { useCustomTheme } from '../../context/CustomThemeContext';
 import { useOverlay } from '../../context/OverlayContext';
 
-interface LoginOverlayProps {
+interface _LoginOverlayProps {
   onSuccess?: () => void;
   message?: string;
 }
 
 const LoginOverlay: React.FC = () => {
   const { loginWithGoogle, error, clearError } = useAuth();
-  const { currentOverlay, hideOverlay, overlayProps } = useOverlay();
+  const { currentOverlay, hideOverlay, overlayData } = useOverlay();
   const { t } = useTranslation();
-  
-  const { onSuccess, message } = overlayProps as LoginOverlayProps;
+  const { currentTheme } = useCustomTheme();
+
+  const message = overlayData?.message || t('login.defaultMessage');
+  const onSuccess = overlayData?.onSuccess;
 
   const isOpen = currentOverlay === 'login';
 
-  const handleLoginSuccess = () => {
+  const _handleLoginSuccess = () => {
     if (onSuccess) {
       onSuccess();
     }
@@ -51,6 +54,7 @@ const LoginOverlay: React.FC = () => {
       onClose={hideOverlay}
       closeAfterTransition
       aria-labelledby="login-modal-title"
+      className={`theme-${currentTheme}`}
     >
       <Fade in={isOpen}>
         <Box
@@ -61,12 +65,13 @@ const LoginOverlay: React.FC = () => {
             transform: 'translate(-50%, -50%)',
             width: { xs: '90%', sm: 500 },
             maxWidth: 500,
-            bgcolor: 'background.paper',
+            bgcolor: 'var(--bg-color)',
             borderRadius: 2,
             boxShadow: 24,
             p: 0,
             outline: 'none',
           }}
+          className={`theme-${currentTheme}`}
         >
           <Paper
             elevation={0}
@@ -74,6 +79,8 @@ const LoginOverlay: React.FC = () => {
               position: 'relative',
               p: 4,
               borderRadius: 2,
+              backgroundColor: 'var(--bg-color)',
+              color: 'var(--text-color)',
             }}
           >
             <IconButton
@@ -83,26 +90,52 @@ const LoginOverlay: React.FC = () => {
                 position: 'absolute',
                 right: 12,
                 top: 12,
-                color: 'text.secondary',
+                color: 'var(--sub-color)',
+                '&:hover': {
+                  color: 'var(--main-color)',
+                  backgroundColor: 'var(--bg-color-secondary)',
+                },
               }}
             >
               <CloseIcon />
             </IconButton>
-            
-            <Typography component="h2" variant="h5" align="center" gutterBottom>
+
+            <Typography
+              component="h2"
+              variant="h5"
+              align="center"
+              gutterBottom
+              sx={{ color: 'var(--text-color)' }}
+            >
               {t('login.title')}
             </Typography>
-            
-            <Typography variant="body1" align="center" sx={{ mb: 3 }}>
-              {message || t('login.subtitle')}
+
+            <Typography
+              variant="body1"
+              align="center"
+              sx={{ mb: 3, color: 'var(--sub-color)' }}
+            >
+              {message}
             </Typography>
 
             {error && (
               <Box sx={{ mb: 3, width: '100%' }}>
-                <Card sx={{ bgcolor: 'error.light' }}>
+                <Card sx={{ bgcolor: 'var(--error-color-light)' }}>
                   <CardContent>
-                    <Typography color="error.dark">{error}</Typography>
-                    <Button size="small" onClick={clearError} sx={{ mt: 1 }}>
+                    <Typography sx={{ color: 'var(--error-color)' }}>
+                      {error}
+                    </Typography>
+                    <Button
+                      size="small"
+                      onClick={clearError}
+                      sx={{
+                        mt: 1,
+                        color: 'var(--error-color)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(var(--error-color-rgb), 0.1)',
+                        },
+                      }}
+                    >
                       {t('login.dismiss')}
                     </Button>
                   </CardContent>
@@ -113,11 +146,17 @@ const LoginOverlay: React.FC = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <Button
                 variant="contained"
-                color="primary"
                 size="large"
                 startIcon={<GoogleIcon />}
                 onClick={handleLogin}
-                sx={{ mt: 2 }}
+                sx={{
+                  mt: 2,
+                  backgroundColor: 'var(--main-color)',
+                  color: 'var(--bg-color)',
+                  '&:hover': {
+                    backgroundColor: 'var(--caret-color)',
+                  },
+                }}
               >
                 {t('login.loginWithGoogle')}
               </Button>
@@ -129,4 +168,4 @@ const LoginOverlay: React.FC = () => {
   );
 };
 
-export default LoginOverlay; 
+export default LoginOverlay;

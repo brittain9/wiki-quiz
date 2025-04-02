@@ -3,41 +3,25 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
-import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import React, { useEffect, useState, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import AnimatedTopics from './AnimatedTopics';
+import { useCustomTheme } from '../../context/CustomThemeContext';
 import { useQuizOptions } from '../../context/QuizOptionsContext';
 import { useQuizState } from '../../context/QuizStateContext';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { quizApi, wikiApi } from '../../services';
 
-const StyledBox = styled('div')(({ theme }) => ({
-  alignSelf: 'center',
-  width: '100%',
-  height: 400,
-  marginTop: theme.spacing(8),
-  borderRadius: theme.shape.borderRadius,
-  outline: '1px solid',
-  boxShadow: '0 0 12px 8px hsla(220, 25%, 80%, 0.2)',
-  backgroundImage: `url(${'/static/images/templates/templates-images/hero-light.png'})`,
-  outlineColor: 'hsla(220, 25%, 80%, 0.5)',
-  backgroundSize: 'cover',
-  [theme.breakpoints.up('sm')]: {
-    marginTop: theme.spacing(10),
-    height: 700,
-  },
-  ...theme.applyStyles('dark', {
-    boxShadow: '0 0 24px 12px hsla(210, 100%, 25%, 0.2)',
-    backgroundImage: `url(${'/static/images/templates/templates-images/hero-dark.png'})`,
-    outlineColor: 'hsla(210, 100%, 80%, 0.1)',
-  }),
-}));
-
-export default function Hero() {
+const Hero = React.memo(() => {
   const { quizOptions, setTopic } = useQuizOptions();
   const { setIsQuizReady, setCurrentQuiz, setIsGenerating, isGenerating } =
     useQuizState();
@@ -47,7 +31,8 @@ export default function Hero() {
   const [error, setError] = useState<string | null>(null);
   const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+  const { currentTheme } = useCustomTheme();
+
   // Use our auth check hook
   const { checkAuth } = useAuthCheck({
     message: t('login.quizCreationMessage'),
@@ -75,7 +60,7 @@ export default function Hero() {
     };
   }, []);
 
-  const handleSubmitQuiz = async () => {
+  const handleSubmitQuiz = useCallback(async () => {
     if (quizOptions.topic && !isGenerating) {
       try {
         setIsGenerating(true);
@@ -97,75 +82,140 @@ export default function Hero() {
         setCurrentQuiz(quiz);
         setIsQuizReady(true);
         setError(null);
-        
+
         // Scroll to quiz section
         const quizElement = document.getElementById('quiz-section');
         if (quizElement) {
           quizElement.scrollIntoView({ behavior: 'smooth' });
         }
-      } catch (error: any) {
-        setError(error.message);
+      } catch (error: unknown) {
+        // Handle error with proper type checking
+        if (error instanceof Error) {
+          setError(error.message);
+        } else {
+          setError('An unknown error occurred');
+        }
       } finally {
         setIsGenerating(false);
       }
     }
-  };
+  }, [
+    quizOptions,
+    isGenerating,
+    setIsGenerating,
+    setIsQuizReady,
+    setCurrentQuiz,
+    setError,
+  ]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent default form submission
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault(); // Prevent default form submission
 
-    // Check if user is authenticated before proceeding
-    const isAuthenticated = checkAuth();
-    if (isAuthenticated) {
-      handleSubmitQuiz();
-    }
-    // If not authenticated, the login overlay will show automatically
-  };
+      // Check if user is authenticated before proceeding
+      const isAuthenticated = checkAuth();
+      if (isAuthenticated) {
+        handleSubmitQuiz();
+      }
+      // If not authenticated, the login overlay will show automatically
+    },
+    [checkAuth, handleSubmitQuiz],
+  );
 
-  const handleTopicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTopic(event.target.value);
-    setTopicInput(event.target.value);
-    setError(null);
+  const handleTopicChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setTopic(event.target.value);
+      setTopicInput(event.target.value);
+      setError(null);
 
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
-    }
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
+      }
 
-    const timeout = window.setTimeout(() => {
-      if (event.target.value) {
-        wikiApi
-          .fetchWikipediaTopics(event.target.value)
-          .then(setTopics)
-          .catch((err) => setError(err.message));
-      } else {
+      const timeout = window.setTimeout(() => {
+        if (event.target.value) {
+          wikiApi
+            .fetchWikipediaTopics(event.target.value)
+            .then(setTopics)
+            .catch((err) => setError(err.message));
+        } else {
+          setTopics([]);
+        }
+      }, 1000);
+
+      setDebounceTimeout(timeout);
+    },
+    [setTopic, debounceTimeout, setError, setTopics, setDebounceTimeout],
+  );
+
+  const handleTopicSelect = useCallback(
+    (selectedTopic: string) => {
+      if (!isGenerating) {
+        setTopic(selectedTopic);
+        setTopicInput(selectedTopic);
         setTopics([]);
       }
-    }, 1000);
+    },
+    [isGenerating, setTopic],
+  );
 
-    setDebounceTimeout(timeout);
-  };
+  // Memoize UI components that won't change often
+  const backgroundStyle = useMemo(
+    () => ({
+      width: '100%',
+      backgroundRepeat: 'no-repeat',
+      backgroundImage:
+        'radial-gradient(ellipse 80% 50% at 50% -20%, hsla(var(--main-color-rgb), 0.15), transparent)',
+      backgroundColor: 'var(--bg-color)',
+      color: 'var(--text-color)',
+    }),
+    [],
+  );
 
-  const handleTopicSelect = (selectedTopic: string) => {
-    if (!isGenerating) {
-      setTopic(selectedTopic);
-      setTopicInput(selectedTopic);
-      setTopics([]);
-    }
-  };
+  const suggestedTopics = useMemo(() => {
+    if (topics.length === 0) return null;
+
+    return (
+      <Paper
+        elevation={3}
+        sx={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          zIndex: 1,
+          maxHeight: 200,
+          overflow: 'auto',
+          backgroundColor: 'var(--bg-color-secondary)',
+          border: '1px solid var(--sub-color)',
+        }}
+      >
+        <List>
+          {topics.map((topic, i) => (
+            <ListItem key={i} disablePadding>
+              <ListItemButton
+                onClick={() => handleTopicSelect(topic)}
+                sx={{
+                  py: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                  },
+                }}
+              >
+                {topic}
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Paper>
+    );
+  }, [topics, handleTopicSelect]);
 
   return (
     <Box
       id="hero"
-      sx={(theme) => ({
-        width: '100%',
-        backgroundRepeat: 'no-repeat',
-        backgroundImage:
-          'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 90%), transparent)',
-        ...theme.applyStyles('dark', {
-          backgroundImage:
-            'radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)',
-        }),
-      })}
+      className={`hero-section theme-${currentTheme}`}
+      sx={backgroundStyle}
     >
       <Container
         sx={{
@@ -188,6 +238,7 @@ export default function Hero() {
               flexDirection: { xs: 'column', sm: 'row' },
               alignItems: 'center',
               fontSize: 'clamp(3rem, 10vw, 3.5rem)',
+              color: 'var(--text-color)',
             }}
           >
             <span style={{ whiteSpace: 'nowrap' }}>
@@ -198,7 +249,7 @@ export default function Hero() {
           <Typography
             sx={{
               textAlign: 'center',
-              color: 'text.secondary',
+              color: 'var(--sub-color)',
               width: { sm: '100%', md: '80%' },
             }}
           >
@@ -231,48 +282,55 @@ export default function Hero() {
                 disabled={isGenerating}
                 fullWidth
                 autoComplete="off"
-                inputProps={{ style: { textAlign: 'left' } }}
+                inputProps={{
+                  style: {
+                    textAlign: 'left',
+                    backgroundColor: 'var(--bg-color-secondary)',
+                    color: 'var(--text-color)',
+                  },
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: 'var(--sub-color)',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: 'var(--main-color)',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'var(--main-color)',
+                    },
+                  },
+                  '& .MuiFormHelperText-root': {
+                    color: 'var(--error-color)',
+                  },
+                }}
               />
-              {topics.length > 0 && (
-                <Paper
-                  elevation={3}
-                  sx={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    zIndex: 1,
-                    maxHeight: 200,
-                    overflow: 'auto',
-                  }}
-                >
-                  <List>
-                    {topics.map((topic, index) => (
-                      <ListItem key={index} disablePadding>
-                        <ListItemButton
-                          onClick={() => handleTopicSelect(topic)}
-                        >
-                          {topic}
-                        </ListItemButton>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Paper>
-              )}
+              {suggestedTopics}
             </Box>
             <Button
+              disabled={isGenerating}
               type="submit"
               variant="contained"
-              color="primary"
-              disabled={isGenerating || !topicInput}
+              sx={{
+                backgroundColor: 'var(--main-color)',
+                color: 'var(--bg-color)',
+                '&:hover': {
+                  backgroundColor: 'var(--caret-color)',
+                },
+                whiteSpace: 'nowrap',
+              }}
             >
-              {isGenerating
-                ? t('hero.generatingButtonText')
-                : t('hero.startButtonText')}
+              {isGenerating ? t('hero.generating') : t('hero.generate')}
             </Button>
           </form>
         </Stack>
       </Container>
     </Box>
   );
-}
+});
+
+// Add display name
+Hero.displayName = 'Hero';
+
+export default Hero;

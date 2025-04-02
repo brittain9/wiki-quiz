@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 
 import { Quiz } from '../types/quiz.types';
 import { SubmissionResponse } from '../types/quizSubmission.types';
@@ -22,11 +28,11 @@ const QuizStateContext = createContext<QuizStateContextType | undefined>(
   undefined,
 );
 
-export const QuizStateProvider: React.FC<React.PropsWithChildren<{}>> = ({
+export const QuizStateProvider: React.FC<React.PropsWithChildren> = ({
   children,
 }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isQuizReady, setIsQuizReady] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [currentQuiz, setCurrentQuiz] = useState<Quiz | null>(null);
   const [currentSubmission, setCurrentSubmission] =
     useState<SubmissionResponse | null>(null);
@@ -34,38 +40,56 @@ export const QuizStateProvider: React.FC<React.PropsWithChildren<{}>> = ({
     SubmissionResponse[]
   >([]);
 
-  const handleSetCurrentQuiz = (quiz: Quiz | null) => {
+  const setCurrentQuizHandler = useCallback((quiz: Quiz | null) => {
     setCurrentQuiz(quiz);
-    setCurrentSubmission(null);
-    setIsQuizReady(!!quiz);
-  };
+  }, []);
 
-  const handleSetCurrentSubmission = (
-    submissionResponse: SubmissionResponse | null,
-  ) => {
-    setCurrentSubmission(submissionResponse);
-    setIsQuizReady(false);
-  };
+  const setCurrentSubmissionHandler = useCallback(
+    (submission: SubmissionResponse | null) => {
+      setCurrentSubmission(submission);
+    },
+    [],
+  );
 
-  const addSubmissionToHistory = (submission: SubmissionResponse) => {
-    setSubmissionHistory((prevHistory) => [submission, ...prevHistory]);
-  };
+  const addSubmissionToHistory = useCallback(
+    (submission: SubmissionResponse) => {
+      setSubmissionHistory((prev) => {
+        if (prev.find((s) => s.id === submission.id)) {
+          return prev;
+        }
+        return [submission, ...prev];
+      });
+    },
+    [],
+  );
+
+  const value = useMemo(
+    () => ({
+      isQuizReady,
+      setIsQuizReady,
+      isGenerating,
+      setIsGenerating,
+      currentQuiz,
+      setCurrentQuiz: setCurrentQuizHandler,
+      currentSubmission,
+      setCurrentSubmission: setCurrentSubmissionHandler,
+      submissionHistory,
+      addSubmissionToHistory,
+    }),
+    [
+      isQuizReady,
+      isGenerating,
+      currentQuiz,
+      currentSubmission,
+      submissionHistory,
+      setCurrentQuizHandler,
+      setCurrentSubmissionHandler,
+      addSubmissionToHistory,
+    ],
+  );
 
   return (
-    <QuizStateContext.Provider
-      value={{
-        isGenerating,
-        isQuizReady,
-        currentQuiz,
-        currentSubmission,
-        submissionHistory,
-        setIsGenerating,
-        setIsQuizReady,
-        setCurrentQuiz,
-        setCurrentSubmission,
-        addSubmissionToHistory,
-      }}
-    >
+    <QuizStateContext.Provider value={value}>
       {children}
     </QuizStateContext.Provider>
   );

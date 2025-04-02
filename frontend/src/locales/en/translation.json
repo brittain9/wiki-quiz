@@ -19,6 +19,8 @@
     "generateQuiz": "Generate a quiz about",
     "topicInfo": "Enter any topic you're curious about, and we'll generate a custom quiz just for you.",
     "placeholder": "Your quiz topic",
+    "generate": "Generate",
+    "generating": "Generating...",
     "generatingButtonText": "Generating",
     "startButtonText": "Start now"
   },
@@ -42,6 +44,12 @@
     "loggingOut": "Logging out...",
     "editProfile": "Edit Profile",
     "profileMessage": "This is your profile overview. More features coming soon!"
+  },
+  "theme": {
+    "selector": "Change theme",
+    "title": "Select Theme",
+    "current": "Current",
+    "description": "Choose your preferred appearance"
   },
   "recentSubmissions": {
     "title": "Recent Submissions",

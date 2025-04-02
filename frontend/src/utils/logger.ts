@@ -17,7 +17,7 @@ export const createLogger = (
   moduleDebugEnabled: boolean = true,
 ) => {
   // Return the logger function
-  return (message: string, data?: any) => {
+  return (message: string, data?: unknown) => {
     // Only log if globally enabled (true), not globally disabled (false), or if no global setting (undefined) then use module setting
     if (
       GLOBAL_DEBUG_ENABLED === false ||
@@ -53,7 +53,7 @@ export const setLoggingEnabled = (enabled: boolean) => {
 /**
  * Helper function to safely stringify objects with circular references
  */
-export const safeStringify = (obj: any) => {
+export const safeStringify = (obj: unknown) => {
   const seen = new WeakSet();
   return JSON.stringify(
     obj,
@@ -76,13 +76,15 @@ export const safeStringify = (obj: any) => {
 export const logHttpDetails = (
   type: 'Request' | 'Response',
   url: string,
-  options: any,
+  options: Record<string, unknown>,
 ) => {
   logAPI(`HTTP ${type}: ${url}`, {
     url,
     ...options,
     headers: options.headers
-      ? Object.fromEntries(Object.entries(options.headers))
+      ? Object.fromEntries(
+          Object.entries(options.headers as Record<string, string>),
+        )
       : undefined,
   });
 };

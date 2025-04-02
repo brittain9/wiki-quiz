@@ -1,9 +1,7 @@
-// Auth hooks
+// Import hooks
 import useAuthActions from './useAuthActions';
 import useAuthStatus from './useAuthStatus';
 import useProtectedRoute from './useProtectedRoute';
-
-// UI hooks
 import { useQuizResultOverlay } from './useQuizResultOverlay';
 
 // Re-export hooks

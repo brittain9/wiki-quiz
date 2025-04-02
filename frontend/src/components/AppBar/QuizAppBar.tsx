@@ -1,6 +1,6 @@
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import MenuIcon from '@mui/icons-material/Menu';
-import { PaletteMode, Typography, IconButton } from '@mui/material';
+import { Typography, IconButton } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -14,15 +14,9 @@ import { useTranslation } from 'react-i18next';
 
 import LanguageToggle from './LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
-import ToggleColorMode from './ToggleColorMode';
 import LoginButton from '../Auth/LoginButton';
 
-interface AppBarProps {
-  mode: PaletteMode;
-  toggleColorMode: () => void;
-}
-
-const QuizAppBar: React.FC<AppBarProps> = ({ mode, toggleColorMode }) => {
+const QuizAppBar: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
   const { t } = useTranslation();
@@ -143,7 +137,6 @@ const QuizAppBar: React.FC<AppBarProps> = ({ mode, toggleColorMode }) => {
           >
             <QuizOptionsComponent />
             <LanguageToggle />
-            <ToggleColorMode mode={mode} toggleColorMode={toggleColorMode} />
             <LoginButton />
           </Box>
           <Box sx={{ display: { sm: 'flex', md: 'none' } }}>
@@ -163,10 +156,6 @@ const QuizAppBar: React.FC<AppBarProps> = ({ mode, toggleColorMode }) => {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <ToggleColorMode
-                    mode={mode}
-                    toggleColorMode={toggleColorMode}
-                  />
                   <IconButton onClick={toggleDrawer(false)}>
                     <CloseRoundedIcon />
                   </IconButton>
@@ -186,5 +175,8 @@ const QuizAppBar: React.FC<AppBarProps> = ({ mode, toggleColorMode }) => {
     </AppBar>
   );
 };
+
+// Add display name
+QuizAppBar.displayName = 'QuizAppBar';
 
 export default QuizAppBar;

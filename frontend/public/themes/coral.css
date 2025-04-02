@@ -1,0 +1,32 @@
+:root {
+  --bg-color: #232636;
+  --main-color: #ff8c69;
+  --caret-color: #ff8c69;
+  --sub-color: #7a7881;
+  --sub-alt-color: #1e2130;
+  --text-color: #e5e1d8;
+  --error-color: #ca4754;
+  --error-extra-color: #a53640;
+  --colorful-error-color: #ca4754;
+  --colorful-error-extra-color: #a53640;
+  --always-dark-color: #232323;
+  --always-light-color: #eeeeee;
+
+  /* RGB versions for opacity */
+  --bg-color-rgb: 35, 38, 54;
+  --main-color-rgb: 255, 140, 105;
+  --caret-color-rgb: 255, 140, 105;
+  --sub-color-rgb: 122, 120, 129;
+  --sub-alt-color-rgb: 30, 33, 48;
+  --text-color-rgb: 229, 225, 216;
+  --error-color-rgb: 202, 71, 84;
+
+  /* Custom properties */
+  --bg-color-secondary: #1e2130;
+  --bg-color-tertiary: #191c29;
+  --accent-color: #ff8c69;
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+  --theme-name: 'Coral';
+  --theme-id: 'coral';
+}

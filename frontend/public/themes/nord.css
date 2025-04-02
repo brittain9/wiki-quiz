@@ -1,0 +1,29 @@
+/* Nord theme */
+:root.theme-nord,
+body.theme-nord,
+[data-theme='nord'] {
+  --bg-color: #2e3440;
+  --bg-color-secondary: #3b4252;
+  --bg-color-tertiary: #434c5e;
+  --main-color: #88c0d0;
+  --caret-color: #81a1c1;
+  --main-color-rgb: 136, 192, 208;
+  --sub-color: #81a1c1;
+  --sub-alt-color: #4c566a;
+  --text-color: #d8dee9;
+  --error-color: #bf616a;
+  --error-extra-color: #a53640;
+  --error-color-rgb: 191, 97, 106;
+  --colorful-error-color: #bf616a;
+  --colorful-error-extra-color: #a53640;
+  --success-color: #a3be8c;
+  --success-color-rgb: 163, 190, 140;
+  --warning-color: #ebcb8b;
+  --warning-color-rgb: 235, 203, 139;
+  --always-dark-color: #2e3440;
+  --always-light-color: #eceff4;
+
+  /* Font-specific variables */
+  --font-color: var(--text-color);
+  --caret-color: var(--main-color);
+}

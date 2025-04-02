@@ -3,7 +3,7 @@
  * Handles all auth-related API calls
  */
 
-import { AxiosResponse, AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 
 import { UserInfo } from '../../types/auth';
 import { logAuth, logError } from '../../utils/logger';

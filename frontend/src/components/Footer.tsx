@@ -3,46 +3,72 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-export default function Footer() {
+import { useCustomTheme } from '../context/CustomThemeContext';
+
+const Footer = React.memo(() => {
   const { t } = useTranslation();
+  const { currentTheme } = useCustomTheme();
 
   return (
-    <Container
+    <Box
+      component="footer"
+      className={`theme-${currentTheme}`}
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: { xs: 4, sm: 8 },
-        py: { xs: 8, sm: 10 },
-        textAlign: { sm: 'center', md: 'left' },
+        width: '100%',
+        py: { xs: 3, sm: 4 },
+        color: 'var(--text-color)',
+        backgroundColor: 'var(--bg-color)',
       }}
     >
-      <Box
+      <Container
         sx={{
           display: 'flex',
-          justifyContent: 'space-between',
-          width: '100%',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: { xs: 2, sm: 3 },
         }}
       >
-        <div>{t('footer.title')}</div>
-        <Stack
-          direction="row"
-          spacing={1}
-          useFlexGap
-          sx={{ justifyContent: 'left', color: 'text.secondary' }}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            width: '100%',
+          }}
         >
-          <IconButton
-            color="inherit"
-            href="https://github.com/brittain9/wiki-quiz"
-            aria-label="GitHub"
-            sx={{ alignSelf: 'center' }}
+          <Typography variant="body1" sx={{ color: 'var(--sub-color)' }}>
+            {t('footer.title')}
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            sx={{ justifyContent: 'left' }}
           >
-            <FacebookIcon />
-          </IconButton>
-        </Stack>
-      </Box>
-    </Container>
+            <IconButton
+              href="https://github.com/brittain9/wiki-quiz"
+              aria-label="GitHub"
+              sx={{
+                alignSelf: 'center',
+                color: 'var(--sub-color)',
+                '&:hover': {
+                  color: 'var(--main-color)',
+                  backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                },
+              }}
+            >
+              <FacebookIcon />
+            </IconButton>
+          </Stack>
+        </Box>
+      </Container>
+    </Box>
   );
-}
+});
+
+Footer.displayName = 'Footer';
+
+export default Footer;

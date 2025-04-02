@@ -1,0 +1,29 @@
+/* Ayu theme */
+:root.theme-ayu,
+body.theme-ayu,
+[data-theme='ayu'] {
+  --bg-color: #0f1419;
+  --bg-color-secondary: #191f26;
+  --bg-color-tertiary: #242d38;
+  --main-color: #ff9940;
+  --caret-color: #ff9940;
+  --main-color-rgb: 255, 153, 64;
+  --sub-color: #607080;
+  --sub-alt-color: #343f4c;
+  --text-color: #e6e1cf;
+  --error-color: #f07178;
+  --error-extra-color: #ff3333;
+  --error-color-rgb: 240, 113, 120;
+  --colorful-error-color: #f07178;
+  --colorful-error-extra-color: #ff3333;
+  --success-color: #b8cc52;
+  --success-color-rgb: 184, 204, 82;
+  --warning-color: #ffb454;
+  --warning-color-rgb: 255, 180, 84;
+  --always-dark-color: #0a0e11;
+  --always-light-color: #e6e1cf;
+
+  /* Font-specific variables */
+  --font-color: var(--text-color);
+  --caret-color: var(--main-color);
+}

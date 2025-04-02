@@ -1,10 +1,8 @@
 // frontend/src/components/Auth/LoginButton.tsx
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import GoogleIcon from '@mui/icons-material/Google';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import {
-  Button,
   Box,
   Snackbar,
   Alert,
@@ -16,8 +14,9 @@ import {
   Divider,
   IconButton,
   Avatar,
+  Button,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../context/AuthProvider';
@@ -27,8 +26,16 @@ import { createLogger } from '../../utils/logger';
 // Create a specialized logger for LoginButton
 const logLoginButton = createLogger('LoginButton', '🔘', true);
 
-const LoginButton: React.FC = () => {
-  const { isLoggedIn, isChecking, userInfo, loginWithGoogle, logout, error, clearError } = useAuth();
+const LoginButton = memo(() => {
+  const {
+    isLoggedIn,
+    isChecking,
+    userInfo,
+    loginWithGoogle,
+    logout,
+    error,
+    clearError,
+  } = useAuth();
   const { showOverlay } = useOverlay();
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -58,20 +65,20 @@ const LoginButton: React.FC = () => {
   }, [error]);
 
   // Enhanced login handler
-  const handleLoginWithGoogle = () => {
+  const handleLoginWithGoogle = useCallback(() => {
     logLoginButton('Google login button clicked');
     loginWithGoogle();
-  };
+  }, [loginWithGoogle]);
 
   // Show account overlay
-  const handleAccountClick = () => {
+  const handleAccountClick = useCallback(() => {
     logLoginButton('Account overlay button clicked');
     setAnchorEl(null); // Close menu
     showOverlay('account');
-  };
+  }, [showOverlay]);
 
   // Handle logout
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     logLoginButton('Logout button clicked');
     setAnchorEl(null); // Close menu
     try {
@@ -80,18 +87,18 @@ const LoginButton: React.FC = () => {
     } catch (err) {
       logLoginButton('Logout failed', { error: err });
     }
-  };
+  }, [logout]);
 
   // Menu handling
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     logLoginButton('User menu opened');
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleMenuClose = () => {
+  const handleMenuClose = useCallback(() => {
     logLoginButton('User menu closed');
     setAnchorEl(null);
-  };
+  }, []);
 
   // Display loading indicator while checking auth status
   if (isChecking) {
@@ -109,7 +116,7 @@ const LoginButton: React.FC = () => {
     logLoginButton('Rendering logged-in state', {
       email: userInfo?.email,
       firstName: userInfo?.firstName,
-      hasProfilePicture: !!userInfo?.profilePicture
+      hasProfilePicture: !!userInfo?.profilePicture,
     });
 
     return (
@@ -124,20 +131,20 @@ const LoginButton: React.FC = () => {
             sx={{ ml: 1 }}
           >
             {userInfo?.profilePicture ? (
-              <Avatar 
+              <Avatar
                 src={userInfo.profilePicture}
                 alt={userInfo.firstName}
-                sx={{ 
-                  width: 32, 
-                  height: 32 
+                sx={{
+                  width: 32,
+                  height: 32,
                 }}
               />
             ) : (
-              <Avatar 
-                sx={{ 
-                  width: 32, 
+              <Avatar
+                sx={{
+                  width: 32,
                   height: 32,
-                  bgcolor: 'primary.main'
+                  bgcolor: 'primary.main',
                 }}
               >
                 {userInfo?.firstName?.charAt(0) || 'U'}
@@ -196,22 +203,24 @@ const LoginButton: React.FC = () => {
   logLoginButton('Rendering logged-out state');
 
   return (
-    <Box sx={{ 
-      minHeight: 40, 
-      display: 'flex', 
-      alignItems: 'center',
-      justifyContent: 'center' 
-    }}>
+    <Box
+      sx={{
+        minHeight: 40,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
       <Button
         variant="outlined"
         color="primary"
         size="small"
         startIcon={<GoogleIcon />}
         onClick={handleLoginWithGoogle}
-        sx={{ 
+        sx={{
           minWidth: '100px',
           height: '32px',
-          borderRadius: '16px'
+          borderRadius: '16px',
         }}
       >
         {t('login.loginButton')}
@@ -233,6 +242,9 @@ const LoginButton: React.FC = () => {
       </Snackbar>
     </Box>
   );
-};
+});
+
+// Add display name
+LoginButton.displayName = 'LoginButton';
 
 export default LoginButton;

@@ -51,6 +51,65 @@ export default function useProtectedRoute(options?: ProtectedRouteOptions) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    /**
+     * Handle case where unauthenticated user tries to access protected route
+     */
+    function handleUnauthenticatedAccess() {
+      logAuth('Access to protected route denied - redirecting', {
+        redirectTo,
+        currentLocation: window.location.pathname,
+      });
+
+      logNavigation('Navigating to login page', {
+        from: window.location.pathname,
+        to: redirectTo,
+        reason: 'Authentication required',
+      });
+
+      navigate(redirectTo);
+    }
+
+    /**
+     * Handle case where authenticated user tries to access login/signup page
+     */
+    function handleAuthenticatedAccess() {
+      logAuth('Authenticated user accessing public route - redirecting', {
+        redirectTo,
+        currentLocation: window.location.pathname,
+        user: user
+          ? {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+            }
+          : null,
+      });
+
+      logNavigation('Redirecting authenticated user', {
+        from: window.location.pathname,
+        to: redirectTo,
+        reason: 'Already authenticated',
+      });
+
+      navigate(redirectTo);
+    }
+
+    /**
+     * Log successful access to current route
+     */
+    function logAccessGranted() {
+      logAuth('Route access granted', {
+        isAuthenticated,
+        path: window.location.pathname,
+        user: user
+          ? {
+              id: user.id,
+              email: user.email,
+            }
+          : null,
+      });
+    }
+
     // Skip while still checking authentication status
     if (isLoading) return;
 
@@ -76,65 +135,6 @@ export default function useProtectedRoute(options?: ProtectedRouteOptions) {
     redirectTo,
     user,
   ]);
-
-  /**
-   * Handle case where unauthenticated user tries to access protected route
-   */
-  function handleUnauthenticatedAccess() {
-    logAuth('Access to protected route denied - redirecting', {
-      redirectTo,
-      currentLocation: window.location.pathname,
-    });
-
-    logNavigation('Navigating to login page', {
-      from: window.location.pathname,
-      to: redirectTo,
-      reason: 'Authentication required',
-    });
-
-    navigate(redirectTo);
-  }
-
-  /**
-   * Handle case where authenticated user tries to access login/signup page
-   */
-  function handleAuthenticatedAccess() {
-    logAuth('Authenticated user accessing public route - redirecting', {
-      redirectTo,
-      currentLocation: window.location.pathname,
-      user: user
-        ? {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-          }
-        : null,
-    });
-
-    logNavigation('Redirecting authenticated user', {
-      from: window.location.pathname,
-      to: redirectTo,
-      reason: 'Already authenticated',
-    });
-
-    navigate(redirectTo);
-  }
-
-  /**
-   * Log successful access to current route
-   */
-  function logAccessGranted() {
-    logAuth('Route access granted', {
-      isAuthenticated,
-      path: window.location.pathname,
-      user: user
-        ? {
-            id: user.id,
-            email: user.email,
-          }
-        : null,
-    });
-  }
 
   return { isLoading, isAuthenticated, user };
 }

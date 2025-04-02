@@ -26,11 +26,9 @@ interface QuizOptionsContextType {
   setSelectedModel: (modelId: number | null) => void;
 }
 
-const QuizOptionsContext = createContext<QuizOptionsContextType | undefined>(
-  undefined,
-);
+const QuizOptionsContext = createContext<QuizOptionsContextType | null>(null);
 
-export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({
+export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
   children,
 }) => {
   const { i18n } = useTranslation();
@@ -140,7 +138,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren<{}>> = ({
 
 export const useQuizOptions = () => {
   const context = useContext(QuizOptionsContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useQuizOptions must be used within a QuizOptionsProvider');
   }
   return context;

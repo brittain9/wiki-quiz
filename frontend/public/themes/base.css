@@ -1,0 +1,230 @@
+/* 
+  Base styles for theme integration 
+  This file should be imported directly into the app
+*/
+
+/* Apply theme variables to the root element */
+:root {
+  /* Default fallback colors (will be overridden by theme CSS) */
+  --bg-color: #323437;
+  --bg-color-secondary: #222222;
+  --bg-color-tertiary: #2c2c2c;
+  --main-color: #e2b714;
+  --caret-color: #e2b714;
+  --main-color-rgb: 226, 183, 20;
+  --sub-color: #646669;
+  --sub-alt-color: #2c2e31;
+  --text-color: #d1d0c5;
+  --error-color: #ca4754;
+  --error-extra-color: #a53640;
+  --error-color-rgb: 202, 71, 84;
+  --colorful-error-color: #ca4754;
+  --colorful-error-extra-color: #a53640;
+  --success-color: #4caf50;
+  --success-color-rgb: 76, 175, 80;
+  --warning-color: #ff9800;
+  --warning-color-rgb: 255, 152, 0;
+  --always-dark-color: #232323;
+  --always-light-color: #eeeeee;
+}
+
+/* Ensure the entire document respects the theme */
+html,
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  font-family: var(--font-family-main, 'Roboto Mono', monospace);
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 100vh;
+  width: 100%;
+}
+
+#root {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sub-color);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--main-color);
+}
+
+/* Theme-specific elements */
+.theme-selector-button {
+  background-color: var(--bg-color-secondary) !important;
+  color: var(--main-color) !important;
+  border: 1px solid var(--sub-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.theme-selector-button:hover {
+  background-color: var(--bg-color-tertiary) !important;
+}
+
+.theme-selector-menu {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--sub-color);
+}
+
+.theme-option {
+  color: var(--text-color) !important;
+}
+
+.theme-option:hover {
+  background-color: var(--bg-color-secondary) !important;
+}
+
+.theme-option.Mui-selected {
+  background-color: rgba(var(--main-color-rgb), 0.2) !important;
+  color: var(--main-color) !important;
+}
+
+/* Additional stylistic elements */
+.themed-section h2,
+.themed-section h3,
+.themed-section h4,
+.themed-section h5 {
+  color: var(--main-color);
+}
+
+.themed-card {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--sub-alt-color);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.themed-card:hover {
+  border-color: var(--main-color);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* MUI Overrides */
+.MuiPaper-root {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.MuiAppBar-root {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  border-bottom: 1px solid var(--sub-alt-color);
+}
+
+.MuiDrawer-paper {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+.MuiButton-contained {
+  background-color: var(--main-color) !important;
+  color: var(--bg-color) !important;
+}
+
+.MuiButton-contained:hover {
+  background-color: var(--caret-color) !important;
+}
+
+.MuiButton-outlined {
+  border-color: var(--main-color) !important;
+  color: var(--main-color) !important;
+}
+
+.MuiButton-outlined:hover {
+  border-color: var(--caret-color) !important;
+  background-color: rgba(var(--main-color-rgb), 0.1) !important;
+}
+
+.MuiButton-text {
+  color: var(--main-color) !important;
+}
+
+.MuiButton-text:hover {
+  background-color: rgba(var(--main-color-rgb), 0.1) !important;
+}
+
+.MuiTextField-root .MuiInputBase-root {
+  background-color: var(--bg-color-secondary) !important;
+  color: var(--text-color) !important;
+  border-color: var(--sub-alt-color) !important;
+}
+
+.MuiTextField-root .MuiInputLabel-root {
+  color: var(--sub-color) !important;
+}
+
+.MuiTextField-root .MuiOutlinedInput-notchedOutline {
+  border-color: var(--sub-alt-color) !important;
+}
+
+.MuiTextField-root:hover .MuiOutlinedInput-notchedOutline,
+.MuiTextField-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--main-color) !important;
+}
+
+.MuiDivider-root {
+  background-color: var(--sub-alt-color) !important;
+}
+
+.MuiIconButton-root {
+  color: var(--sub-color) !important;
+}
+
+.MuiIconButton-root:hover {
+  color: var(--main-color) !important;
+  background-color: rgba(var(--main-color-rgb), 0.1) !important;
+}
+
+.MuiMenuItem-root {
+  color: var(--text-color) !important;
+}
+
+.MuiMenuItem-root:hover {
+  background-color: var(--bg-color-secondary) !important;
+}
+
+.MuiMenuItem-root.Mui-selected {
+  background-color: rgba(var(--main-color-rgb), 0.15) !important;
+}
+
+.MuiMenuItem-root.Mui-selected:hover {
+  background-color: rgba(var(--main-color-rgb), 0.25) !important;
+}
+
+/* Fix for dark mode text in inputs */
+.MuiInputBase-input::placeholder {
+  color: var(--sub-color) !important;
+  opacity: 0.7;
+}
+
+.MuiCircularProgress-root {
+  color: var(--main-color) !important;
+}

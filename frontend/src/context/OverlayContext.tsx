@@ -1,43 +1,50 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-// Define overlay types that can be shown in the application
-export type OverlayType = 'login' | 'quiz' | 'quizResult' | 'account' | null;
+// Define explicit types for overlay data and options
+type OverlayType = 'login' | 'account' | 'quiz_result' | null;
 
-interface OverlayContextType {
+interface OverlayData {
+  message?: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+  resultId?: number;
+  [key: string]: unknown; // For any additional properties
+}
+
+export interface OverlayContextType {
   currentOverlay: OverlayType;
-  showOverlay: (overlay: OverlayType) => void;
+  overlayData: OverlayData | null;
+
+  showOverlay: (type: OverlayType, data?: OverlayData) => void;
   hideOverlay: () => void;
-  overlayProps: Record<string, any>;
-  setOverlayProps: (props: Record<string, any>) => void;
 }
 
-const OverlayContext = createContext<OverlayContextType | undefined>(undefined);
+// Update the context with these types
+const OverlayContext = createContext<OverlayContextType | null>(null);
 
-interface OverlayProviderProps {
-  children: ReactNode;
-}
-
-export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) => {
+export const OverlayProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const [currentOverlay, setCurrentOverlay] = useState<OverlayType>(null);
-  const [overlayProps, setOverlayProps] = useState<Record<string, any>>({});
+  const [overlayData, setOverlayData] = useState<OverlayData | null>(null);
 
-  const showOverlay = (overlay: OverlayType) => {
-    setCurrentOverlay(overlay);
+  const showOverlay = (type: OverlayType, data?: OverlayData) => {
+    setCurrentOverlay(type);
+    setOverlayData(data || null);
   };
 
   const hideOverlay = () => {
     setCurrentOverlay(null);
-    setOverlayProps({});
+    setOverlayData(null);
   };
 
   return (
     <OverlayContext.Provider
       value={{
         currentOverlay,
+        overlayData,
         showOverlay,
         hideOverlay,
-        overlayProps,
-        setOverlayProps,
       }}
     >
       {children}
@@ -47,8 +54,8 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) =>
 
 export const useOverlay = () => {
   const context = useContext(OverlayContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useOverlay must be used within an OverlayProvider');
   }
   return context;
-}; 
+};

@@ -1,0 +1,32 @@
+:root {
+  --bg-color: #f5f5f5;
+  --main-color: #4c9be8;
+  --caret-color: #4c9be8;
+  --sub-color: #8e8e8e;
+  --sub-alt-color: #dddddd;
+  --text-color: #2c2c2c;
+  --error-color: #ca4754;
+  --error-extra-color: #a53640;
+  --colorful-error-color: #ca4754;
+  --colorful-error-extra-color: #a53640;
+  --always-dark-color: #232323;
+  --always-light-color: #eeeeee;
+
+  /* RGB versions for opacity */
+  --bg-color-rgb: 245, 245, 245;
+  --main-color-rgb: 76, 155, 232;
+  --caret-color-rgb: 76, 155, 232;
+  --sub-color-rgb: 142, 142, 142;
+  --sub-alt-color-rgb: 221, 221, 221;
+  --text-color-rgb: 44, 44, 44;
+  --error-color-rgb: 202, 71, 84;
+
+  /* Custom properties */
+  --bg-color-secondary: #e2e2e2;
+  --bg-color-tertiary: #d9d9d9;
+  --accent-color: #4c9be8;
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+  --theme-name: 'Light';
+  --theme-id: 'light';
+}

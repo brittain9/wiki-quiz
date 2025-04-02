@@ -11,19 +11,12 @@ import {
   FormControl,
   SelectChangeEvent,
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useCallback } from 'react';
 
 import { useQuizOptions } from '../../context/QuizOptionsContext';
-import { quizApi } from '../../services';
 
 const QuizOptionsComponent: React.FC = () => {
   const [expanded, setExpanded] = React.useState(false);
-  const [availableServices, setAvailableServices] = useState<
-    Record<number, string>
-  >({});
-  const [availableModels, setAvailableModels] = useState<
-    Record<number, string>
-  >({});
 
   const {
     quizOptions,
@@ -45,21 +38,32 @@ const QuizOptionsComponent: React.FC = () => {
         setSelectedModel(parseInt(firstModelId));
       }
     }
-  }, [quizOptions.selectedService, quizOptions.availableModels]);
+  }, [
+    quizOptions.selectedService,
+    quizOptions.availableModels,
+    quizOptions.selectedModel,
+    setSelectedModel,
+  ]);
 
-  const handleServiceChange = async (event: SelectChangeEvent) => {
-    const serviceId = Number(event.target.value);
-    setSelectedService(serviceId);
-  };
+  const handleServiceChange = useCallback(
+    (event: SelectChangeEvent) => {
+      const serviceId = Number(event.target.value);
+      setSelectedService(serviceId);
+    },
+    [setSelectedService],
+  );
 
-  const handleModelChange = (event: SelectChangeEvent) => {
-    const modelId = Number(event.target.value);
-    setSelectedModel(modelId);
-  };
+  const handleModelChange = useCallback(
+    (event: SelectChangeEvent) => {
+      const modelId = Number(event.target.value);
+      setSelectedModel(modelId);
+    },
+    [setSelectedModel],
+  );
 
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
-  };
+  const toggleExpanded = useCallback(() => {
+    setExpanded((prev) => !prev);
+  }, []);
 
   const varietyOptions = [
     { label: 'Low', value: 1000 },
@@ -141,7 +145,7 @@ const QuizOptionsComponent: React.FC = () => {
                 Object.entries(quizOptions.availableServices).map(
                   ([id, name]) => (
                     <MenuItem key={id} value={id}>
-                      {name}
+                      {typeof name === 'string' ? name : `Service ${id}`}
                     </MenuItem>
                   ),
                 )
@@ -165,7 +169,7 @@ const QuizOptionsComponent: React.FC = () => {
                 {Object.entries(quizOptions.availableModels).map(
                   ([id, name]) => (
                     <MenuItem key={id} value={id}>
-                      {name}
+                      {typeof name === 'string' ? name : `Model ${id}`}
                     </MenuItem>
                   ),
                 )}
@@ -177,5 +181,7 @@ const QuizOptionsComponent: React.FC = () => {
     </Box>
   );
 };
+
+QuizOptionsComponent.displayName = 'QuizOptionsComponent';
 
 export default QuizOptionsComponent;

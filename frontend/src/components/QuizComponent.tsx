@@ -9,16 +9,17 @@ import Paper from '@mui/material/Paper';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import Typography from '@mui/material/Typography';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 import QuizResultOverlay from './QuizResultOverlay';
+import { useCustomTheme } from '../context/CustomThemeContext';
 import { useQuizState } from '../context/QuizStateContext';
 import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';
 import { QuizSubmission, QuestionAnswer } from '../types/quizSubmission.types';
 
-const Quiz: React.FC = () => {
+const Quiz: React.FC = React.memo(() => {
   const {
     isGenerating,
     currentQuiz,
@@ -26,6 +27,7 @@ const Quiz: React.FC = () => {
     setCurrentSubmission,
     addSubmissionToHistory,
   } = useQuizState();
+  const { currentTheme } = useCustomTheme();
 
   // State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -38,8 +40,12 @@ const Quiz: React.FC = () => {
   const [resultError, setResultError] = useState<string | null>(null);
 
   // Computed values
-  const flatQuestions =
-    currentQuiz?.aiResponses.flatMap((response) => response.questions) || [];
+  const flatQuestions = useMemo(
+    () =>
+      currentQuiz?.aiResponses.flatMap((response) => response.questions) || [],
+    [currentQuiz],
+  );
+
   const totalQuestions = flatQuestions.length;
   const currentQuestion = flatQuestions[currentQuestionIndex];
 
@@ -54,7 +60,7 @@ const Quiz: React.FC = () => {
   }, [currentQuiz]);
 
   // Handlers
-  const fetchQuizResult = async (submissionId: number) => {
+  const fetchQuizResult = useCallback(async (submissionId: number) => {
     setIsLoadingResult(true);
     setResultError(null);
     try {
@@ -66,46 +72,41 @@ const Quiz: React.FC = () => {
     } finally {
       setIsLoadingResult(false);
     }
-  };
+  }, []);
 
-  const handleViewDetailedSubmission = () => {
+  const handleViewDetailedSubmission = useCallback(() => {
     if (currentSubmission) {
       setIsOverlayOpen(true);
       fetchQuizResult(currentSubmission.id);
     }
-  };
+  }, [currentSubmission, fetchQuizResult]);
 
-  const handleAnswerChange = (
-    questionId: number,
-    selectedOptionNumber: number,
-  ) => {
-    setUserAnswers((prev) => {
-      const existingAnswerIndex = prev.findIndex(
-        (a) => a.questionId === questionId,
-      );
-      if (existingAnswerIndex > -1) {
-        const newAnswers = [...prev];
-        newAnswers[existingAnswerIndex] = { questionId, selectedOptionNumber };
-        return newAnswers;
-      } else {
-        return [...prev, { questionId, selectedOptionNumber }];
-      }
-    });
-  };
+  const handleAnswerChange = useCallback(
+    (questionId: number, selectedOptionNumber: number) => {
+      setUserAnswers((prev) => {
+        const existingAnswerIndex = prev.findIndex(
+          (a) => a.questionId === questionId,
+        );
+        if (existingAnswerIndex > -1) {
+          const newAnswers = [...prev];
+          newAnswers[existingAnswerIndex] = {
+            questionId,
+            selectedOptionNumber,
+          };
+          return newAnswers;
+        } else {
+          return [...prev, { questionId, selectedOptionNumber }];
+        }
+      });
+    },
+    [],
+  );
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
-  };
+  }, []);
 
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!currentQuiz) return;
 
     try {
@@ -121,28 +122,33 @@ const Quiz: React.FC = () => {
     } catch (error) {
       console.error('Failed to submit quiz:', error);
     }
-  };
+  }, [currentQuiz, userAnswers, setCurrentSubmission, addSubmissionToHistory]);
+
+  const handleNextQuestion = useCallback(() => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    } else {
+      handleSubmit();
+    }
+  }, [currentQuestionIndex, totalQuestions, handleSubmit]);
 
   // Add score chart data calculation
-  const getScoreChartData = () => {
+  const getScoreChartData = useCallback(() => {
     if (score === null) return [];
 
-    const scoreValue = score;
-    const remainingScore = 100 - scoreValue;
-
     return [
-      { name: 'Score', value: scoreValue },
-      { name: 'Remaining', value: remainingScore },
+      { name: 'Score', value: score },
+      { name: 'Remaining', value: 100 - score },
     ];
-  };
+  }, [score]);
 
   // Get score color based on percentage
-  const getScoreColor = () => {
-    if (score === null) return '#4caf50';
-    if (score >= 80) return '#4caf50'; // success.main
-    if (score >= 50) return '#ff9800'; // warning.main
-    return '#f44336'; // error.main
-  };
+  const getScoreColor = useCallback(() => {
+    if (score === null) return 'var(--success-color)';
+    if (score >= 80) return 'var(--success-color)';
+    if (score >= 50) return 'var(--warning-color)';
+    return 'var(--error-color)';
+  }, [score]);
 
   // Loading state
   if (isGenerating) {
@@ -156,9 +162,14 @@ const Quiz: React.FC = () => {
           flexDirection: 'column',
           gap: 2,
         }}
+        className={`theme-${currentTheme}`}
       >
-        <CircularProgress size={50} thickness={4} />
-        <Typography variant="h6" color="text.secondary">
+        <CircularProgress
+          size={50}
+          thickness={4}
+          sx={{ color: 'var(--main-color)' }}
+        />
+        <Typography variant="h6" sx={{ color: 'var(--sub-color)' }}>
           Generating Quiz...
         </Typography>
       </Box>
@@ -174,12 +185,21 @@ const Quiz: React.FC = () => {
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', mb: 4 }}>
+    <Box
+      sx={{
+        maxWidth: 800,
+        mx: 'auto',
+        py: 4,
+        backgroundColor: 'var(--bg-color)',
+        mt: 4,
+      }}
+      className={`theme-${currentTheme}`}
+    >
       <Typography
         variant="h4"
         gutterBottom
         align="center"
-        sx={{ mb: 3, fontWeight: 600, color: 'primary.main' }}
+        sx={{ mb: 3, fontWeight: 600, color: 'var(--main-color)' }}
       >
         {currentQuiz.title} Quiz
       </Typography>
@@ -189,235 +209,303 @@ const Quiz: React.FC = () => {
         sx={{
           p: 4,
           minHeight: 400,
+          maxWidth: 700,
+          mx: 'auto',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           borderRadius: 2,
           transition: 'all 0.3s ease',
-          boxShadow: 4,
+          boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 30px',
+          backgroundColor: 'var(--bg-color)',
+          color: 'var(--text-color)',
+          border: '1px solid var(--sub-alt-color)',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '4px',
+            backgroundColor: 'var(--main-color)',
+            opacity: 0.8,
+          },
         }}
       >
         {quizSubmitted ? (
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
-              Quiz Completed
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{ fontWeight: 600, color: 'var(--main-color)' }}
+            >
+              Quiz Completed!
             </Typography>
 
-            {/* Score Donut Chart */}
             <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              flexDirection="column"
-              mb={3}
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                my: 4,
+                height: 200,
+              }}
             >
-              <Box position="relative" width={200} height={200}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={getScoreChartData()}
-                      cx="50%"
-                      cy="50%"
-                      startAngle={90}
-                      endAngle={-270}
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={0}
-                      dataKey="value"
-                      strokeWidth={0}
-                    >
-                      {getScoreChartData().map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={index === 0 ? getScoreColor() : '#e0e0e0'}
-                        />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <Box
-                  position="absolute"
-                  top="50%"
-                  left="50%"
-                  sx={{
-                    transform: 'translate(-50%, -50%)',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Typography variant="h3" component="div" fontWeight="bold">
-                    {score?.toFixed(0)}%
-                  </Typography>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Your Score
-                  </Typography>
-                </Box>
-              </Box>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={getScoreChartData()}
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    <Cell fill={getScoreColor()} />
+                    <Cell fill="var(--bg-color-tertiary)" />
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
             </Box>
+
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 'bold',
+                color: getScoreColor(),
+                mb: 3,
+              }}
+            >
+              {score}%
+            </Typography>
 
             <Button
               variant="contained"
-              color="primary"
               onClick={handleViewDetailedSubmission}
               sx={{
-                borderRadius: 2,
-                py: 1.2,
                 mt: 2,
-                fontWeight: 600,
-                minWidth: 220,
+                backgroundColor: 'var(--main-color)',
+                color: 'var(--bg-color)',
+                '&:hover': {
+                  backgroundColor: 'var(--caret-color)',
+                },
+                px: 4,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 500,
               }}
             >
               View Detailed Results
             </Button>
           </Box>
         ) : (
-          <>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 1,
-              }}
-            >
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Question {currentQuestionIndex + 1} of {totalQuestions}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Progress:{' '}
-                {Math.round(
-                  ((currentQuestionIndex + 1) / totalQuestions) * 100,
-                )}
-                %
-              </Typography>
-            </Box>
-
+          <Box>
+            {/* Progress bar */}
             <LinearProgress
               variant="determinate"
               value={((currentQuestionIndex + 1) / totalQuestions) * 100}
-              sx={{ mb: 3, height: 8, borderRadius: 4 }}
+              sx={{
+                mb: 3,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: 'var(--bg-color-tertiary)',
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: 'var(--main-color)',
+                },
+              }}
             />
 
             <Typography
-              variant="body1"
+              variant="body2"
+              align="right"
+              sx={{ mb: 2, color: 'var(--sub-color)' }}
+            >
+              Question {currentQuestionIndex + 1} of {totalQuestions}
+            </Typography>
+
+            {/* Question */}
+            <Typography
+              variant="h6"
               sx={{
                 mb: 3,
                 fontWeight: 500,
-                fontSize: '1.1rem',
-                bgcolor: 'background.paper',
+                color: 'var(--text-color)',
                 p: 2,
-                borderRadius: 1,
-                boxShadow: 1,
-                color: 'text.primary',
+                borderLeft: '4px solid var(--main-color)',
+                backgroundColor: 'var(--bg-color-secondary)',
+                borderRadius: '0 4px 4px 0',
               }}
             >
               {currentQuestion.text}
             </Typography>
 
-            <FormControl component="fieldset" sx={{ width: '100%' }}>
+            {/* Options */}
+            <FormControl component="fieldset" sx={{ width: '100%', mb: 4 }}>
               <RadioGroup
-                value={currentAnswer?.selectedOptionNumber.toString() || ''}
-                onChange={(e) =>
+                value={currentAnswer?.selectedOptionNumber || ''}
+                onChange={(e) => {
                   handleAnswerChange(
                     currentQuestion.id,
                     parseInt(e.target.value, 10),
-                  )
-                }
+                  );
+                }}
               >
-                {currentQuestion.options.map((option, optionIndex) => (
+                {currentQuestion.options.map((option, index) => (
                   <FormControlLabel
-                    key={optionIndex}
-                    value={(optionIndex + 1).toString()}
-                    control={<Radio color="primary" />}
+                    key={index}
+                    value={index + 1}
+                    control={
+                      <Radio
+                        sx={{
+                          color: 'var(--sub-color)',
+                          '&.Mui-checked': {
+                            color: 'var(--main-color)',
+                          },
+                        }}
+                      />
+                    }
                     label={option}
                     sx={{
-                      mb: 1.5,
-                      p: 1,
+                      mb: 1,
+                      p: 1.5,
                       borderRadius: 1,
-                      transition: 'all 0.2s',
+                      width: '100%',
+                      transition: 'background-color 0.2s',
+                      border: '1px solid transparent',
                       '&:hover': {
-                        bgcolor: 'action.hover',
+                        backgroundColor: 'var(--bg-color-secondary)',
+                        border: '1px solid var(--sub-alt-color)',
                       },
+                      ...(currentAnswer?.selectedOptionNumber === index + 1
+                        ? {
+                            backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                            border: '1px solid var(--main-color)',
+                          }
+                        : {}),
                     }}
                   />
                 ))}
               </RadioGroup>
             </FormControl>
 
+            {/* Navigation buttons */}
             <Box
-              sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mt: 2,
+              }}
             >
               <Button
-                variant="outlined"
-                color="primary"
                 onClick={handlePrevious}
                 disabled={currentQuestionIndex === 0}
                 sx={{
-                  borderRadius: 2,
+                  color: 'var(--main-color)',
+                  fontWeight: 500,
+                  py: 1,
                   px: 3,
+                  '&:hover': {
+                    backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                  },
+                  '&.Mui-disabled': {
+                    color: 'var(--sub-alt-color)',
+                  },
                 }}
-                startIcon={<span>←</span>}
               >
                 Previous
               </Button>
               <Button
                 variant="contained"
-                color="primary"
                 onClick={handleNextQuestion}
                 disabled={!currentAnswer}
                 sx={{
-                  borderRadius: 2,
+                  backgroundColor: 'var(--main-color)',
+                  color: 'var(--bg-color)',
+                  fontWeight: 500,
+                  py: 1,
                   px: 3,
-                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: 'var(--caret-color)',
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: 'var(--sub-alt-color)',
+                    color: 'var(--sub-color)',
+                  },
                 }}
-                endIcon={isLastQuestion ? null : <span>→</span>}
               >
-                {isLastQuestion ? 'Submit Quiz' : 'Next Question'}
+                {isLastQuestion ? 'Submit' : 'Next'}
               </Button>
             </Box>
-          </>
+          </Box>
         )}
       </Paper>
 
       <Modal
         open={isOverlayOpen}
         onClose={() => setIsOverlayOpen(false)}
-        aria-labelledby="detailed-submission-modal"
+        aria-labelledby="quiz-result-modal"
+        className={`theme-${currentTheme}`}
       >
-        <Box
+        <Paper
           sx={{
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: '90%',
+            width: { xs: '95%', sm: '80%', md: '70%' },
             maxWidth: 800,
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
             maxHeight: '90vh',
-            overflowY: 'auto',
+            overflow: 'auto',
+            p: 4,
+            backgroundColor: 'var(--bg-color)',
+            color: 'var(--text-color)',
             borderRadius: 2,
+            outline: 'none',
+            border: '1px solid var(--sub-alt-color)',
+            boxShadow: 'rgba(0, 0, 0, 0.25) 0px 15px 45px',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              backgroundColor: 'var(--main-color)',
+              opacity: 0.8,
+            },
           }}
         >
-          <QuizResultOverlay
-            quizResult={quizResult}
-            isLoading={isLoadingResult}
-            error={resultError}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-            <Button
-              onClick={() => setIsOverlayOpen(false)}
-              variant="contained"
-              color="primary"
-              sx={{ borderRadius: 2 }}
+          {isLoadingResult ? (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: 200,
+              }}
             >
-              Close
-            </Button>
-          </Box>
-        </Box>
+              <CircularProgress sx={{ color: 'var(--main-color)' }} />
+            </Box>
+          ) : resultError ? (
+            <Typography sx={{ color: 'var(--error-color)' }}>
+              {resultError}
+            </Typography>
+          ) : (
+            quizResult && (
+              <QuizResultOverlay
+                quizResult={quizResult}
+                isLoading={false}
+                error={null}
+              />
+            )
+          )}
+        </Paper>
       </Modal>
     </Box>
   );
-};
+});
 
-export default React.memo(Quiz);
+// Add display name
+Quiz.displayName = 'Quiz';
+
+export default Quiz;
