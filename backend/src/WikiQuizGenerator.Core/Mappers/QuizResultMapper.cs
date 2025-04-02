@@ -12,6 +12,7 @@ public static class QuizResultMapper
             Quiz = submission.Quiz.ToDto(),
             Score = submission.Score,
             SubmissionTime = submission.SubmissionTime,
+            UserId = submission.UserId,
             Answers = GetResultOptions(submission)
         };
     }

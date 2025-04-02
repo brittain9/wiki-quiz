@@ -3,6 +3,8 @@ using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Mappers;
 using WikiQuizGenerator.Core.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace WikiQuizGenerator.Api.Endpoints;
 
@@ -36,7 +38,8 @@ public static class QuizEndpoints
              .ProducesProblem(StatusCodes.Status404NotFound) // If quizId doesn't exist
              .ProducesProblem(StatusCodes.Status400BadRequest) // For invalid submission data
              .ProducesValidationProblem() // For potential future model validation
-             .ProducesProblem(StatusCodes.Status500InternalServerError);
+             .ProducesProblem(StatusCodes.Status500InternalServerError)
+             .RequireAuthorization();
     }
 
     private static async Task<IResult> HandleGetBasicQuiz(
@@ -67,9 +70,7 @@ public static class QuizEndpoints
  
     }
 
-    private static async Task<IResult> HandleSubmitQuiz(
-        [FromServices] IQuizRepository quizRepository,
-        SubmissionDto submissionDto)
+    private static async Task<IResult> HandleSubmitQuiz(SubmissionDto submissionDto, IQuizRepository quizRepository, ClaimsPrincipal claimsPrincipal)
     {
         if (submissionDto == null || submissionDto.QuestionAnswers == null || submissionDto.QuizId <= 0)
         {
@@ -82,8 +83,15 @@ public static class QuizEndpoints
             return TypedResults.NotFound($"Quiz with ID {submissionDto.QuizId} not found.");
         }
 
+        var userId = GetUserIdFromClaims(claimsPrincipal);
+        if (userId == Guid.Empty)
+        {
+            return TypedResults.Unauthorized();
+        }
+
         var submission = SubmissionMapper.ToModel(submissionDto);
         submission.Quiz = quiz; // Link to the fetched quiz
+        submission.UserId = userId;
         submission.Score = CalculateScore(submissionDto, quiz);
         submission.SubmissionTime = DateTime.UtcNow;
 
@@ -96,6 +104,11 @@ public static class QuizEndpoints
         return TypedResults.Created(submissionUri, resultDto);
     }
 
+    private static Guid GetUserIdFromClaims(ClaimsPrincipal claimsPrincipal)
+    {
+        var nameIdentifier = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(nameIdentifier, out var userId) ? userId : Guid.Empty;
+    }
 
     private static void ValidateBasicQuizParameters(int numQuestions, int numOptions, int extractLength)
     {

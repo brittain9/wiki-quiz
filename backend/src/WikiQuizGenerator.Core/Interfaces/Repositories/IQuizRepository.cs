@@ -15,4 +15,6 @@ public interface IQuizRepository
     Task DeleteSubmissionAsync(int submissionId);
     Task<Submission> GetSubmissionByIdAsync(int submissionId);
     Task<IEnumerable<Submission>> GetAllSubmissionsAsync();
+    Task<IEnumerable<Submission>> GetSubmissionsByUserIdAsync(Guid userId);
+    Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId);
 }

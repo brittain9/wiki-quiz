@@ -6,6 +6,7 @@ public class QuizResultDto
         public List<ResultOptionDto> Answers { get; set; }
         public DateTime SubmissionTime { get; set; }
         public int Score { get; set; }
+        public Guid UserId { get; set; }
 }
 
 public class ResultOptionDto

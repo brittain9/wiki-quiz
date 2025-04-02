@@ -25,6 +25,9 @@ public partial class Program
             app.UseHsts();
         }
 
+        // Use cookie policy before authentication
+        app.UseCookiePolicy();
+
         app.UseRouting();
 
         app.UseAuthentication();

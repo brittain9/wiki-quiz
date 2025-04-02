@@ -16,6 +16,8 @@ public static class SubmissionMapper
                 SelectedOptionNumber = a.SelectedOptionNumber
             }).ToList(),
             SubmissionTime = DateTime.UtcNow
+            // Note: UserId is set in the controller from ClaimsPrincipal
+            // User navigation property will be populated by Entity Framework
         };
     }
 
@@ -26,6 +28,7 @@ public static class SubmissionMapper
             Id = submission.Id,
             Score = submission.Score,
             Title = submission.Quiz.Title,
+            UserId = submission.UserId,
             SubmissionTime = submission.SubmissionTime
         };
         

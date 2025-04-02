@@ -60,6 +60,14 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
             .WithMany(q => q.QuizSubmissions)
             .HasForeignKey(qs => qs.QuizId)
             .OnDelete(DeleteBehavior.Restrict);
+            
+        // User - Submission relationship
+        modelBuilder.Entity<Submission>()
+            .HasOne(s => s.User)
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired();
 
         // This is optional as entity framework would do this anyway, but for learning I will keep it
         // Create the join entity for the many-to-many relationship between page and category

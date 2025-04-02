@@ -29,7 +29,7 @@ export const submissionApi = {
   },
 
   /**
-   * Retrieves a list of recent quiz submissions.
+   * Retrieves a list of recent quiz submissions for the current user.
    */
   getRecentSubmissions: async (): Promise<SubmissionResponse[]> => {
     try {

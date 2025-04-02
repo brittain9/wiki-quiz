@@ -86,6 +86,7 @@ public class QuizRepository : IQuizRepository
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.WikipediaPage)
             .Include(qs => qs.Answers)
+            .Include(qs => qs.User)
             .FirstOrDefaultAsync(qs => qs.Id == submissionId);
     }
 
@@ -94,6 +95,28 @@ public class QuizRepository : IQuizRepository
         return await _context.QuizSubmissions
             .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
             .Include(qs => qs.Answers)
+            .Include(qs => qs.User)
             .ToListAsync();
+    }
+    
+    public async Task<IEnumerable<Submission>> GetSubmissionsByUserIdAsync(Guid userId)
+    {
+        return await _context.QuizSubmissions
+            .Where(s => s.UserId == userId)
+            .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
+            .Include(qs => qs.Answers)
+            .Include(qs => qs.User)
+            .OrderByDescending(s => s.SubmissionTime)
+            .ToListAsync();
+    }
+    
+    public async Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId)
+    {
+        return await _context.QuizSubmissions
+            .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
+            .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.WikipediaPage)
+            .Include(qs => qs.Answers)
+            .Include(qs => qs.User)
+            .FirstOrDefaultAsync(qs => qs.Id == submissionId && qs.UserId == userId);
     }
 }

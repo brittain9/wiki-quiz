@@ -19,47 +19,23 @@ public static class AuthEndpoints
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/auth")
-                       .WithTags("Authentication")
-                       // Optional: Apply authorization requirement to the whole group if most endpoints need it
-                       // .RequireAuthorization()
-                       ; 
+                       .WithTags("Authentication");
 
-        // --- Registration, Login, Refresh ---
-        // (Keep existing registration, login, refresh, google endpoints as they are,
-        // assuming IAccountService handles cookie setting correctly for login/refresh)
-
+        // --- Registration, Login ---
         group.MapPost("register", async (RegisterRequest registerRequest, IAccountService accountService) =>
         {
             // Consider adding error handling/returning specific results (e.g., BadRequest on failure)
             await accountService.RegisterAsync(registerRequest);
             return Results.Ok();
         })
-        .AllowAnonymous(); // Explicitly allow anonymous access if group requires authorization
+        .AllowAnonymous(); // Explicitly allow anonymous access
 
         group.MapPost("login", async (LoginRequest loginRequest, IAccountService accountService, HttpContext context) =>
         {
-            // Assuming LoginAsync sets necessary cookies (e.g., application cookie via SignInManager, refresh token cookie)
-            // Consider returning user info or confirmation instead of just Ok()
-            // Also handle login failures (e.g., return Results.Unauthorized())
-            await accountService.LoginAsync(loginRequest); // Ensure this internally calls SignInManager.PasswordSignInAsync etc.
+            await accountService.LoginAsync(loginRequest);
             return Results.Ok();
         })
         .AllowAnonymous(); // Explicitly allow anonymous access
-
-        group.MapPost("/refresh", async (HttpContext httpContext, IAccountService accountService) =>
-        {
-            var refreshToken = httpContext.Request.Cookies["REFRESH_TOKEN"]; // Still relies on specific cookie name
-
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                return Results.BadRequest("Refresh token not found.");
-            }
-            // Ensure RefreshTokenAsync handles validation, generates new tokens (access + refresh),
-            // sets new cookies (including HttpOnly, Secure, SameSite), and potentially revokes the old refresh token.
-            // Handle failures (e.g., invalid token) -> Results.Unauthorized()
-            await accountService.RefreshTokenAsync(refreshToken);
-            return Results.Ok();
-        }); // This likely needs authorization OR a valid refresh token
 
         // --- Google Login ---
         group.MapGet("login/google", ([FromQuery] string? returnUrl, LinkGenerator linkGenerator,
@@ -80,8 +56,10 @@ public static class AuthEndpoints
         .AllowAnonymous(); // Explicitly allow anonymous access
 
         group.MapGet("login/google/callback", async ([FromQuery] string? returnUrl,
-            HttpContext context, SignInManager<User> signInManager, IAccountService accountService) =>
+            HttpContext context, SignInManager<User> signInManager, IAccountService accountService, ILogger<Program> logger) =>
         {
+            logger.LogInformation("Google callback endpoint hit with returnUrl: {ReturnUrl}", returnUrl ?? "null");
+            
             // Basic validation for returnUrl
             returnUrl ??= "/"; // Default redirect location if none provided
             if (!Uri.IsWellFormedUriString(returnUrl, UriKind.RelativeOrAbsolute)) {
@@ -92,15 +70,20 @@ public static class AuthEndpoints
             var info = await signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
+                logger.LogError("Failed to get external login info from SignInManager");
                 // Log error details if possible
                 return Results.Redirect($"{returnUrl}?error=external_login_failed");
             }
+            
+            logger.LogInformation("Retrieved external login info for provider: {Provider}, with claims count: {ClaimsCount}", 
+                info.LoginProvider, info.Principal?.Claims?.Count() ?? 0);
 
             try
             {
                 // Let IAccountService handle the logic of signing in or registering the external user
-                // This service should internally use SignInManager.ExternalLoginSignInAsync or create/link the user
+                logger.LogInformation("Calling accountService.LoginWithGoogleAsync");
                 await accountService.LoginWithGoogleAsync(info); // Pass ExternalLoginInfo
+                logger.LogInformation("Successfully authenticated with Google");
 
                 // Redirect after successful login
                 var separator = returnUrl.Contains('?') ? '&' : '?';
@@ -109,6 +92,7 @@ public static class AuthEndpoints
             catch (Exception ex)
             {
                 // Log the exception ex
+                logger.LogError(ex, "Error processing Google login callback");
                 // Consider more specific error handling/messages
                 return Results.Redirect($"{returnUrl}?error=google_login_processing_error");
             }
@@ -117,34 +101,17 @@ public static class AuthEndpoints
                 // Clean up temporary external cookie
                 await context.SignOutAsync(IdentityConstants.ExternalScheme);
             }
-
         }).WithName("GoogleLoginCallback")
           .AllowAnonymous(); // Explicitly allow anonymous access
-
 
         // --- Optimized /me Endpoint ---
         group.MapGet("/me", async (ClaimsPrincipal claimsPrincipal, UserManager<User> userManager, HttpContext httpContext, ILogger<Program> logger) =>
         {
-            // Check if we're authenticated and log identity info
-            logger.LogInformation("User authenticated: {IsAuthenticated}, Claims: {ClaimsCount}", 
-                claimsPrincipal.Identity?.IsAuthenticated, 
-                claimsPrincipal.Claims?.Count());
-
             if (!claimsPrincipal.Identity?.IsAuthenticated ?? true)
             {
-                logger.LogWarning("User not authenticated");
+                logger.LogInformation("Unauthenticated request to /me endpoint");
                 return Results.Unauthorized();
             }
-
-            // Log all claims to help debug
-            foreach (var claim in claimsPrincipal.Claims)
-            {
-                logger.LogInformation("Claim: {Type} = {Value}", claim.Type, claim.Value);
-            }
-
-            // Log the available cookies
-            logger.LogInformation("Cookies: {Cookies}", string.Join(", ", 
-                httpContext.Request.Cookies.Select(c => $"{c.Key}={c.Value.Substring(0, Math.Min(5, c.Value.Length))}...")));
 
             try
             {
@@ -188,31 +155,118 @@ public static class AuthEndpoints
         })
         .RequireAuthorization(); // Ensures only authenticated users can access
 
+        // --- Logout Endpoint ---
+        group.MapPost("/logout", async (IAccountService accountService, ClaimsPrincipal claimsPrincipal, ILogger<Program> logger) => 
+        {
+            if (!claimsPrincipal.Identity?.IsAuthenticated ?? true)
+            {
+                return Results.Ok(); // Already logged out
+            }
 
-        // --- Optimized /logout Endpoint ---
-        group.MapPost("/logout", async (SignInManager<User> signInManager, IAccountService accountService, ClaimsPrincipal claimsPrincipal, HttpContext context) => {
+            var nameId = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(nameId) || !Guid.TryParse(nameId, out var userId))
+            {
+                logger.LogWarning("No valid user ID found in claims during logout");
+                return Results.Ok(); // No valid user ID, but still OK response
+            }
 
-            // Optional: Invalidate the refresh token if your IAccountService manages them server-side
-            // You might need to retrieve the token used (e.g., from a claim or a cookie)
-            // or identify the session based on the user.
-            // Example:
-            // var userId = userManager.GetUserId(claimsPrincipal); // Get user ID if needed for revocation
-            // var refreshToken = context.Request.Cookies["REFRESH_TOKEN"]; // If you need the token value
-            // if(!string.IsNullOrEmpty(refreshToken)) {
-            //      await accountService.RevokeRefreshTokenAsync(refreshToken, userId); // Your service method
-            // }
-
-            // Use SignInManager to properly sign out
-            // This clears the Identity.Application cookie
-            await signInManager.SignOutAsync();
-
-            // Optional: Manually delete custom cookies if SignInManager doesn't handle them
-            // Only do this if IAccountService sets these cookies *outside* of Identity's control
-            // context.Response.Cookies.Delete("REFRESH_TOKEN"); // Example if REFRESH_TOKEN is managed separately
-
-            return Results.Ok("Logged out successfully.");
-            // Or use Results.NoContent();
+            await accountService.LogoutAsync(userId);
+            return Results.Ok();
         })
         .RequireAuthorization(); // User must be logged in to log out
+
+        // Debug endpoints
+        group.MapGet("/debug/auth-status", (ClaimsPrincipal user, HttpContext context, ILogger<Program> logger) =>
+        {
+            // Log request details
+            logger.LogInformation("Auth status check - IsAuthenticated: {IsAuthenticated}", 
+                user.Identity?.IsAuthenticated ?? false);
+            
+            // Log all headers
+            foreach (var header in context.Request.Headers)
+            {
+                logger.LogDebug("Header: {Key} = {Value}", header.Key, header.Value);
+            }
+            
+            // Log all cookies
+            logger.LogDebug("Cookies: {Count}", context.Request.Cookies.Count);
+            foreach (var cookie in context.Request.Cookies)
+            {
+                // Don't log the full value of sensitive cookies
+                var isSensitive = cookie.Key.Contains("token", StringComparison.OrdinalIgnoreCase) ||
+                                 cookie.Key.Contains("auth", StringComparison.OrdinalIgnoreCase);
+                
+                var displayValue = isSensitive 
+                    ? $"[Redacted - Length: {cookie.Value.Length}]" 
+                    : cookie.Value;
+                    
+                logger.LogDebug("Cookie: {Key} = {Value}", cookie.Key, displayValue);
+            }
+            
+            // Log all claims
+            var claims = user.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            logger.LogDebug("Claims: {Count}", claims.Count);
+            foreach (var claim in claims)
+            {
+                logger.LogDebug("Claim: {Type} = {Value}", claim.Type, claim.Value);
+            }
+            
+            return Results.Ok(new 
+            { 
+                isAuthenticated = user.Identity?.IsAuthenticated ?? false,
+                authType = user.Identity?.AuthenticationType,
+                claimsCount = claims.Count,
+                hasClaims = new
+                {
+                    email = user.HasClaim(c => c.Type == ClaimTypes.Email || c.Type == "email"),
+                    nameIdentifier = user.HasClaim(c => c.Type == ClaimTypes.NameIdentifier),
+                    name = user.HasClaim(c => c.Type == ClaimTypes.Name)
+                },
+                cookies = context.Request.Cookies.Keys.ToList()
+            });
+        })
+        .AllowAnonymous();
+
+        group.MapGet("/debug/create-test-user", async (UserManager<User> userManager, SignInManager<User> signInManager, HttpContext context, ILogger<Program> logger) =>
+        {
+            try {
+                // Check if test user exists
+                string email = "test@example.com";
+                var existingUser = await userManager.FindByEmailAsync(email);
+                
+                if (existingUser != null) {
+                    // Sign in existing user
+                    await signInManager.SignInAsync(existingUser, isPersistent: true);
+                    return Results.Ok(new { message = "Existing test user logged in", userId = existingUser.Id });
+                }
+                
+                // Create new test user
+                var user = new User
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = "Test",
+                    LastName = "User",
+                    EmailConfirmed = true
+                };
+                
+                var result = await userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    return Results.BadRequest(new { message = "Failed to create test user", errors });
+                }
+                
+                // Sign in the new user
+                await signInManager.SignInAsync(user, isPersistent: true);
+                
+                return Results.Ok(new { message = "Test user created and logged in", userId = user.Id });
+            }
+            catch (Exception ex) {
+                logger.LogError(ex, "Error creating test user");
+                return Results.Problem("Error creating test user: " + ex.Message);
+            }
+        })
+        .AllowAnonymous();
     }
 }
