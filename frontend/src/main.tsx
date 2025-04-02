@@ -6,6 +6,7 @@ import { I18nextProvider } from 'react-i18next';
 
 import App from './App';
 import { AuthProvider } from './context/AuthProvider';
+import { OverlayProvider } from './context/OverlayContext';
 import { QuizOptionsProvider } from './context/QuizOptionsContext';
 import { QuizStateProvider } from './context/QuizStateContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -17,11 +18,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
         <AuthProvider>
-          <QuizOptionsProvider>
-            <QuizStateProvider>
-              <App />
-            </QuizStateProvider>
-          </QuizOptionsProvider>
+          <OverlayProvider>
+            <QuizOptionsProvider>
+              <QuizStateProvider>
+                <App />
+              </QuizStateProvider>
+            </QuizOptionsProvider>
+          </OverlayProvider>
         </AuthProvider>
       </ThemeProvider>
     </I18nextProvider>

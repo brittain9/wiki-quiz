@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import AnimatedTopics from './AnimatedTopics';
 import { useQuizOptions } from '../../context/QuizOptionsContext';
 import { useQuizState } from '../../context/QuizStateContext';
+import useAuthCheck from '../../hooks/useAuthCheck';
 import { quizApi, wikiApi } from '../../services';
 
 const StyledBox = styled('div')(({ theme }) => ({
@@ -46,6 +47,17 @@ export default function Hero() {
   const [error, setError] = useState<string | null>(null);
   const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Use our auth check hook
+  const { checkAuth } = useAuthCheck({
+    message: t('login.quizCreationMessage'),
+    onAuthSuccess: () => {
+      // This will run after successful login from the login overlay
+      if (quizOptions.topic && !isGenerating) {
+        handleSubmitQuiz();
+      }
+    },
+  });
 
   useEffect(() => {
     // Add event listener to close the dropdown when clicking outside
@@ -63,9 +75,7 @@ export default function Hero() {
     };
   }, []);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent default form submission
-
+  const handleSubmitQuiz = async () => {
     if (quizOptions.topic && !isGenerating) {
       try {
         setIsGenerating(true);
@@ -86,14 +96,30 @@ export default function Hero() {
 
         setCurrentQuiz(quiz);
         setIsQuizReady(true);
-
         setError(null);
+        
+        // Scroll to quiz section
+        const quizElement = document.getElementById('quiz-section');
+        if (quizElement) {
+          quizElement.scrollIntoView({ behavior: 'smooth' });
+        }
       } catch (error: any) {
         setError(error.message);
       } finally {
         setIsGenerating(false);
       }
     }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault(); // Prevent default form submission
+
+    // Check if user is authenticated before proceeding
+    const isAuthenticated = checkAuth();
+    if (isAuthenticated) {
+      handleSubmitQuiz();
+    }
+    // If not authenticated, the login overlay will show automatically
   };
 
   const handleTopicChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -4,7 +4,12 @@
   },
   "appBar": {
     "title": "Wiki Quiz App",
-    "highlights": "Highlights"
+    "highlights": "Highlights",
+    "home": "Home",
+    "myQuizzes": "My Quizzes",
+    "createQuiz": "Create Quiz",
+    "login": "Login",
+    "logout": "Logout"
   },
   "footer": {
     "title": "Wikipedia Quiz App"
@@ -17,9 +22,31 @@
     "generatingButtonText": "Generating",
     "startButtonText": "Start now"
   },
+  "login": {
+    "title": "Login Required",
+    "subtitle": "You need to be logged in to create quizzes and view your submission history.",
+    "loginWithGoogle": "Sign in with Google",
+    "loginButton": "Sign in",
+    "dismiss": "Dismiss",
+    "quizCreationMessage": "Please log in to create and take quizzes",
+    "viewSubmissionsMessage": "Please log in to view your quiz history",
+    "loginToView": "Log in to view your submissions"
+  },
+  "account": {
+    "title": "My Account",
+    "viewProfile": "View Profile",
+    "myQuizzes": "My Quizzes",
+    "quizHistory": "Quiz History",
+    "settings": "Settings",
+    "logout": "Logout",
+    "loggingOut": "Logging out...",
+    "editProfile": "Edit Profile",
+    "profileMessage": "This is your profile overview. More features coming soon!"
+  },
   "recentSubmissions": {
     "title": "Recent Submissions",
-    "noHistory": "Take a quiz to see your history!"
+    "noHistory": "Take a quiz to see your history!",
+    "loginRequired": "You need to be logged in to view your submission history."
   },
   "quizresultoverlay": {
     "title": "Quiz Results",

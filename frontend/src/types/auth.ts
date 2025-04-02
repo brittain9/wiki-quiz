@@ -21,6 +21,11 @@ export interface UserInfo {
    * User's last name
    */
   lastName: string;
+  
+  /**
+   * User's profile picture URL (from Google account)
+   */
+  profilePicture?: string;
 }
 
 /**

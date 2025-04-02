@@ -1,6 +1,8 @@
 // frontend/src/components/Auth/LoginButton.tsx
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import GoogleIcon from '@mui/icons-material/Google';
+import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
 import {
   Button,
   Box,
@@ -9,36 +11,44 @@ import {
   Tooltip,
   Typography,
   CircularProgress,
+  Menu,
+  MenuItem,
+  Divider,
+  IconButton,
+  Avatar,
 } from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import useAuthActions from '../../hooks/useAuthActions';
-import useAuthStatus from '../../hooks/useAuthStatus';
+import { useAuth } from '../../context/AuthProvider';
+import { useOverlay } from '../../context/OverlayContext';
 import { createLogger } from '../../utils/logger';
 
 // Create a specialized logger for LoginButton
 const logLoginButton = createLogger('LoginButton', '🔘', true);
 
 const LoginButton: React.FC = () => {
-  // Use specialized hooks instead of the full context
-  const { isAuthenticated, isLoading, user } = useAuthStatus();
-  const { login, logout, clearError, error } = useAuthActions();
+  const { isLoggedIn, isChecking, userInfo, loginWithGoogle, logout, error, clearError } = useAuth();
+  const { showOverlay } = useOverlay();
+  const { t } = useTranslation();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   // Log component state changes
   useEffect(() => {
     logLoginButton('Auth state changed', {
-      isAuthenticated,
-      isLoading,
-      user: user
+      isLoggedIn,
+      isChecking,
+      user: userInfo
         ? {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
+            id: userInfo.id,
+            email: userInfo.email,
+            firstName: userInfo.firstName,
           }
         : null,
       hasError: !!error,
     });
-  }, [isAuthenticated, isLoading, user, error]);
+  }, [isLoggedIn, isChecking, userInfo, error]);
 
   // Log error when it appears
   useEffect(() => {
@@ -50,13 +60,20 @@ const LoginButton: React.FC = () => {
   // Enhanced login handler
   const handleLoginWithGoogle = () => {
     logLoginButton('Google login button clicked');
-    login();
+    loginWithGoogle();
   };
 
-  // Enhanced logout handler
+  // Show account overlay
+  const handleAccountClick = () => {
+    logLoginButton('Account overlay button clicked');
+    setAnchorEl(null); // Close menu
+    showOverlay('account');
+  };
+
+  // Handle logout
   const handleLogout = async () => {
     logLoginButton('Logout button clicked');
-
+    setAnchorEl(null); // Close menu
     try {
       await logout();
       logLoginButton('Logout completed');
@@ -65,8 +82,19 @@ const LoginButton: React.FC = () => {
     }
   };
 
+  // Menu handling
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    logLoginButton('User menu opened');
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    logLoginButton('User menu closed');
+    setAnchorEl(null);
+  };
+
   // Display loading indicator while checking auth status
-  if (isLoading) {
+  if (isChecking) {
     logLoginButton('Rendering loading state');
     return (
       <Box display="flex" alignItems="center" sx={{ minHeight: 40 }}>
@@ -76,32 +104,90 @@ const LoginButton: React.FC = () => {
     );
   }
 
-  // Display user info and logout button if logged in
-  if (isAuthenticated) {
+  // Display user avatar button if logged in
+  if (isLoggedIn) {
     logLoginButton('Rendering logged-in state', {
-      email: user?.email,
-      firstName: user?.firstName,
+      email: userInfo?.email,
+      firstName: userInfo?.firstName,
+      hasProfilePicture: !!userInfo?.profilePicture
     });
 
     return (
       <Box display="flex" alignItems="center" sx={{ minHeight: 40 }}>
-        <Tooltip title={`Logged in as ${user?.email || 'User'}`}>
-          <AccountCircleIcon color="primary" sx={{ mr: 1 }} />
+        <Tooltip title={t('account.title')}>
+          <IconButton
+            onClick={handleMenuOpen}
+            size="small"
+            aria-controls={open ? 'account-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={open ? 'true' : undefined}
+            sx={{ ml: 1 }}
+          >
+            {userInfo?.profilePicture ? (
+              <Avatar 
+                src={userInfo.profilePicture}
+                alt={userInfo.firstName}
+                sx={{ 
+                  width: 32, 
+                  height: 32 
+                }}
+              />
+            ) : (
+              <Avatar 
+                sx={{ 
+                  width: 32, 
+                  height: 32,
+                  bgcolor: 'primary.main'
+                }}
+              >
+                {userInfo?.firstName?.charAt(0) || 'U'}
+              </Avatar>
+            )}
+          </IconButton>
         </Tooltip>
-        <Typography
-          variant="body2"
-          sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}
+        <Menu
+          id="account-menu"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleMenuClose}
+          onClick={handleMenuClose}
+          PaperProps={{
+            elevation: 0,
+            sx: {
+              overflow: 'visible',
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
+              mt: 1.5,
+              minWidth: 200,
+              '& .MuiAvatar-root': {
+                width: 32,
+                height: 32,
+                ml: -0.5,
+                mr: 1,
+              },
+            },
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          Hi, {user?.firstName || 'User'}
-        </Typography>
-        <Button
-          variant="outlined"
-          color="secondary"
-          size="small"
-          onClick={handleLogout}
-        >
-          Log out
-        </Button>
+          <Box sx={{ px: 2, py: 1 }}>
+            <Typography variant="subtitle1">
+              {userInfo?.firstName} {userInfo?.lastName || ''}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {userInfo?.email}
+            </Typography>
+          </Box>
+          <Divider />
+          <MenuItem onClick={handleAccountClick}>
+            <PersonIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('account.viewProfile')}
+          </MenuItem>
+          <Divider />
+          <MenuItem onClick={handleLogout}>
+            <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('account.logout')}
+          </MenuItem>
+        </Menu>
       </Box>
     );
   }
@@ -110,15 +196,25 @@ const LoginButton: React.FC = () => {
   logLoginButton('Rendering logged-out state');
 
   return (
-    <Box sx={{ minHeight: 40 }}>
+    <Box sx={{ 
+      minHeight: 40, 
+      display: 'flex', 
+      alignItems: 'center',
+      justifyContent: 'center' 
+    }}>
       <Button
-        variant="contained"
+        variant="outlined"
         color="primary"
         size="small"
         startIcon={<GoogleIcon />}
         onClick={handleLoginWithGoogle}
+        sx={{ 
+          minWidth: '100px',
+          height: '32px',
+          borderRadius: '16px'
+        }}
       >
-        Sign in with Google
+        {t('login.loginButton')}
       </Button>
       <Snackbar
         open={!!error}

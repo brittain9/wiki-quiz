@@ -16,7 +16,9 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import QuizResultOverlay from './QuizResultOverlay';
+import { useAuth } from '../context/AuthProvider';
 import { useQuizState } from '../context/QuizStateContext';
+import useAuthCheck from '../hooks/useAuthCheck';
 import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';
 import { SubmissionResponse } from '../types/quizSubmission.types';
@@ -28,18 +30,28 @@ const SubmissionHistory: React.FC = () => {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
 
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [selectedQuizResult, setSelectedQuizResult] =
     useState<QuizResult | null>(null);
   const [isResultLoading, setIsResultLoading] = useState(false);
   const [resultError, setResultError] = useState<string | null>(null);
+  
+  const { checkAuth } = useAuthCheck({
+    message: t('login.viewSubmissionsMessage'),
+  });
 
-  const { t } = useTranslation();
-
-  // Fetch submissions from the backend
+  // Fetch submissions from the backend when authenticated
   useEffect(() => {
     const fetchSubmissions = async () => {
+      // Only fetch if logged in
+      if (!isLoggedIn) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         const recentSubmissions = await submissionApi.getRecentSubmissions();
         setAllSubmissions(recentSubmissions);
@@ -51,7 +63,7 @@ const SubmissionHistory: React.FC = () => {
     };
 
     fetchSubmissions();
-  }, []);
+  }, [isLoggedIn]);
 
   // Merge new submissions into the existing list and remove duplicates
   useEffect(() => {
@@ -67,6 +79,12 @@ const SubmissionHistory: React.FC = () => {
 
   // Handle the click on a submission to view details
   const handleSubmissionClick = async (id: number) => {
+    // Check if user is authenticated before showing submission details
+    const isAuthenticated = checkAuth();
+    if (!isAuthenticated) {
+      return;
+    }
+    
     setIsResultLoading(true);
     setResultError(null);
     try {
@@ -106,6 +124,32 @@ const SubmissionHistory: React.FC = () => {
       <Typography color="error" align="center">
         {error}
       </Typography>
+    );
+  }
+  
+  // If not logged in, show message to log in
+  if (!isLoggedIn) {
+    return (
+      <Paper
+        elevation={3}
+        sx={{ padding: 4, maxWidth: 800, margin: 'auto', mt: 5, mb: 5 }}
+      >
+        <Typography variant="h5" gutterBottom align="center">
+          {t('recentSubmissions.title')}
+        </Typography>
+        <Typography align="center" sx={{ mb: 2 }}>
+          {t('recentSubmissions.loginRequired')}
+        </Typography>
+        <Box display="flex" justifyContent="center">
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => checkAuth()}
+          >
+            {t('login.loginToView')}
+          </Button>
+        </Box>
+      </Paper>
     );
   }
 
