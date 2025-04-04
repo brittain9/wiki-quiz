@@ -198,7 +198,7 @@ const Hero = React.memo(() => {
                 sx={{
                   py: 1,
                   '&:hover': {
-                    backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                    backgroundColor: 'var(--main-color-10)',
                   },
                 }}
               >

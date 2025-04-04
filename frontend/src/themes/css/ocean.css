@@ -1,0 +1,22 @@
+/* Deep Ocean theme */
+:root {
+  /* Essential colors */
+  --bg-color: #0a1929;
+  --bg-color-secondary: #112240;
+  --bg-color-tertiary: #1a365d;
+  --main-color: #38bdf8;
+  --caret-color: #38bdf8;
+  --text-color: #e0f2fe;
+  --sub-color: #64748b;
+  --sub-alt-color: #1e3a5f;
+  --error-color: #fb7185;
+  --error-extra-color: #b42a41;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+
+  /* Colors with transparency */
+  --main-color-10: #38bdf819; /* 10% opacity */
+  --main-color-20: #38bdf833; /* 20% opacity */
+  --success-color-10: #34d39919; /* 10% opacity */
+  --error-color-10: #fb718519; /* 10% opacity */
+}

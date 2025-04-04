@@ -244,20 +244,16 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = ({
                       optionIndex + 1 === result.selectedAnswerChoice;
                     const isWrong = isSelected && !isCorrect;
 
-                    let textColor = 'var(--text-color)';
-                    let radioColor = 'var(--sub-color)';
-                    let bgColor = 'transparent';
-                    let borderColor = 'transparent';
-
+                    let textColor, radioColor, bgColor, borderColor;
                     if (isCorrect) {
                       textColor = 'var(--success-color)';
                       radioColor = 'var(--success-color)';
-                      bgColor = 'rgba(var(--success-color-rgb), 0.1)';
+                      bgColor = 'var(--success-color-10)';
                       borderColor = 'var(--success-color)';
-                    } else if (isWrong) {
+                    } else {
                       textColor = 'var(--error-color)';
                       radioColor = 'var(--error-color)';
-                      bgColor = 'rgba(var(--error-color-rgb), 0.1)';
+                      bgColor = 'var(--error-color-10)';
                       borderColor = 'var(--error-color)';
                     }
 

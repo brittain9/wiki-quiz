@@ -1,31 +1,33 @@
 /* 
-  Base styles for theme integration 
-  This file should be imported directly into the app
+  Global styles for the application 
+  Theme-specific styles will be loaded dynamically
 */
 
 /* Apply theme variables to the root element */
 :root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
   /* Default fallback colors (will be overridden by theme CSS) */
   --bg-color: #323437;
   --bg-color-secondary: #222222;
   --bg-color-tertiary: #2c2c2c;
-  --main-color: #e2b714;
-  --caret-color: #e2b714;
-  --main-color-rgb: 226, 183, 20;
+  --main-color: #7c3aed;
+  --caret-color: #7c3aed;
   --sub-color: #646669;
   --sub-alt-color: #2c2e31;
   --text-color: #d1d0c5;
   --error-color: #ca4754;
   --error-extra-color: #a53640;
-  --error-color-rgb: 202, 71, 84;
-  --colorful-error-color: #ca4754;
-  --colorful-error-extra-color: #a53640;
   --success-color: #4caf50;
-  --success-color-rgb: 76, 175, 80;
   --warning-color: #ff9800;
-  --warning-color-rgb: 255, 152, 0;
-  --always-dark-color: #232323;
-  --always-light-color: #eeeeee;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(124, 58, 237, 0.1); /* 10% opacity */
+  --main-color-20: rgba(124, 58, 237, 0.2); /* 20% opacity */
+  --success-color-10: rgba(76, 175, 80, 0.1); /* 10% opacity */
+  --error-color-10: rgba(202, 71, 84, 0.1); /* 10% opacity */
 }
 
 /* Ensure the entire document respects the theme */
@@ -33,40 +35,57 @@ html,
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
-  font-family: var(--font-family-main, 'Roboto Mono', monospace);
+  font-family: var(--font-family-main);
+  font-size: 16px;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
   height: 100%;
   min-height: 100vh;
   width: 100%;
 }
 
+/* Root container */
 #root {
   background-color: var(--bg-color);
   color: var(--text-color);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Custom scrollbar styling */
+/* Custom scrollbar styling for webkit browsers */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-color-secondary);
+  background: var(--bg-color-secondary, rgba(0, 0, 0, 0.05));
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--sub-color);
-  border-radius: 5px;
+  background: var(--sub-color, rgba(0, 0, 0, 0.2));
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--main-color);
+  background: var(--main-color, rgba(0, 0, 0, 0.3));
+}
+
+/* Focus styles for accessibility */
+:focus {
+  outline: 2px solid var(--main-color, #7c3aed);
+  outline-offset: 2px;
+}
+
+/* Default transitions for theme changes */
+body * {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* Theme-specific elements */
@@ -96,7 +115,7 @@ body {
 }
 
 .theme-option.Mui-selected {
-  background-color: rgba(var(--main-color-rgb), 0.2) !important;
+  background-color: var(--main-color-20) !important;
   color: var(--main-color) !important;
 }
 
@@ -127,10 +146,6 @@ body {
 .MuiPaper-root {
   background-color: var(--bg-color) !important;
   color: var(--text-color) !important;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease;
 }
 
 .MuiAppBar-root {
@@ -160,7 +175,7 @@ body {
 
 .MuiButton-outlined:hover {
   border-color: var(--caret-color) !important;
-  background-color: rgba(var(--main-color-rgb), 0.1) !important;
+  background-color: var(--main-color-10) !important;
 }
 
 .MuiButton-text {
@@ -168,7 +183,7 @@ body {
 }
 
 .MuiButton-text:hover {
-  background-color: rgba(var(--main-color-rgb), 0.1) !important;
+  background-color: var(--main-color-10) !important;
 }
 
 .MuiTextField-root .MuiInputBase-root {
@@ -200,7 +215,7 @@ body {
 
 .MuiIconButton-root:hover {
   color: var(--main-color) !important;
-  background-color: rgba(var(--main-color-rgb), 0.1) !important;
+  background-color: var(--main-color-10) !important;
 }
 
 .MuiMenuItem-root {
@@ -212,11 +227,11 @@ body {
 }
 
 .MuiMenuItem-root.Mui-selected {
-  background-color: rgba(var(--main-color-rgb), 0.15) !important;
+  background-color: var(--main-color-20) !important;
 }
 
 .MuiMenuItem-root.Mui-selected:hover {
-  background-color: rgba(var(--main-color-rgb), 0.25) !important;
+  background-color: rgba(var(--main-color), 0.25) !important;
 }
 
 /* Fix for dark mode text in inputs */
@@ -227,4 +242,26 @@ body {
 
 .MuiCircularProgress-root {
   color: var(--main-color) !important;
+}
+
+/* Force MUI to use our theme variables for transitions */
+.MuiPaper-root,
+.MuiAppBar-root,
+.MuiDrawer-paper,
+.MuiButton-root,
+.MuiTextField-root,
+.MuiInputBase-root,
+.MuiTypography-root,
+.MuiDivider-root,
+.MuiIconButton-root,
+.MuiMenu-paper,
+.MuiMenuItem-root,
+.MuiList-root,
+.MuiListItem-root,
+.MuiListItemButton-root,
+.MuiCard-root {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease !important;
 }

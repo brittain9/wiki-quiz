@@ -1,0 +1,22 @@
+/* Aquarium theme */
+:root {
+  /* Essential colors */
+  --bg-color: #003459;
+  --bg-color-secondary: #00467a;
+  --bg-color-tertiary: #00589b;
+  --main-color: #5cceee;
+  --caret-color: #5cceee;
+  --text-color: #e6f7fe;
+  --sub-color: #8acbf5;
+  --sub-alt-color: #15599e;
+  --error-color: #ff7a9c;
+  --error-extra-color: #d8486a;
+  --success-color: #00ebbc;
+  --warning-color: #ffdd80;
+  
+  /* Colors with transparency */
+  --main-color-10: #5cceee19; /* 10% opacity */
+  --main-color-20: #5cceee33; /* 20% opacity */
+  --success-color-10: #00ebbc19; /* 10% opacity */
+  --error-color-10: #ff7a9c19; /* 10% opacity */
+} 

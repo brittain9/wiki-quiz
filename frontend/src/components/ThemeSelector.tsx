@@ -1,4 +1,4 @@
-import { ColorLens } from '@mui/icons-material';
+import { ColorLens, Settings } from '@mui/icons-material';
 import {
   Box,
   IconButton,
@@ -7,76 +7,159 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useCustomTheme } from '../context/CustomThemeContext';
 import {
-  AVAILABLE_THEMES,
-  THEME_DISPLAY_NAMES,
-  THEME_PREVIEW_COLORS,
+  THEME_IDS,
+  getTheme,
+  getThemePreviewColors,
   ThemeName,
 } from '../themes';
 
-const ThemeSelector: React.FC = () => {
+// Theme menu item component for better performance
+const ThemeMenuItem = memo<{
+  theme: ThemeName;
+  isSelected: boolean;
+  onSelect: () => void;
+  onHover: () => void;
+  showCurrentLabel: boolean;
+}>(({ theme, isSelected, onSelect, onHover, showCurrentLabel }) => {
   const { t } = useTranslation();
-  const { currentTheme, setTheme, previewTheme } = useCustomTheme();
+  const colors = getThemePreviewColors(theme);
+
+  return (
+    <MenuItem
+      onClick={onSelect}
+      onMouseEnter={onHover}
+      selected={isSelected}
+      sx={{
+        position: 'relative',
+        color: 'var(--text-color)',
+        '&:hover': {
+          bgcolor: 'var(--bg-color-secondary)',
+        },
+        '&.Mui-selected': {
+          bgcolor: 'var(--main-color-10)',
+          '&:hover': {
+            bgcolor: 'var(--main-color-20)',
+          },
+        },
+      }}
+    >
+      {/* Theme color preview swatch */}
+      <Box
+        sx={{
+          width: 24,
+          height: 24,
+          borderRadius: '50%',
+          mr: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: colors.bg,
+          border: '1px solid',
+          borderColor: 'var(--sub-color)',
+        }}
+      >
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            bgcolor: colors.main,
+          }}
+        />
+      </Box>
+
+      {/* Theme name with display name from theme definition */}
+      <Typography sx={{ flex: 1 }}>{getTheme(theme).displayName}</Typography>
+
+      {/* "Current" label for selected theme */}
+      {showCurrentLabel && (
+        <Typography
+          variant="caption"
+          sx={{
+            ml: 1,
+            color: 'var(--main-color)',
+            fontStyle: 'italic',
+          }}
+        >
+          {t('theme.current')}
+        </Typography>
+      )}
+    </MenuItem>
+  );
+});
+
+ThemeMenuItem.displayName = 'ThemeMenuItem';
+
+/**
+ * Theme selector component that allows users to choose a theme
+ */
+const ThemeSelector = memo(() => {
+  const { t } = useTranslation();
+  const {
+    userSelectedTheme,
+    systemTheme,
+    setTheme,
+    setSystemPreferenceTheme,
+    previewTheme,
+  } = useCustomTheme();
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [hoveredTheme, setHoveredTheme] = useState<ThemeName | null>(null);
   const open = Boolean(anchorEl);
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  const isSystemPreferenceActive = userSelectedTheme === null;
 
-  const handleClose = () => {
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
+    },
+    [],
+  );
+
+  const handleClose = useCallback(() => {
     setAnchorEl(null);
-    // Reset any previewing
-    if (hoveredTheme) {
-      setHoveredTheme(null);
-      previewTheme(null);
-    }
-  };
+  }, []);
 
-  const handleThemeSelect = (themeName: ThemeName) => {
-    setTheme(themeName);
-    setHoveredTheme(null);
-    handleClose();
-  };
+  const handleThemeSelect = useCallback(
+    (themeName: ThemeName) => {
+      setTheme(themeName);
+      setAnchorEl(null);
+    },
+    [setTheme],
+  );
 
-  // Preview theme on hover
-  const handleThemeHover = (themeName: ThemeName) => {
-    if (themeName !== hoveredTheme) {
-      setHoveredTheme(themeName);
+  const handleSystemPreferenceSelect = useCallback(() => {
+    setSystemPreferenceTheme();
+    setAnchorEl(null);
+  }, [setSystemPreferenceTheme]);
+
+  const handleThemeHover = useCallback(
+    (themeName: ThemeName | null) => {
       previewTheme(themeName);
-    }
-  };
+    },
+    [previewTheme],
+  );
 
-  // Revert to selected theme when mouse leaves menu
-  const handleMenuMouseLeave = () => {
-    if (hoveredTheme) {
-      setHoveredTheme(null);
-      previewTheme(null);
-    }
-  };
+  const handleSystemPreferenceHover = useCallback(() => {
+    previewTheme(systemTheme);
+  }, [previewTheme, systemTheme]);
 
-  // Make sure we reset preview if menu closes
-  useEffect(() => {
-    if (!open && hoveredTheme) {
-      setHoveredTheme(null);
-      previewTheme(null);
-    }
-  }, [open, hoveredTheme, previewTheme]);
+  const handleMenuMouseLeave = useCallback(() => {
+    previewTheme(null);
+  }, [previewTheme]);
+
+  const systemPreferenceColors = useMemo(() => {
+    return getThemePreviewColors(systemTheme);
+  }, [systemTheme]);
 
   return (
     <Box
       className="theme-selector-container"
-      sx={{
-        position: 'fixed',
-        bottom: '2rem',
-        right: '2rem',
-        zIndex: 1000,
-      }}
+      sx={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}
     >
       <Tooltip title={t('theme.selector')} arrow>
         <IconButton
@@ -135,77 +218,74 @@ const ThemeSelector: React.FC = () => {
           {t('theme.title')}
         </Typography>
 
-        {AVAILABLE_THEMES.map((theme) => {
-          const colors = THEME_PREVIEW_COLORS[theme];
-          return (
-            <MenuItem
-              key={theme}
-              onClick={() => handleThemeSelect(theme)}
-              onMouseEnter={() => handleThemeHover(theme)}
-              selected={currentTheme === theme}
+        <MenuItem
+          onClick={handleSystemPreferenceSelect}
+          onMouseEnter={handleSystemPreferenceHover}
+          selected={isSystemPreferenceActive}
+          sx={{
+            position: 'relative',
+            color: 'var(--text-color)',
+            '&:hover': {
+              bgcolor: 'var(--bg-color-secondary)',
+            },
+            '&.Mui-selected': {
+              bgcolor: 'var(--main-color-10)',
+              '&:hover': {
+                bgcolor: 'var(--main-color-20)',
+              },
+            },
+          }}
+        >
+          <Box
+            sx={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              mr: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: systemPreferenceColors.bg,
+              border: '1px solid',
+              borderColor: 'var(--sub-color)',
+            }}
+          >
+            <Settings fontSize="small" />
+          </Box>
+
+          <Typography sx={{ flex: 1 }}>
+            {t('theme.systemPreference', 'System Preference')}
+          </Typography>
+
+          {isSystemPreferenceActive && (
+            <Typography
+              variant="caption"
               sx={{
-                position: 'relative',
-                color: 'var(--text-color)',
-                '&:hover': {
-                  bgcolor: 'var(--bg-color-secondary)',
-                },
-                '&.Mui-selected': {
-                  bgcolor: 'rgba(var(--main-color-rgb), 0.1)',
-                  '&:hover': {
-                    bgcolor: 'rgba(var(--main-color-rgb), 0.2)',
-                  },
-                },
+                ml: 1,
+                color: 'var(--main-color)',
+                fontStyle: 'italic',
               }}
             >
-              {/* Theme color preview swatch */}
-              <Box
-                sx={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  mr: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: colors.bg,
-                  border: '1px solid',
-                  borderColor: 'var(--sub-color)',
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    bgcolor: colors.main,
-                  }}
-                />
-              </Box>
+              {t('theme.current')}
+            </Typography>
+          )}
+        </MenuItem>
 
-              {/* Theme name with display name from constants */}
-              <Typography sx={{ flex: 1 }}>
-                {THEME_DISPLAY_NAMES[theme]}
-              </Typography>
-
-              {/* "Current" label for selected theme */}
-              {currentTheme === theme && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    ml: 1,
-                    color: 'var(--main-color)',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {t('theme.current')}
-                </Typography>
-              )}
-            </MenuItem>
-          );
-        })}
+        {THEME_IDS.map((theme) => (
+          <ThemeMenuItem
+            key={theme}
+            theme={theme}
+            isSelected={userSelectedTheme === theme}
+            onSelect={() => handleThemeSelect(theme)}
+            onHover={() => handleThemeHover(theme)}
+            showCurrentLabel={userSelectedTheme === theme}
+          />
+        ))}
       </Menu>
     </Box>
   );
-};
+});
+
+ThemeSelector.displayName = 'ThemeSelector';
 
 export default ThemeSelector;

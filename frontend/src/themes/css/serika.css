@@ -1,0 +1,21 @@
+:root {
+  /* Essential colors */
+  --bg-color: #323437;
+  --bg-color-secondary: #2c2e31;
+  --bg-color-tertiary: #252729;
+  --main-color: #e9c46a;
+  --caret-color: #e9c46a;
+  --text-color: #d1d0c5;
+  --sub-color: #646669;
+  --sub-alt-color: #2c2e31;
+  --error-color: #ca4754;
+  --error-extra-color: #a53640;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+
+  /* Colors with transparency */
+  --main-color-10: #e9c46a19; /* 10% opacity */
+  --main-color-20: #e9c46a33; /* 20% opacity */
+  --success-color-10: #4caf5019; /* 10% opacity */
+  --error-color-10: #ca475419; /* 10% opacity */
+}

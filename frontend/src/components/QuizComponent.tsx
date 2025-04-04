@@ -378,7 +378,7 @@ const Quiz: React.FC = React.memo(() => {
                       },
                       ...(currentAnswer?.selectedOptionNumber === index + 1
                         ? {
-                            backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                            backgroundColor: 'var(--main-color-10)',
                             border: '1px solid var(--main-color)',
                           }
                         : {}),
@@ -405,7 +405,7 @@ const Quiz: React.FC = React.memo(() => {
                   py: 1,
                   px: 3,
                   '&:hover': {
-                    backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                    backgroundColor: 'var(--main-color-10)',
                   },
                   '&.Mui-disabled': {
                     color: 'var(--sub-alt-color)',

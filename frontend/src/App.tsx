@@ -33,12 +33,6 @@ const LoadingFallback = () => (
 const App: React.FC = React.memo(() => {
   const { currentTheme } = useCustomTheme();
 
-  // Set theme class on root when theme changes
-  useEffect(() => {
-    document.documentElement.className = `theme-${currentTheme}`;
-    document.body.className = `theme-${currentTheme}`;
-  }, [currentTheme]);
-
   // Memoize the theme class
   const themeClass = useMemo(() => `theme-${currentTheme}`, [currentTheme]);
 
@@ -48,6 +42,7 @@ const App: React.FC = React.memo(() => {
       sx={{
         minHeight: '100vh',
         backgroundColor: 'var(--bg-color)',
+        color: 'var(--text-color)',
         transition: 'background-color 0.3s ease, color 0.3s ease',
       }}
     >

@@ -1,0 +1,22 @@
+/* Coffee theme */
+:root {
+  /* Essential colors */
+  --bg-color: #1e1717;
+  --bg-color-secondary: #2a2020;
+  --bg-color-tertiary: #362a2a;
+  --main-color: #d0a676;
+  --caret-color: #d0a676;
+  --text-color: #ffe8d6;
+  --sub-color: #8b6f5a;
+  --sub-alt-color: #3e302a;
+  --error-color: #e06c75;
+  --error-extra-color: #b1484f;
+  --success-color: #a3be8c;
+  --warning-color: #d19a66;
+  
+  /* Colors with transparency */
+  --main-color-10: #d0a67619; /* 10% opacity */
+  --main-color-20: #d0a67633; /* 20% opacity */
+  --success-color-10: #a3be8c19; /* 10% opacity */
+  --error-color-10: #e06c7519; /* 10% opacity */
+} 

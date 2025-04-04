@@ -1,0 +1,22 @@
+/* Galaxy theme */
+:root {
+  /* Essential colors */
+  --bg-color: #10002b;
+  --bg-color-secondary: #240046;
+  --bg-color-tertiary: #3c096c;
+  --main-color: #9d4edd;
+  --caret-color: #c77dff;
+  --text-color: #e0aaff;
+  --sub-color: #7b2cbf;
+  --sub-alt-color: #3a015c;
+  --error-color: #ff5478;
+  --error-extra-color: #cf3759;
+  --success-color: #68e3ff;
+  --warning-color: #ff9e00;
+
+  /* Colors with transparency */
+  --main-color-10: #9d4edd19; /* 10% opacity */
+  --main-color-20: #9d4edd33; /* 20% opacity */
+  --success-color-10: #68e3ff19; /* 10% opacity */
+  --error-color-10: #ff547819; /* 10% opacity */
+}

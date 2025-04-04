@@ -1,0 +1,22 @@
+/* Bubblegum Pop theme */
+:root {
+  /* Essential colors */
+  --bg-color: #fff0f7;
+  --bg-color-secondary: #ffe3f0;
+  --bg-color-tertiary: #ffd6e8;
+  --main-color: #ff46b5;
+  --caret-color: #ff46b5;
+  --text-color: #4e2e3e;
+  --sub-color: #b283a5;
+  --sub-alt-color: #f3daea;
+  --error-color: #ff5a5a;
+  --error-extra-color: #d03e42;
+  --success-color: #67d054;
+  --warning-color: #ffcb47;
+
+  /* Colors with transparency */
+  --main-color-10: #ff46b519; /* 10% opacity */
+  --main-color-20: #ff46b533; /* 20% opacity */
+  --success-color-10: #67d05419; /* 10% opacity */
+  --error-color-10: #ff5a5a19; /* 10% opacity */
+}

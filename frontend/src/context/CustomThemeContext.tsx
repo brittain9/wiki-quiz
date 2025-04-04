@@ -1,99 +1,302 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 
-import { AVAILABLE_THEMES, ThemeName } from '../themes';
+import {
+  ThemeName,
+  THEME_IDS,
+  loadThemeCSS,
+  getThemePreviewColors, // Import helper
+} from '../themes';
 
+/**
+ * Gets the current system color scheme preference.
+ * @returns 'light' or 'dark'
+ */
+const getSystemPreference = (): 'light' | 'dark' => {
+  if (
+    window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  ) {
+    return 'dark';
+  }
+  return 'light';
+};
+
+// Context type definition
 interface CustomThemeContextType {
-  currentTheme: ThemeName;
+  /** The theme explicitly chosen by the user (null if using system preference) */
+  userSelectedTheme: ThemeName | null;
+  /** The current system preferred theme ('light' or 'dark') */
+  systemTheme: 'light' | 'dark';
+  /** The theme currently being previewed on hover (null if not previewing) */
+  previewingTheme: ThemeName | null;
+  /** The theme that is currently visually applied (preview > user selection > system) */
+  themeToDisplay: ThemeName;
+  /** The actual non-preview theme */
+  currentAppliedTheme: ThemeName;
+  /** Sets the theme as the user's explicit choice and saves it */
   setTheme: (theme: ThemeName) => void;
+  /** Switches to using the system preference */
+  setSystemPreferenceTheme: () => void;
+  /** Checks if a string is a valid ThemeName */
+  isValidTheme: (theme: string) => theme is ThemeName;
+  /** Temporarily previews a theme, or reverts to the active theme if null */
   previewTheme: (theme: ThemeName | null) => void;
 }
 
-const CustomThemeContext = createContext<CustomThemeContextType | undefined>(
-  undefined,
-);
+// Create the context with default/initial values
+const CustomThemeContext = createContext<CustomThemeContextType>({
+  userSelectedTheme: null,
+  systemTheme: getSystemPreference(),
+  previewingTheme: null,
+  themeToDisplay: getSystemPreference(),
+  currentAppliedTheme: getSystemPreference(),
+  setTheme: () => {},
+  setSystemPreferenceTheme: () => {},
+  isValidTheme: (theme: string): theme is ThemeName => false,
+  previewTheme: () => {},
+});
 
-export const useCustomTheme = (): CustomThemeContextType => {
-  const context = useContext(CustomThemeContext);
-  if (context === undefined) {
-    throw new Error('useCustomTheme must be used within a CustomThemeProvider');
-  }
-  return context;
-};
+// Hook for components to use the theme context
+export const useCustomTheme = () => useContext(CustomThemeContext);
 
+// Provider component
 export const CustomThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [currentTheme, setCurrentTheme] = useState<ThemeName>(() => {
-    const savedTheme = localStorage.getItem('quiz-app-theme');
-    if (savedTheme && AVAILABLE_THEMES.includes(savedTheme as ThemeName)) {
-      return savedTheme as ThemeName;
-    }
-    return 'default';
-  });
+  // State for system preference
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(
+    getSystemPreference,
+  );
 
-  // Apply theme when it changes
+  // State for user's explicit choice (from localStorage)
+  const [userSelectedTheme, setUserSelectedTheme] = useState<ThemeName | null>(
+    () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme && THEME_IDS.includes(savedTheme as ThemeName)) {
+        return savedTheme as ThemeName;
+      }
+      return null; // No valid theme saved, use null
+    },
+  );
+
+  // State for theme preview
+  const [previewingTheme, setPreviewingTheme] = useState<ThemeName | null>(
+    null,
+  );
+
+  // Type guard for theme validation
+  const isValidTheme = useCallback((theme: string): theme is ThemeName => {
+    return THEME_IDS.includes(theme as ThemeName);
+  }, []);
+
+  // ---- Core Logic ----
+
+  // Determine the *actual* theme applied (ignoring preview)
+  const currentAppliedTheme = useMemo(() => {
+    return userSelectedTheme ?? systemTheme;
+  }, [userSelectedTheme, systemTheme]);
+
+  // Determine the theme to *display* (preview takes precedence)
+  const themeToDisplay = useMemo(() => {
+    return previewingTheme ?? currentAppliedTheme;
+  }, [previewingTheme, currentAppliedTheme]);
+
+  // Function to apply ONLY the preview color variables
+  const applyPreviewVariables = useCallback(
+    (themeId: ThemeName | null) => {
+      const targetTheme = themeId ?? currentAppliedTheme;
+      console.log(`Applying preview variables for: ${targetTheme}`);
+      try {
+        const colors = getThemePreviewColors(targetTheme);
+        const root = document.documentElement;
+        // --- Key color variables to override ---
+        // Adjust these variable names if your CSS uses different ones
+        root.style.setProperty('--main-color', colors.main);
+        root.style.setProperty('--bg-color', colors.bg);
+        root.style.setProperty('--text-color', colors.text);
+        // Potentially add others like --sub-color, --bg-secondary etc. if needed for good preview
+        // Example:
+        // root.style.setProperty('--bg-color-secondary', colors.bg); // Simple fallback
+        // root.style.setProperty('--sub-color', colors.text); // Simple fallback
+
+        // Apply the target theme class name *as well* to potentially catch simple rules
+        document.documentElement.className = targetTheme;
+        document.body.className = targetTheme;
+      } catch (error) {
+        console.error(
+          `Failed to apply preview variables for ${targetTheme}:`,
+          error,
+        );
+      }
+    },
+    [currentAppliedTheme],
+  ); // Depends on the *actual* theme for reversion
+
+  // Function to apply FULL theme styles (CSS class + load CSS file)
+  const applyFullThemeStyles = useCallback(async (themeId: ThemeName) => {
+    console.log(`Applying FULL styles for theme: ${themeId}`);
+    try {
+      // Remove temporary preview styles if any were applied
+      const root = document.documentElement;
+      root.style.removeProperty('--main-color');
+      root.style.removeProperty('--bg-color');
+      root.style.removeProperty('--text-color');
+
+      // Load the theme CSS (even if preloaded, await its readiness/handle errors)
+      await loadThemeCSS(themeId);
+
+      // Apply theme class to document and body AFTER successful load
+      document.documentElement.className = themeId;
+      document.body.className = themeId;
+
+      console.log(`Full theme styles for ${themeId} applied successfully`);
+    } catch (error) {
+      console.error(`Failed to apply full styles for theme ${themeId}:`, error);
+      // Fallback logic remains the same
+      if (themeId !== 'light') {
+        try {
+          await loadThemeCSS('light'); // Ensure fallback CSS is loaded
+          document.documentElement.className = 'light';
+          document.body.className = 'light';
+          console.log('Fell back to light theme styles.');
+        } catch (fallbackError) {
+          console.error('Failed to apply fallback light theme:', fallbackError);
+        }
+      }
+    }
+  }, []);
+
+  // Effect to apply styles based on preview state or actual theme change
   useEffect(() => {
-    applyTheme(currentTheme, true);
-    console.log(`Theme changed to: ${currentTheme}`);
-  }, [currentTheme]);
-
-  const handleSetTheme = (theme: ThemeName) => {
-    if (AVAILABLE_THEMES.includes(theme)) {
-      setCurrentTheme(theme);
+    if (previewingTheme) {
+      applyPreviewVariables(previewingTheme);
     } else {
-      console.warn(`Invalid theme: ${theme}. Using default theme instead.`);
-      setCurrentTheme('default');
+      applyFullThemeStyles(currentAppliedTheme);
     }
-  };
+  }, [
+    previewingTheme,
+    currentAppliedTheme,
+    applyPreviewVariables,
+    applyFullThemeStyles,
+  ]);
 
-  // Apply theme function that can be used for both preview and permanent changes
-  const applyTheme = (theme: ThemeName, saveToStorage: boolean = false) => {
-    // Save theme preference to localStorage if it's a permanent change
-    if (saveToStorage) {
-      localStorage.setItem('quiz-app-theme', theme);
-    }
+  // Effect to listen for system preference changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-    // Apply theme by adding class to document root elements
-    document.documentElement.className = `theme-${theme}`;
-    document.body.className = `theme-${theme}`;
+    const handleChange = (e: MediaQueryListEvent) => {
+      const newSystemTheme = e.matches ? 'dark' : 'light';
+      console.log(`System preference changed to: ${newSystemTheme}`);
+      setSystemTheme(newSystemTheme);
+      // No need to call setCurrentTheme here, activeTheme derivation handles it
+    };
 
-    // Set data attribute for CSS selectors
-    document.documentElement.setAttribute('data-theme', theme);
-    document.body.setAttribute('data-theme', theme);
+    // Set initial system theme state correctly
+    setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
 
-    // Dynamically load theme CSS
-    const themeLinkId = 'theme-style';
-    let themeLink = document.getElementById(themeLinkId) as HTMLLinkElement;
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []); // Empty dependency array ensures this runs once on mount
 
-    if (!themeLink) {
-      themeLink = document.createElement('link');
-      themeLink.id = themeLinkId;
-      themeLink.rel = 'stylesheet';
-      document.head.appendChild(themeLink);
-    }
+  // Effect to EAGERLY LOAD all themes on initial mount
+  useEffect(() => {
+    console.log('Eagerly loading all theme CSS...');
+    THEME_IDS.forEach((themeId) => {
+      loadThemeCSS(themeId)
+        .then(() => {
+          console.log(`Eagerly loaded: ${themeId}`);
+        })
+        .catch((error) => {
+          console.warn(`Failed to eagerly load theme ${themeId}:`, error);
+        });
+    });
+  }, []); // Empty dependency array ensures this runs only once on mount
 
-    // Load theme from public/themes directory with a cache-busting parameter
-    themeLink.href = `/themes/${theme}.css?v=${Date.now()}`;
-  };
+  // ---- Context API Functions ----
 
-  // Function to preview a theme without saving it
-  const previewTheme = (theme: ThemeName | null) => {
-    if (theme === null) {
-      // Revert to current theme if preview is cleared
-      applyTheme(currentTheme);
-    } else if (AVAILABLE_THEMES.includes(theme)) {
-      applyTheme(theme);
-    }
-  };
+  // Set theme as the user's choice
+  const setTheme = useCallback(
+    (newTheme: ThemeName) => {
+      if (isValidTheme(newTheme)) {
+        console.log(`Setting user theme to: ${newTheme}`);
+        // Clear preview *before* setting the theme
+        // This ensures the useEffect above applies the *full* new theme
+        setPreviewingTheme(null);
+        setUserSelectedTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+      } else {
+        console.warn(`Invalid theme provided to setTheme: ${newTheme}`);
+      }
+    },
+    [isValidTheme],
+  );
+
+  // Switch to using system preference
+  const setSystemPreferenceTheme = useCallback(() => {
+    console.log('Setting theme to use system preference');
+    // Clear preview *before* setting the theme
+    setPreviewingTheme(null);
+    setUserSelectedTheme(null);
+    localStorage.removeItem('theme');
+  }, []);
+
+  // Preview a theme temporarily - Now just updates state
+  const previewTheme = useCallback(
+    (themeToPreview: ThemeName | null) => {
+      if (themeToPreview === null) {
+        console.log(
+          'Preview cleared - Reverting to actual theme shortly via useEffect',
+        );
+        setPreviewingTheme(null);
+      } else if (isValidTheme(themeToPreview)) {
+        console.log(
+          `Previewing theme: ${themeToPreview} - Applying preview variables shortly via useEffect`,
+        );
+        setPreviewingTheme(themeToPreview);
+      } else {
+        console.warn(
+          `Invalid theme provided to previewTheme: ${themeToPreview}`,
+        );
+      }
+    },
+    [isValidTheme],
+  );
+
+  // Context value to provide
+  const value = useMemo(
+    () => ({
+      userSelectedTheme,
+      systemTheme,
+      previewingTheme,
+      themeToDisplay, // The theme currently rendered (preview or actual)
+      currentAppliedTheme, // The actual selected/system theme (no preview)
+      setTheme,
+      setSystemPreferenceTheme,
+      isValidTheme,
+      previewTheme,
+    }),
+    [
+      userSelectedTheme,
+      systemTheme,
+      previewingTheme,
+      themeToDisplay,
+      currentAppliedTheme,
+      setTheme,
+      setSystemPreferenceTheme,
+      isValidTheme,
+      previewTheme,
+    ],
+  );
 
   return (
-    <CustomThemeContext.Provider
-      value={{
-        currentTheme,
-        setTheme: handleSetTheme,
-        previewTheme,
-      }}
-    >
+    <CustomThemeContext.Provider value={value}>
       {children}
     </CustomThemeContext.Provider>
   );

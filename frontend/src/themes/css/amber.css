@@ -1,0 +1,22 @@
+/* Amber Terminal theme */
+:root {
+  /* Essential colors */
+  --bg-color: #2c1c12;
+  --bg-color-secondary: #3c2918;
+  --bg-color-tertiary: #483220;
+  --main-color: #ffb000;
+  --caret-color: #ffb000;
+  --text-color: #ffd782;
+  --sub-color: #9c7842;
+  --sub-alt-color: #533e27;
+  --error-color: #ff8e72;
+  --error-extra-color: #c15e45;
+  --success-color: #aad576;
+  --warning-color: #f0a152;
+  
+  /* Colors with transparency */
+  --main-color-10: #ffb00019; /* 10% opacity */
+  --main-color-20: #ffb00033; /* 20% opacity */
+  --success-color-10: #aad57619; /* 10% opacity */
+  --error-color-10: #ff8e7219; /* 10% opacity */
+} 

@@ -56,7 +56,7 @@ const Footer = React.memo(() => {
                 color: 'var(--sub-color)',
                 '&:hover': {
                   color: 'var(--main-color)',
-                  backgroundColor: 'rgba(var(--main-color-rgb), 0.1)',
+                  backgroundColor: 'var(--main-color-10)',
                 },
               }}
             >

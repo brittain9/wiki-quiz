@@ -1,0 +1,22 @@
+/* Nord theme */
+:root {
+  /* Essential colors */
+  --bg-color: #2e3440;
+  --bg-color-secondary: #3b4252;
+  --bg-color-tertiary: #434c5e;
+  --main-color: #88c0d0;
+  --caret-color: #88c0d0;
+  --text-color: #d8dee9;
+  --sub-color: #4c566a;
+  --sub-alt-color: #343c4a;
+  --error-color: #bf616a;
+  --error-extra-color: #793f44;
+  --success-color: #a3be8c;
+  --warning-color: #ebcb8b;
+
+  /* Colors with transparency */
+  --main-color-10: #88c0d019; /* 10% opacity */
+  --main-color-20: #88c0d033; /* 20% opacity */
+  --success-color-10: #a3be8c19; /* 10% opacity */
+  --error-color-10: #bf616a19; /* 10% opacity */
+}

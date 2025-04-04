@@ -1,0 +1,22 @@
+/* Synthwave Sunset theme */
+:root {
+  /* Essential colors */
+  --bg-color: #241b2f;
+  --bg-color-secondary: #2f2440;
+  --bg-color-tertiary: #3a2d4e;
+  --main-color: #fe4183;
+  --caret-color: #fe4183;
+  --text-color: #f8e3ff;
+  --sub-color: #8475a7;
+  --sub-alt-color: #3c2d59;
+  --error-color: #ff5277;
+  --error-extra-color: #cd375a;
+  --success-color: #03ecd0;
+  --warning-color: #fab319;
+
+  /* Colors with transparency */
+  --main-color-10: #fe418319; /* 10% opacity */
+  --main-color-20: #fe418333; /* 20% opacity */
+  --success-color-10: #03ecd019; /* 10% opacity */
+  --error-color-10: #ff527719; /* 10% opacity */
+}
