@@ -7,7 +7,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useCustomTheme } from '../context/CustomThemeContext';
@@ -20,8 +20,9 @@ import {
 
 const ThemeSelector: React.FC = () => {
   const { t } = useTranslation();
-  const { currentTheme, setTheme } = useCustomTheme();
+  const { currentTheme, setTheme, previewTheme } = useCustomTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [hoveredTheme, setHoveredTheme] = useState<ThemeName | null>(null);
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -30,12 +31,42 @@ const ThemeSelector: React.FC = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+    // Reset any previewing
+    if (hoveredTheme) {
+      setHoveredTheme(null);
+      previewTheme(null);
+    }
   };
 
   const handleThemeSelect = (themeName: ThemeName) => {
     setTheme(themeName);
+    setHoveredTheme(null);
     handleClose();
   };
+
+  // Preview theme on hover
+  const handleThemeHover = (themeName: ThemeName) => {
+    if (themeName !== hoveredTheme) {
+      setHoveredTheme(themeName);
+      previewTheme(themeName);
+    }
+  };
+
+  // Revert to selected theme when mouse leaves menu
+  const handleMenuMouseLeave = () => {
+    if (hoveredTheme) {
+      setHoveredTheme(null);
+      previewTheme(null);
+    }
+  };
+
+  // Make sure we reset preview if menu closes
+  useEffect(() => {
+    if (!open && hoveredTheme) {
+      setHoveredTheme(null);
+      previewTheme(null);
+    }
+  }, [open, hoveredTheme, previewTheme]);
 
   return (
     <Box
@@ -72,6 +103,7 @@ const ThemeSelector: React.FC = () => {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
+        onMouseLeave={handleMenuMouseLeave}
         MenuListProps={{
           'aria-labelledby': 'theme-selector-button',
         }}
@@ -109,6 +141,7 @@ const ThemeSelector: React.FC = () => {
             <MenuItem
               key={theme}
               onClick={() => handleThemeSelect(theme)}
+              onMouseEnter={() => handleThemeHover(theme)}
               selected={currentTheme === theme}
               sx={{
                 position: 'relative',

@@ -1,12 +1,17 @@
 import LanguageIcon from '@mui/icons-material/Language';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useQuizOptions } from '../../context/QuizOptionsContext';
 
 const LanguageToggle: React.FC = () => {
-  const { setLanguage } = useQuizOptions(); // get quiz options for debugging language
+  const { quizOptions, setLanguage } = useQuizOptions();
+  const { i18n } = useTranslation();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [previewLanguage, setPreviewLanguage] = React.useState<string | null>(
+    null,
+  );
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -14,6 +19,7 @@ const LanguageToggle: React.FC = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+    setPreviewLanguage(null);
   };
 
   // The context class will handle the change in i18n
@@ -21,6 +27,34 @@ const LanguageToggle: React.FC = () => {
     setLanguage(lang);
     handleClose();
   };
+
+  // Preview language on hover
+  const handleLanguageHover = (lang: string) => {
+    if (lang !== previewLanguage) {
+      setPreviewLanguage(lang);
+      i18n.changeLanguage(lang);
+    }
+  };
+
+  // Revert to selected language when mouse leaves
+  const handleMenuMouseLeave = () => {
+    if (previewLanguage !== null && previewLanguage !== quizOptions.language) {
+      setPreviewLanguage(null);
+      i18n.changeLanguage(quizOptions.language);
+    }
+  };
+
+  // Make sure we reset preview if menu closes
+  React.useEffect(() => {
+    if (
+      !anchorEl &&
+      previewLanguage !== null &&
+      previewLanguage !== quizOptions.language
+    ) {
+      setPreviewLanguage(null);
+      i18n.changeLanguage(quizOptions.language);
+    }
+  }, [anchorEl, previewLanguage, quizOptions.language, i18n]);
 
   return (
     <>
@@ -36,6 +70,7 @@ const LanguageToggle: React.FC = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleClose}
+        onMouseLeave={handleMenuMouseLeave}
         PaperProps={{
           style: {
             maxHeight: 48 * 4.5,
@@ -43,15 +78,69 @@ const LanguageToggle: React.FC = () => {
           },
         }}
       >
-        <MenuItem onClick={() => changeLanguage('en')}>English</MenuItem>
-        <MenuItem onClick={() => changeLanguage('de')}>Deutsch</MenuItem>
-        <MenuItem onClick={() => changeLanguage('es')}>Español</MenuItem>
-        <MenuItem onClick={() => changeLanguage('zh')}>中文</MenuItem>
-        <MenuItem onClick={() => changeLanguage('ja')}>日本語</MenuItem>
-        <MenuItem onClick={() => changeLanguage('ru')}>Русский</MenuItem>
-        <MenuItem onClick={() => changeLanguage('fr')}>Français</MenuItem>
-        <MenuItem onClick={() => changeLanguage('it')}>Italiano</MenuItem>
-        <MenuItem onClick={() => changeLanguage('pt')}>Português</MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('en')}
+          onMouseEnter={() => handleLanguageHover('en')}
+          selected={quizOptions.language === 'en'}
+        >
+          English
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('de')}
+          onMouseEnter={() => handleLanguageHover('de')}
+          selected={quizOptions.language === 'de'}
+        >
+          Deutsch
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('es')}
+          onMouseEnter={() => handleLanguageHover('es')}
+          selected={quizOptions.language === 'es'}
+        >
+          Español
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('zh')}
+          onMouseEnter={() => handleLanguageHover('zh')}
+          selected={quizOptions.language === 'zh'}
+        >
+          中文
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('ja')}
+          onMouseEnter={() => handleLanguageHover('ja')}
+          selected={quizOptions.language === 'ja'}
+        >
+          日本語
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('ru')}
+          onMouseEnter={() => handleLanguageHover('ru')}
+          selected={quizOptions.language === 'ru'}
+        >
+          Русский
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('fr')}
+          onMouseEnter={() => handleLanguageHover('fr')}
+          selected={quizOptions.language === 'fr'}
+        >
+          Français
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('it')}
+          onMouseEnter={() => handleLanguageHover('it')}
+          selected={quizOptions.language === 'it'}
+        >
+          Italiano
+        </MenuItem>
+        <MenuItem
+          onClick={() => changeLanguage('pt')}
+          onMouseEnter={() => handleLanguageHover('pt')}
+          selected={quizOptions.language === 'pt'}
+        >
+          Português
+        </MenuItem>
       </Menu>
     </>
   );
