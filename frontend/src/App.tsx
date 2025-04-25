@@ -1,19 +1,23 @@
 // App.tsx
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import React, { useEffect, useMemo, lazy, Suspense } from 'react';
+import React, { useMemo, lazy, Suspense } from 'react';
 
-import QuizAppBar from './components/AppBar/QuizAppBar';
-import Footer from './components/Footer';
-import Hero from './components/Hero/Hero';
-import OverlayManager from './components/Overlays/OverlayManager';
-import ThemeSelector from './components/ThemeSelector';
+import {
+  QuizAppBar,
+  Footer,
+  Hero,
+  OverlayManager,
+  ThemeSelector,
+} from './components';
 import { useCustomTheme } from './context/CustomThemeContext/CustomThemeContext';
 
 // Lazy load components that aren't needed for initial render
-const Highlights = lazy(() => import('./components/Highlights'));
-const QuizComponent = lazy(() => import('./components/QuizComponent'));
-const SubmissionHistory = lazy(() => import('./components/SubmissionHistory'));
+const LazyHighlights = lazy(() => import('./components/Highlights'));
+const LazyQuiz = lazy(() => import('./components/Quiz/Quiz'));
+const LazySubmissionHistory = lazy(
+  () => import('./components/SubmissionHistory'),
+);
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -31,10 +35,10 @@ const LoadingFallback = () => (
 
 // Main App component
 const App: React.FC = React.memo(() => {
-  const { currentTheme } = useCustomTheme();
+  const { themeToDisplay } = useCustomTheme();
 
   // Memoize the theme class
-  const themeClass = useMemo(() => `theme-${currentTheme}`, [currentTheme]);
+  const themeClass = useMemo(() => `theme-${themeToDisplay}`, [themeToDisplay]);
 
   return (
     <Box
@@ -48,25 +52,18 @@ const App: React.FC = React.memo(() => {
     >
       <QuizAppBar />
       <Hero />
-
       <Suspense fallback={<LoadingFallback />}>
-        <QuizComponent />
-        <SubmissionHistory />
-        <Highlights />
+        <LazyQuiz />
+        <LazySubmissionHistory />
+        <LazyHighlights />
       </Suspense>
-
       <Footer />
-
-      {/* Theme Selector */}
       <ThemeSelector />
-
-      {/* Render overlay manager to handle all modal overlays */}
       <OverlayManager />
     </Box>
   );
 });
 
-// Add display name
 App.displayName = 'App';
 LoadingFallback.displayName = 'LoadingFallback';
 

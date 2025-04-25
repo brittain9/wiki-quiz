@@ -15,8 +15,8 @@ import { format } from 'date-fns';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import QuizResultOverlay from './QuizResultOverlay';
-import { useAuth } from '../context/AuthContext';
+import QuizResultOverlay from './Overlays/QuizResultOverlay';
+import { useAuth } from '../context/AuthContext/AuthContext';
 import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
 import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../hooks/useAuthCheck';

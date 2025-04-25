@@ -19,7 +19,7 @@ import {
 import React, { useEffect, useState, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext/AuthContext';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 import { createLogger } from '../../utils/logger';
 

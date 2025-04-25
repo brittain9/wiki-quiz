@@ -5,7 +5,7 @@
 
 import { AxiosError } from 'axios';
 
-import { UserInfo } from '../../types/auth';
+import { UserInfo } from '../../context/AuthContext/AuthContext.types';
 import { logAuth, logError } from '../../utils/logger';
 import { apiGet, apiPost } from '../apiClient';
 

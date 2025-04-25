@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext/AuthContext';
 import { useOverlay } from '../context/OverlayContext/OverlayContext';
 
 interface UseAuthCheckOptions {

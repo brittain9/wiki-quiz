@@ -1,5 +1,10 @@
 // Export authentication types
-export type { UserInfo, AuthState, AuthActions, AuthContext } from './auth';
+export type {
+  UserInfo,
+  AuthState,
+  AuthActions,
+  AuthContext,
+} from '../context/AuthContext/AuthContext.types';
 
 // Export quiz types
 export type { Quiz, AIResponse, Question } from './quiz.types';

@@ -104,7 +104,7 @@ HighlightItem.displayName = 'HighlightItem';
 
 const Highlights = React.memo(() => {
   const { t } = useTranslation();
-  const { currentTheme } = useCustomTheme();
+  const { themeToDisplay } = useCustomTheme();
 
   const items = useMemo(
     () => [
@@ -145,7 +145,7 @@ const Highlights = React.memo(() => {
   return (
     <Box
       id="highlights"
-      className={`theme-${currentTheme}`}
+      className={`theme-${themeToDisplay}`}
       sx={{
         pt: { xs: 4, sm: 8 },
         pb: { xs: 6, sm: 10 },

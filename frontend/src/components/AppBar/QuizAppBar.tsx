@@ -12,7 +12,7 @@ import Toolbar from '@mui/material/Toolbar';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import LanguageToggle from './LanguageSelection';
+import LanguageToggle from '../LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
 import LoginButton from '../Auth/LoginButton';
 

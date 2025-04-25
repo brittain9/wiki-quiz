@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext/AuthContext';
 import { useCustomTheme } from '../../context/CustomThemeContext/CustomThemeContext';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 

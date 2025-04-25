@@ -5,14 +5,13 @@ import React, {
   useContext,
   useState,
   useEffect,
-  ReactNode,
   useCallback,
   useMemo,
 } from 'react';
 
-import { authApi } from '../services';
-import { AuthContext as AuthContextType, UserInfo } from '../types';
-import { logAuth, logError } from '../utils/logger';
+import { AuthContext as AuthContextType, UserInfo } from './AuthContext.types';
+import { authApi } from '../../services';
+import { logAuth, logError } from '../../utils/logger';
 
 // Create context with undefined initial value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

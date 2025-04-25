@@ -16,7 +16,7 @@ export {
 };
 
 // Re-export types
-export type { UserInfo } from '../types/auth';
+export type { UserInfo } from '../context/AuthContext/AuthContext.types';
 export type { Quiz } from '../types/quiz.types';
 export type { QuizResult, ResultOption } from '../types/quizResult.types';
 

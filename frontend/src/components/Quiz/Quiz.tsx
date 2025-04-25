@@ -4,7 +4,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import LinearProgress from '@mui/material/LinearProgress';
-import Modal from '@mui/material/Modal';
 import Paper from '@mui/material/Paper';
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -12,12 +11,14 @@ import Typography from '@mui/material/Typography';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
-import QuizResultOverlay from './QuizResultOverlay';
-import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
-import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
-import { submissionApi } from '../services';
-import { QuizResult } from '../types/quizResult.types';
-import { QuizSubmission, QuestionAnswer } from '../types/quizSubmission.types';
+import { useCustomTheme } from '../../context/CustomThemeContext/CustomThemeContext';
+import { useOverlay } from '../../context/OverlayContext/OverlayContext';
+import { useQuizState } from '../../context/QuizStateContext/QuizStateContext';
+import { submissionApi } from '../../services';
+import {
+  QuizSubmission,
+  QuestionAnswer,
+} from '../../types/quizSubmission.types';
 
 const Quiz: React.FC = React.memo(() => {
   const {
@@ -27,17 +28,14 @@ const Quiz: React.FC = React.memo(() => {
     setCurrentSubmission,
     addSubmissionToHistory,
   } = useQuizState();
-  const { currentTheme } = useCustomTheme();
+  const { themeToDisplay } = useCustomTheme();
+  const { showOverlay } = useOverlay();
 
   // State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<QuestionAnswer[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
-  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
-  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
-  const [isLoadingResult, setIsLoadingResult] = useState(false);
-  const [resultError, setResultError] = useState<string | null>(null);
 
   // Computed values
   const flatQuestions = useMemo(
@@ -60,26 +58,11 @@ const Quiz: React.FC = React.memo(() => {
   }, [currentQuiz]);
 
   // Handlers
-  const fetchQuizResult = useCallback(async (submissionId: number) => {
-    setIsLoadingResult(true);
-    setResultError(null);
-    try {
-      const result = await submissionApi.getSubmissionById(submissionId);
-      setQuizResult(result);
-    } catch (error) {
-      console.error('Failed to fetch quiz result:', error);
-      setResultError('Failed to load quiz result. Please try again.');
-    } finally {
-      setIsLoadingResult(false);
-    }
-  }, []);
-
   const handleViewDetailedSubmission = useCallback(() => {
     if (currentSubmission) {
-      setIsOverlayOpen(true);
-      fetchQuizResult(currentSubmission.id);
+      showOverlay('quiz_result', { resultId: currentSubmission.id });
     }
-  }, [currentSubmission, fetchQuizResult]);
+  }, [currentSubmission, showOverlay]);
 
   const handleAnswerChange = useCallback(
     (questionId: number, selectedOptionNumber: number) => {
@@ -162,7 +145,7 @@ const Quiz: React.FC = React.memo(() => {
           flexDirection: 'column',
           gap: 2,
         }}
-        className={`theme-${currentTheme}`}
+        className={`theme-${themeToDisplay}`}
       >
         <CircularProgress
           size={50}
@@ -193,123 +176,221 @@ const Quiz: React.FC = React.memo(() => {
         backgroundColor: 'var(--bg-color)',
         mt: 4,
       }}
-      className={`theme-${currentTheme}`}
+      className={`theme-${themeToDisplay}`}
     >
-      <Typography
-        variant="h4"
-        gutterBottom
-        align="center"
-        sx={{ mb: 3, fontWeight: 600, color: 'var(--main-color)' }}
-      >
-        {currentQuiz.title} Quiz
-      </Typography>
+      {/* Progress Indicator */}
+      <LinearProgress
+        variant="determinate"
+        value={
+          quizSubmitted
+            ? 100
+            : Math.round(
+                (userAnswers.length / Math.max(1, totalQuestions)) * 100,
+              )
+        }
+        sx={{
+          height: 8,
+          borderRadius: 4,
+          mb: 5,
+          backgroundColor: 'var(--bg-color-tertiary)',
+          '.MuiLinearProgress-bar': {
+            backgroundColor: 'var(--main-color)',
+          },
+        }}
+      />
 
       <Paper
-        elevation={3}
+        elevation={1}
         sx={{
-          p: 4,
-          minHeight: 400,
-          maxWidth: 700,
-          mx: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
+          p: 0,
           borderRadius: 2,
-          transition: 'all 0.3s ease',
-          boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 30px',
           backgroundColor: 'var(--bg-color)',
-          color: 'var(--text-color)',
           border: '1px solid var(--sub-alt-color)',
-          position: 'relative',
           overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '4px',
-            backgroundColor: 'var(--main-color)',
-            opacity: 0.8,
-          },
         }}
       >
         {quizSubmitted ? (
-          <Box sx={{ textAlign: 'center' }}>
+          /* Quiz Results Summary */
+          <Box sx={{ p: 4 }}>
             <Typography
               variant="h5"
               gutterBottom
-              sx={{ fontWeight: 600, color: 'var(--main-color)' }}
+              sx={{
+                color: 'var(--text-color)',
+                fontWeight: 600,
+                textAlign: 'center',
+                mb: 3,
+              }}
             >
-              Quiz Completed!
+              Quiz Complete!
             </Typography>
 
             <Box
               sx={{
                 display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
                 justifyContent: 'center',
-                my: 4,
-                height: 200,
+                alignItems: 'center',
+                mb: 4,
+                gap: { xs: 3, sm: 6 },
               }}
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={getScoreChartData()}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
+              {/* Score chart */}
+              <Box sx={{ position: 'relative', width: 160, height: 160 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={getScoreChartData()}
+                      cx="50%"
+                      cy="50%"
+                      startAngle={90}
+                      endAngle={-270}
+                      innerRadius={45}
+                      outerRadius={60}
+                      paddingAngle={0}
+                      dataKey="value"
+                      strokeWidth={0}
+                    >
+                      <Cell key="score-cell-0" fill={getScoreColor()} />
+                      <Cell
+                        key="score-cell-1"
+                        fill="var(--bg-color-tertiary)"
+                      />
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center',
+                  }}
+                >
+                  <Typography
+                    variant="h4"
+                    component="div"
+                    fontWeight="bold"
+                    sx={{ color: getScoreColor() }}
                   >
-                    <Cell fill={getScoreColor()} />
-                    <Cell fill="var(--bg-color-tertiary)" />
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+                    {score !== null ? `${score}%` : '--'}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: 'var(--sub-color)' }}
+                  >
+                    Score
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Quiz stats */}
+              <Box>
+                <Typography
+                  sx={{
+                    mb: 1,
+                    color: 'var(--text-color)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 12,
+                      height: 12,
+                      backgroundColor: 'var(--main-color)',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  Questions: {totalQuestions}
+                </Typography>
+                <Typography
+                  sx={{
+                    mb: 1,
+                    color: 'var(--text-color)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 12,
+                      height: 12,
+                      backgroundColor: 'var(--success-color)',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  Topic:{' '}
+                  {currentQuiz.aiResponses[0]?.responseTopic || 'General'}
+                </Typography>
+                <Typography
+                  sx={{
+                    color: 'var(--text-color)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 12,
+                      height: 12,
+                      backgroundColor: 'var(--warning-color)',
+                      borderRadius: '50%',
+                    }}
+                  />
+                  Quiz Title: {currentQuiz.title}
+                </Typography>
+              </Box>
             </Box>
 
-            <Typography
-              variant="h4"
+            <Box
               sx={{
-                fontWeight: 'bold',
-                color: getScoreColor(),
-                mb: 3,
+                display: 'flex',
+                justifyContent: 'center',
+                mt: { xs: 2, sm: 4 },
               }}
             >
-              {score}%
-            </Typography>
-
-            <Button
-              variant="contained"
-              onClick={handleViewDetailedSubmission}
-              sx={{
-                mt: 2,
-                backgroundColor: 'var(--main-color)',
-                color: 'var(--bg-color)',
-                '&:hover': {
-                  backgroundColor: 'var(--caret-color)',
-                },
-                px: 4,
-                py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 500,
-              }}
-            >
-              View Detailed Results
-            </Button>
+              <Button
+                variant="contained"
+                onClick={handleViewDetailedSubmission}
+                sx={{
+                  backgroundColor: 'var(--main-color)',
+                  color: 'var(--bg-color)',
+                  padding: '10px 20px',
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: 'var(--caret-color)',
+                  },
+                }}
+              >
+                View Detailed Results
+              </Button>
+            </Box>
           </Box>
         ) : (
-          <Box>
+          /* Quiz Question */
+          <Box sx={{ p: { xs: 2, sm: 4 } }}>
             {/* Progress bar */}
             <LinearProgress
               variant="determinate"
-              value={((currentQuestionIndex + 1) / totalQuestions) * 100}
+              value={
+                ((currentQuestionIndex + 1) / Math.max(1, totalQuestions)) * 100
+              }
               sx={{
-                mb: 3,
-                height: 8,
-                borderRadius: 4,
+                height: 6,
+                borderRadius: 3,
+                mb: 2,
                 backgroundColor: 'var(--bg-color-tertiary)',
-                '& .MuiLinearProgress-bar': {
+                '.MuiLinearProgress-bar': {
                   backgroundColor: 'var(--main-color)',
                 },
               }}
@@ -439,68 +520,6 @@ const Quiz: React.FC = React.memo(() => {
           </Box>
         )}
       </Paper>
-
-      <Modal
-        open={isOverlayOpen}
-        onClose={() => setIsOverlayOpen(false)}
-        aria-labelledby="quiz-result-modal"
-        className={`theme-${currentTheme}`}
-      >
-        <Paper
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: { xs: '95%', sm: '80%', md: '70%' },
-            maxWidth: 800,
-            maxHeight: '90vh',
-            overflow: 'auto',
-            p: 4,
-            backgroundColor: 'var(--bg-color)',
-            color: 'var(--text-color)',
-            borderRadius: 2,
-            outline: 'none',
-            border: '1px solid var(--sub-alt-color)',
-            boxShadow: 'rgba(0, 0, 0, 0.25) 0px 15px 45px',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '4px',
-              backgroundColor: 'var(--main-color)',
-              opacity: 0.8,
-            },
-          }}
-        >
-          {isLoadingResult ? (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: 200,
-              }}
-            >
-              <CircularProgress sx={{ color: 'var(--main-color)' }} />
-            </Box>
-          ) : resultError ? (
-            <Typography sx={{ color: 'var(--error-color)' }}>
-              {resultError}
-            </Typography>
-          ) : (
-            quizResult && (
-              <QuizResultOverlay
-                quizResult={quizResult}
-                isLoading={false}
-                error={null}
-              />
-            )
-          )}
-        </Paper>
-      </Modal>
     </Box>
   );
 });
