@@ -24,18 +24,10 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor for logging and token handling
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    // Log outgoing request details
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `Request: ${config.method?.toUpperCase() || 'UNKNOWN'} ${config.url || 'unknown'}`,
-      );
-    }
-
+    // No logging in request interceptor
     return config;
   },
   (error: AxiosError) => {
-    // Log request error
-    console.error('Request error', error.message);
     return Promise.reject(error);
   },
 );
@@ -43,13 +35,6 @@ apiClient.interceptors.request.use(
 // Response interceptor for logging and error handling
 apiClient.interceptors.response.use(
   (response: AxiosResponse): AxiosResponse => {
-    // Log successful response in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `Response: ${response.status} ${response.config.method?.toUpperCase() || 'UNKNOWN'} ${response.config.url || 'unknown'}`,
-      );
-    }
-
     return response;
   },
   (error: AxiosError) => {
@@ -59,23 +44,10 @@ apiClient.interceptors.response.use(
       error.response?.status === 401
     ) {
       // User not authenticated - expected for /auth/me
-      if (process.env.NODE_ENV === 'development') {
-        console.log('User not authenticated', {
-          status: error.response.status,
-          endpoint: error.config.url,
-        });
-      }
     } else {
-      // Log response error with details
-      console.error(`API Error: ${error.response?.status || 'Network Error'}`, {
-        message: error.message,
-        url: error.config?.url,
-        method: error.config?.method,
-      });
-
       // Special handling for auth errors
       if (error.response && error.response.status === 401) {
-        console.log('Authentication required - not logged in');
+        // Authentication required - not logged in
       }
     }
 
@@ -90,13 +62,8 @@ export const apiGet = async <T>(
   url: string,
   config?: AxiosRequestConfig,
 ): Promise<T> => {
-  try {
-    const response = await apiClient.get<T>(url, config);
-    return response.data;
-  } catch (error) {
-    console.error(`GET ${url} failed`, error);
-    throw error;
-  }
+  const response = await apiClient.get<T>(url, config);
+  return response.data;
 };
 
 /**
@@ -107,13 +74,8 @@ export const apiPost = async <T, D = unknown>(
   data?: D,
   config?: AxiosRequestConfig,
 ): Promise<T> => {
-  try {
-    const response = await apiClient.post<T>(url, data, config);
-    return response.data;
-  } catch (error) {
-    console.error(`POST ${url} failed`, error);
-    throw error;
-  }
+  const response = await apiClient.post<T>(url, data, config);
+  return response.data;
 };
 
 export default apiClient;

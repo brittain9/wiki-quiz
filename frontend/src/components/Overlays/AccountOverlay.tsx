@@ -11,15 +11,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../../context/AuthContext/AuthContext';
-import { useCustomTheme } from '../../context/CustomThemeContext/CustomThemeContext';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 
 const AccountOverlay: React.FC = () => {
   const { userInfo } = useAuth();
   const { currentOverlay, hideOverlay } = useOverlay();
   const { t } = useTranslation();
-  const { currentTheme } = useCustomTheme();
-
   const isOpen = currentOverlay === 'account';
 
   // Calculate the avatar initials from first and last name
@@ -46,7 +43,6 @@ const AccountOverlay: React.FC = () => {
       onClose={hideOverlay}
       closeAfterTransition
       aria-labelledby="account-modal-title"
-      className={`theme-${currentTheme}`}
     >
       <Fade in={isOpen}>
         <Box
@@ -63,7 +59,6 @@ const AccountOverlay: React.FC = () => {
             p: 0,
             outline: 'none',
           }}
-          className={`theme-${currentTheme}`}
         >
           <Paper
             elevation={0}

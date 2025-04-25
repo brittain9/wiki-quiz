@@ -7,16 +7,12 @@ import Typography from '@mui/material/Typography';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
-
 const Footer = React.memo(() => {
   const { t } = useTranslation();
-  const { currentTheme } = useCustomTheme();
 
   return (
     <Box
       component="footer"
-      className={`theme-${currentTheme}`}
       sx={{
         width: '100%',
         py: { xs: 3, sm: 4 },

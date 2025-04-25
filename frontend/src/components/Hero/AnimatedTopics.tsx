@@ -77,16 +77,13 @@ const AnimatedTopics: React.FC = () => {
       <Typography
         component="span"
         variant="h1"
-        sx={(theme) => ({
+        sx={{
           fontSize: 'inherit',
-          color: 'primary.main',
+          color: 'var(--main-color)',
           transition: 'color 0.5s ease',
           display: 'inline',
           whiteSpace: 'nowrap',
-          ...theme.applyStyles('dark', {
-            color: 'primary.light',
-          }),
-        })}
+        }}
       >
         {displayText}
       </Typography>

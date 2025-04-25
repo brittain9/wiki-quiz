@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import QuizQuestion from './QuizQuestion';
 import QuizResult from './QuizResult';
-import { useCustomTheme, useQuizState } from '../../context';
+import { useQuizState } from '../../context';
 import { submissionApi } from '../../services';
 import { QuizSubmission, QuestionAnswer } from '../../types';
 
@@ -18,7 +18,6 @@ const QuizContainer: React.FC = React.memo(() => {
     setCurrentSubmission,
     addSubmissionToHistory,
   } = useQuizState();
-  const { themeToDisplay } = useCustomTheme();
 
   // State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -110,7 +109,6 @@ const QuizContainer: React.FC = React.memo(() => {
           flexDirection: 'column',
           gap: 2,
         }}
-        className={`theme-${themeToDisplay}`}
       >
         <CircularProgress
           size={50}
@@ -141,7 +139,6 @@ const QuizContainer: React.FC = React.memo(() => {
         backgroundColor: 'var(--bg-color)',
         mt: 4,
       }}
-      className={`theme-${themeToDisplay}`}
     >
       <Paper
         elevation={1}

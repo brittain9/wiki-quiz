@@ -3,14 +3,7 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import React, { useMemo, lazy, Suspense } from 'react';
 
-import {
-  QuizAppBar,
-  Footer,
-  Hero,
-  OverlayManager,
-  ThemeSelector,
-} from './components';
-import { useCustomTheme } from './context/CustomThemeContext/CustomThemeContext';
+import { QuizAppBar, Footer, Hero, OverlayManager } from './components';
 
 // Lazy load components that aren't needed for initial render
 const LazyHighlights = lazy(() => import('./components/Highlights'));
@@ -29,25 +22,19 @@ const LoadingFallback = () => (
       py: 6,
     }}
   >
-    <CircularProgress sx={{ color: 'var(--main-color)' }} />
+    <CircularProgress />
   </Box>
 );
 
 // Main App component
 const App: React.FC = React.memo(() => {
-  const { themeToDisplay } = useCustomTheme();
-
-  // Memoize the theme class
-  const themeClass = useMemo(() => `theme-${themeToDisplay}`, [themeToDisplay]);
-
   return (
     <Box
-      className={`app-container ${themeClass}`}
+      className="app-container"
       sx={{
         minHeight: '100vh',
-        backgroundColor: 'var(--bg-color)',
-        color: 'var(--text-color)',
-        transition: 'background-color 0.3s ease, color 0.3s ease',
+        backgroundColor: '#323437',
+        color: '#d1d0c5',
       }}
     >
       <QuizAppBar />
@@ -58,7 +45,6 @@ const App: React.FC = React.memo(() => {
         <LazyHighlights />
       </Suspense>
       <Footer />
-      <ThemeSelector />
       <OverlayManager />
     </Box>
   );

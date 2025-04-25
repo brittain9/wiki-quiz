@@ -25,16 +25,6 @@ export type {
   OverlayData,
 } from './OverlayContext/OverlayContext.types';
 
-// Custom Theme Context
-export {
-  CustomThemeProvider,
-  useCustomTheme,
-} from './CustomThemeContext/CustomThemeContext';
-export type { CustomThemeContextType } from './CustomThemeContext/CustomThemeContext.types';
-
-// Re-export ThemeName from its original location
-export type { ThemeName } from '../themes';
-
 // Quiz State Context
 export {
   QuizStateProvider,
@@ -42,5 +32,4 @@ export {
 } from './QuizStateContext/QuizStateContext';
 export type { QuizStateContextType } from './QuizStateContext/QuizStateContext.types';
 
-// Re-export Quiz and SubmissionResponse from their original location
 export type { Quiz, SubmissionResponse } from '../types';

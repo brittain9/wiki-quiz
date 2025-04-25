@@ -19,7 +19,6 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
-import { useCustomTheme } from '../../context/CustomThemeContext/CustomThemeContext';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 import { submissionApi } from '../../services';
 import { Question, QuizResult, ResultOption } from '../../types';
@@ -28,11 +27,11 @@ interface QuizResultOverlayProps {
   quizResult?: QuizResult | null;
   isLoading?: boolean;
   error?: string | null;
+  standalone?: boolean; // New prop to determine if this is a standalone component
 }
 
 const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
   const { t } = useTranslation();
-  const { themeToDisplay } = useCustomTheme();
   const { currentOverlay, overlayData, hideOverlay } = useOverlay();
 
   const [internalQuizResult, setInternalQuizResult] =
@@ -68,9 +67,8 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
     try {
       const result = await submissionApi.getSubmissionById(submissionId);
       setInternalQuizResult(result);
-    } catch (err) {
+    } catch {
       setInternalError('Failed to fetch quiz result');
-      console.error('Error fetching quiz result:', err);
     } finally {
       setInternalIsLoading(false);
     }
@@ -108,7 +106,11 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
     }
 
     if (!quizResult) {
-      return null;
+      return (
+        <Typography sx={{ color: 'var(--sub-color)' }}>
+          No quiz result data available
+        </Typography>
+      );
     }
 
     const score = quizResult.score;
@@ -227,179 +229,183 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
             overflow: 'hidden',
           }}
         >
-          {quizResult.answers.map((result: ResultOption, index: number) => {
-            const question = getQuestionById(result.questionId);
-            return (
-              <ListItem
-                key={result.questionId}
-                sx={{
-                  borderBottom: '1px solid var(--sub-alt-color)',
-                  py: 3,
-                  px: 3,
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  backgroundColor:
-                    index % 2 === 0
-                      ? 'var(--bg-color)'
-                      : 'var(--bg-color-secondary)',
-                }}
-              >
-                <Box sx={{ width: '100%', mb: 2 }}>
-                  <Typography
-                    variant="subtitle1"
-                    gutterBottom
-                    sx={{
-                      color: 'var(--text-color)',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      '&::before': {
-                        content: '""',
-                        display: 'inline-block',
-                        width: 12,
-                        height: 12,
-                        marginRight: 1.5,
-                        backgroundColor: 'var(--main-color)',
-                        borderRadius: '50%',
-                      },
-                    }}
+          {quizResult.answers.length > 0 ? (
+            quizResult.answers.map((result: ResultOption, index: number) => {
+              const question = getQuestionById(result.questionId);
+
+              if (!question) {
+                return null;
+              }
+
+              return (
+                <ListItem
+                  key={result.questionId}
+                  sx={{
+                    borderBottom: '1px solid var(--sub-alt-color)',
+                    py: 3,
+                    px: 3,
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    backgroundColor:
+                      index % 2 === 0
+                        ? 'var(--bg-color)'
+                        : 'var(--bg-color-secondary)',
+                  }}
+                >
+                  <Box sx={{ width: '100%', mb: 2 }}>
+                    <Typography
+                      variant="subtitle1"
+                      gutterBottom
+                      sx={{
+                        fontWeight: 600,
+                        color: 'var(--text-color)',
+                      }}
+                    >
+                      {index + 1}. {question.text}
+                    </Typography>
+                  </Box>
+
+                  <RadioGroup
+                    name={`question-${result.questionId}`}
+                    value={result.selectedAnswerChoice}
+                    sx={{ width: '100%' }}
                   >
-                    {t('quizresultoverlay.question')} {index + 1}:{' '}
-                    {question?.text}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ width: '100%', pl: 2 }}>
-                  <RadioGroup value={result.selectedAnswerChoice}>
-                    {question?.options.map((option, optionIndex) => {
-                      // Determine colors based on correctness
+                    {question.options.map((optionText, optionIndex) => {
+                      // Determine option appearance based on correctness
+                      // Option indexes are 0-based, but answer choices are 1-based
+                      const optionNumber = optionIndex + 1;
                       const isCorrect =
-                        optionIndex + 1 === result.correctAnswerChoice;
+                        optionNumber === result.correctAnswerChoice;
                       const isSelected =
-                        optionIndex + 1 === result.selectedAnswerChoice;
-                      const isWrong = isSelected && !isCorrect;
+                        optionNumber === result.selectedAnswerChoice;
 
-                      let textColor, radioColor, bgColor, borderColor;
-                      if (isCorrect) {
-                        textColor = 'var(--success-color)';
-                        radioColor = 'var(--success-color)';
-                        bgColor = 'var(--success-color-10)';
+                      // Style by case
+                      let optionColor = 'var(--text-color)';
+                      let optionBgColor = 'transparent';
+                      let borderColor = 'var(--sub-alt-color)';
+
+                      if (isSelected && isCorrect) {
+                        // Correct answer - user selected
+                        optionColor = 'var(--success-color)';
+                        optionBgColor = 'var(--success-color-10)';
                         borderColor = 'var(--success-color)';
-                      } else if (isWrong) {
-                        textColor = 'var(--error-color)';
-                        radioColor = 'var(--error-color)';
-                        bgColor = 'var(--error-color-10)';
+                      } else if (isSelected && !isCorrect) {
+                        // Wrong answer - user selected
+                        optionColor = 'var(--error-color)';
+                        optionBgColor = 'var(--error-color-10)';
                         borderColor = 'var(--error-color)';
-                      } else {
-                        textColor = 'var(--sub-color)';
-                        radioColor = 'var(--sub-color)';
-                        bgColor = 'transparent';
-                        borderColor = 'var(--sub-alt-color)';
+                      } else if (isCorrect) {
+                        // Correct answer - not selected
+                        optionColor = 'var(--success-color)';
+                        borderColor = 'var(--success-color)';
                       }
 
                       return (
                         <FormControlLabel
-                          key={optionIndex}
-                          value={optionIndex + 1}
+                          key={optionNumber}
+                          value={optionNumber}
+                          disabled
                           control={
                             <Radio
                               sx={{
-                                color: radioColor,
+                                color: optionColor,
                                 '&.Mui-checked': {
-                                  color: radioColor,
+                                  color: optionColor,
                                 },
                               }}
-                              disabled
                             />
                           }
-                          label={option}
+                          label={optionText}
                           sx={{
-                            margin: '4px 0',
-                            padding: '8px 16px',
+                            mb: 1,
+                            p: 1,
                             borderRadius: 1,
+                            border: `1px solid ${borderColor}`,
+                            backgroundColor: optionBgColor,
+                            color: optionColor,
                             width: '100%',
-                            backgroundColor:
-                              isSelected || isCorrect ? bgColor : 'transparent',
-                            border: '1px solid',
-                            borderColor:
-                              isSelected || isCorrect
-                                ? borderColor
-                                : 'var(--sub-alt-color)',
-                            color:
-                              isSelected || isCorrect
-                                ? textColor
-                                : 'var(--text-color)',
-                            transition: 'all 0.2s ease',
-                            '.MuiFormControlLabel-label': {
-                              width: '100%',
-                              fontWeight: isSelected || isCorrect ? 500 : 400,
-                            },
                           }}
-                          disabled
                         />
                       );
                     })}
                   </RadioGroup>
-                </Box>
-              </ListItem>
-            );
-          })}
+                </ListItem>
+              );
+            })
+          ) : (
+            <ListItem>
+              <Typography sx={{ color: 'var(--sub-color)' }}>
+                No answers available
+              </Typography>
+            </ListItem>
+          )}
         </List>
+
+        {!props.standalone && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <Button
+              variant="contained"
+              onClick={hideOverlay}
+              sx={{
+                backgroundColor: 'var(--main-color)',
+                color: 'var(--bg-color)',
+                '&:hover': {
+                  backgroundColor: 'var(--caret-color)',
+                },
+              }}
+            >
+              {t('quizresultoverlay.close')}
+            </Button>
+          </Box>
+        )}
       </>
     );
   };
 
-  // If used as a direct component (not in modal), just render the content
-  if (props.quizResult) {
+  // When used as a direct child in another component's modal
+  if (props.standalone) {
     return renderContent();
   }
 
+  // When used via the overlay system
   return (
     <Modal
       open={isOpen}
       onClose={hideOverlay}
       closeAfterTransition
-      aria-labelledby="quiz-result-modal"
-      className={`theme-${themeToDisplay}`}
+      className="quiz-result-modal"
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1300,
+      }}
     >
       <Fade in={isOpen}>
-        <Paper
+        <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: { xs: '95%', sm: '80%', md: '70%' },
-            maxWidth: 800,
+            width: { xs: '90%', sm: '80%', md: '70%' },
+            maxWidth: 900,
             maxHeight: '90vh',
             overflow: 'auto',
-            p: 4,
-            backgroundColor: 'var(--bg-color)',
+            bgcolor: 'var(--bg-color)',
             color: 'var(--text-color)',
             borderRadius: 2,
+            boxShadow: 24,
+            p: { xs: 2, sm: 4 },
             outline: 'none',
-            border: '1px solid var(--sub-alt-color)',
-            boxShadow: 'rgba(0, 0, 0, 0.25) 0px 15px 45px',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '4px',
-              backgroundColor: 'var(--main-color)',
-              opacity: 0.8,
-            },
+            position: 'relative',
+            m: 2,
           }}
         >
           <IconButton
-            aria-label="close"
             onClick={hideOverlay}
             sx={{
               position: 'absolute',
-              right: 12,
-              top: 12,
+              right: 8,
+              top: 8,
               color: 'var(--sub-color)',
+              zIndex: 2,
               '&:hover': {
                 color: 'var(--main-color)',
                 backgroundColor: 'var(--bg-color-secondary)',
@@ -410,7 +416,7 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
           </IconButton>
 
           {renderContent()}
-        </Paper>
+        </Box>
       </Fade>
     </Modal>
   );

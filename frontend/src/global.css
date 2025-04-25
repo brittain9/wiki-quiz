@@ -1,15 +1,14 @@
 /* 
   Global styles for the application 
-  Theme-specific styles will be loaded dynamically
 */
 
-/* Apply theme variables to the root element */
+/* Basic styling */
 :root {
   /* Font families */
   --font-family-main: 'Roboto Mono', monospace;
   --font-family-alt: 'Lexend Deca', sans-serif;
 
-  /* Default fallback colors (will be overridden by theme CSS) */
+  /* Fixed colors */
   --bg-color: #323437;
   --bg-color-secondary: #222222;
   --bg-color-tertiary: #2c2c2c;
@@ -30,7 +29,7 @@
   --error-color-10: rgba(202, 71, 84, 0.1); /* 10% opacity */
 }
 
-/* Ensure the entire document respects the theme */
+/* Ensure the entire document uses the fixed styling */
 html,
 body {
   background-color: var(--bg-color);
@@ -61,85 +60,23 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-color-secondary, rgba(0, 0, 0, 0.05));
+  background: var(--bg-color-secondary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--sub-color, rgba(0, 0, 0, 0.2));
+  background: var(--sub-color);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--main-color, rgba(0, 0, 0, 0.3));
+  background: var(--main-color);
 }
 
 /* Focus styles for accessibility */
 :focus {
-  outline: 2px solid var(--main-color, #7c3aed);
+  outline: 2px solid var(--main-color);
   outline-offset: 2px;
-}
-
-/* Default transitions for theme changes */
-body * {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease;
-}
-
-/* Theme-specific elements */
-.theme-selector-button {
-  background-color: var(--bg-color-secondary) !important;
-  color: var(--main-color) !important;
-  border: 1px solid var(--sub-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.theme-selector-button:hover {
-  background-color: var(--bg-color-tertiary) !important;
-}
-
-.theme-selector-menu {
-  background-color: var(--bg-color) !important;
-  color: var(--text-color) !important;
-  border: 1px solid var(--sub-color);
-}
-
-.theme-option {
-  color: var(--text-color) !important;
-}
-
-.theme-option:hover {
-  background-color: var(--bg-color-secondary) !important;
-}
-
-.theme-option.Mui-selected {
-  background-color: var(--main-color-20) !important;
-  color: var(--main-color) !important;
-}
-
-/* Additional stylistic elements */
-.themed-section h2,
-.themed-section h3,
-.themed-section h4,
-.themed-section h5 {
-  color: var(--main-color);
-}
-
-.themed-card {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  border: 1px solid var(--sub-alt-color);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.themed-card:hover {
-  border-color: var(--main-color);
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* MUI Overrides */
@@ -231,7 +168,7 @@ body * {
 }
 
 .MuiMenuItem-root.Mui-selected:hover {
-  background-color: rgba(var(--main-color), 0.25) !important;
+  background-color: var(--main-color-20) !important;
 }
 
 /* Fix for dark mode text in inputs */
@@ -244,24 +181,35 @@ body * {
   color: var(--main-color) !important;
 }
 
-/* Force MUI to use our theme variables for transitions */
-.MuiPaper-root,
-.MuiAppBar-root,
-.MuiDrawer-paper,
-.MuiButton-root,
-.MuiTextField-root,
-.MuiInputBase-root,
-.MuiTypography-root,
-.MuiDivider-root,
-.MuiIconButton-root,
-.MuiMenu-paper,
-.MuiMenuItem-root,
-.MuiList-root,
-.MuiListItem-root,
-.MuiListItemButton-root,
-.MuiCard-root {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease !important;
+/* Common components styling */
+.app-container {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Apply to common UI elements */
+.card {
+  background-color: var(--bg-color-secondary);
+  border: 1px solid var(--sub-alt-color);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.section-title {
+  color: var(--main-color);
+  margin-bottom: 16px;
+}
+
+/* Add button styling */
+.primary-button {
+  background-color: var(--main-color);
+  color: var(--bg-color);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  background-color: var(--caret-color);
 }

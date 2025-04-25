@@ -20,8 +20,5 @@ export type {
   SubmissionDetail,
 } from './quizSubmission.types';
 
-// Export theme types
-export type { ThemeDefinition } from './themeDefinition';
-
 // Export context types
 export type { QuizStateContextType } from '../context/QuizStateContext/QuizStateContext.types';

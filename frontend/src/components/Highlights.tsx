@@ -14,8 +14,6 @@ import * as React from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
-
 // Define a type for the highlight item
 interface HighlightItem {
   icon: React.ReactNode;
@@ -40,7 +38,6 @@ const HighlightItem = React.memo(
             backgroundColor: 'var(--bg-color)',
             boxShadow: 'none',
             borderRadius: 2,
-            transition: 'all 0.3s ease',
             position: 'relative',
             overflow: 'hidden',
             '&:hover': {
@@ -69,7 +66,6 @@ const HighlightItem = React.memo(
             sx={{
               color: 'var(--main-color)',
               opacity: 0.7,
-              transition: 'color 0.3s ease, opacity 0.3s ease',
               fontSize: '2rem',
               '& svg': {
                 fontSize: '2rem',
@@ -104,7 +100,6 @@ HighlightItem.displayName = 'HighlightItem';
 
 const Highlights = React.memo(() => {
   const { t } = useTranslation();
-  const { themeToDisplay } = useCustomTheme();
 
   const items = useMemo(
     () => [
@@ -145,7 +140,6 @@ const Highlights = React.memo(() => {
   return (
     <Box
       id="highlights"
-      className={`theme-${themeToDisplay}`}
       sx={{
         pt: { xs: 4, sm: 8 },
         pb: { xs: 6, sm: 10 },

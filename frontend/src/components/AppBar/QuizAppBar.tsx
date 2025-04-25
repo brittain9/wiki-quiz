@@ -12,7 +12,7 @@ import Toolbar from '@mui/material/Toolbar';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import LanguageToggle from '../LanguageSelection';
+import LanguageToggle from './LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
 import LoginButton from '../LoginButton';
 
@@ -91,7 +91,7 @@ const QuizAppBar: React.FC = () => {
       <Container maxWidth="lg">
         <Toolbar
           variant="regular"
-          sx={(theme) => ({
+          sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -104,12 +104,7 @@ const QuizAppBar: React.FC = () => {
             bgcolor: 'hsla(220, 60%, 99%, 0.6)',
             boxShadow:
               '0 1px 2px hsla(210, 0%, 0%, 0.05), 0 2px 12px hsla(210, 100%, 80%, 0.5)',
-            ...theme.applyStyles('dark', {
-              bgcolor: 'hsla(220, 0%, 0%, 0.7)',
-              boxShadow:
-                '0 1px 2px hsla(210, 0%, 0%, 0.5), 0 2px 12px hsla(210, 100%, 25%, 0.3)',
-            }),
-          })}
+          }}
         >
           <Box
             sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}

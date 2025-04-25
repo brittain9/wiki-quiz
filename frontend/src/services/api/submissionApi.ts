@@ -23,7 +23,6 @@ export const submissionApi = {
       );
       return response.data;
     } catch (error) {
-      console.error('Error submitting quiz:', error);
       throw new Error(`Failed to submit quiz: ${parseApiError(error)}`);
     }
   },
@@ -38,7 +37,6 @@ export const submissionApi = {
       );
       return response.data;
     } catch (error) {
-      console.error('Error fetching recent submissions:', error);
       throw new Error(
         `Failed to fetch recent submissions: ${parseApiError(error)}`,
       );
@@ -59,7 +57,6 @@ export const submissionApi = {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         throw new Error(`Submission with ID ${id} not found.`);
       }
-      console.error(`Error fetching submission with ID ${id}:`, error);
       throw new Error(
         `Failed to fetch submission ${id}: ${parseApiError(error)}`,
       );

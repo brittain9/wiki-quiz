@@ -1,15 +1,13 @@
 // Main components
 export { default as Footer } from './Footer';
 export { default as Highlights } from './Highlights';
-export { default as LanguageSelection } from './LanguageSelection';
+export { default as LanguageSelection } from './AppBar/LanguageSelection';
 export { default as SubmissionHistory } from './SubmissionHistory';
-export { default as ThemeSelector } from './ThemeSelector';
 export { default as LoginButton } from './LoginButton';
 
 // AppBar components
 export { default as QuizAppBar } from './AppBar/QuizAppBar';
 export { default as QuizOptionsComponent } from './AppBar/QuizOptionsComponent';
-export { default as ToggleColorMode } from './AppBar/ToggleColorMode';
 
 // Hero components
 export { default as Hero } from './Hero/Hero';

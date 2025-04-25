@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAuth, useCustomTheme, useOverlay } from '../../context';
+import { useAuth, useOverlay } from '../../context';
 
 interface _LoginOverlayProps {
   onSuccess?: () => void;
@@ -23,7 +23,6 @@ const LoginOverlay: React.FC = () => {
   const { loginWithGoogle, error, clearError } = useAuth();
   const { currentOverlay, hideOverlay, overlayData } = useOverlay();
   const { t } = useTranslation();
-  const { themeToDisplay } = useCustomTheme();
 
   const message = overlayData?.message || t('login.defaultMessage');
   const onSuccess = overlayData?.onSuccess;
@@ -52,7 +51,6 @@ const LoginOverlay: React.FC = () => {
       onClose={hideOverlay}
       closeAfterTransition
       aria-labelledby="login-modal-title"
-      className={`theme-${themeToDisplay}`}
     >
       <Fade in={isOpen}>
         <Box
@@ -69,7 +67,6 @@ const LoginOverlay: React.FC = () => {
             p: 0,
             outline: 'none',
           }}
-          className={`theme-${themeToDisplay}`}
         >
           <Paper
             elevation={0}

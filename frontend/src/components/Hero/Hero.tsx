@@ -15,7 +15,6 @@ import React, {
 import { useTranslation } from 'react-i18next';
 
 import AnimatedTopics from './AnimatedTopics';
-import { useCustomTheme } from '../../context/CustomThemeContext/CustomThemeContext';
 import { useQuizOptions } from '../../context/QuizOptionsContext/QuizOptionsContext';
 import { useQuizState } from '../../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../../hooks/useAuthCheck';
@@ -31,7 +30,6 @@ const Hero = React.memo(() => {
   const [error, setError] = useState<string | null>(null);
   const [debounceTimeout, setDebounceTimeout] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { currentTheme } = useCustomTheme();
 
   // Use our auth check hook
   const { checkAuth } = useAuthCheck({
@@ -212,11 +210,7 @@ const Hero = React.memo(() => {
   }, [topics, handleTopicSelect]);
 
   return (
-    <Box
-      id="hero"
-      className={`hero-section theme-${currentTheme}`}
-      sx={backgroundStyle}
-    >
+    <Box id="hero" className="hero-section" sx={backgroundStyle}>
       <Container
         sx={{
           display: 'flex',
@@ -248,89 +242,89 @@ const Hero = React.memo(() => {
           </Typography>
           <Typography
             sx={{
-              textAlign: 'center',
+              fontSize: 'clamp(1rem, 2vw, 1.2rem)',
               color: 'var(--sub-color)',
-              width: { sm: '100%', md: '80%' },
+              textAlign: 'center',
+              mb: 2,
             }}
           >
-            {t('hero.topicInfo')}
+            {t('hero.description')}
           </Typography>
+
           <form
             onSubmit={handleSubmit}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '60%',
-              maxWidth: 600,
-            }}
+            style={{ width: '100%', maxWidth: '500px' }}
           >
             <Box
-              sx={{ position: 'relative', flexGrow: 1, mr: 1 }}
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                gap: 2,
+                position: 'relative',
+              }}
               ref={dropdownRef}
             >
               <TextField
-                id="quiz-topic"
-                hiddenLabel
-                size="small"
-                variant="outlined"
-                aria-label="Enter your quiz topic"
-                placeholder={t('hero.placeholder')}
+                fullWidth
                 value={topicInput}
                 onChange={handleTopicChange}
+                disabled={isGenerating}
+                placeholder={t('hero.topicPlaceholder')}
+                variant="outlined"
                 error={!!error}
                 helperText={error}
-                disabled={isGenerating}
-                fullWidth
-                autoComplete="off"
                 inputProps={{
-                  style: {
-                    textAlign: 'left',
-                    backgroundColor: 'var(--bg-color-secondary)',
-                    color: 'var(--text-color)',
-                  },
+                  'aria-label': t('hero.topicLabel'),
                 }}
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': {
-                      borderColor: 'var(--sub-color)',
-                    },
-                    '&:hover fieldset': {
+                  bgcolor: 'var(--bg-color-secondary)',
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                    {
                       borderColor: 'var(--main-color)',
                     },
-                    '&.Mui-focused fieldset': {
-                      borderColor: 'var(--main-color)',
-                    },
-                  },
-                  '& .MuiFormHelperText-root': {
-                    color: 'var(--error-color)',
-                  },
                 }}
               />
               {suggestedTopics}
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!topicInput || isGenerating}
+                sx={{
+                  bgcolor: 'var(--main-color)',
+                  color: 'var(--bg-color)',
+                  px: 4,
+                  minWidth: { xs: '100%', md: '120px' },
+                  '&:hover': {
+                    bgcolor: 'var(--caret-color)',
+                  },
+                  '&:disabled': {
+                    bgcolor: 'var(--sub-alt-color)',
+                    color: 'var(--sub-color)',
+                  },
+                }}
+              >
+                {isGenerating ? t('hero.generating') : t('hero.generate')}
+              </Button>
             </Box>
-            <Button
-              disabled={isGenerating}
-              type="submit"
-              variant="contained"
-              sx={{
-                backgroundColor: 'var(--main-color)',
-                color: 'var(--bg-color)',
-                '&:hover': {
-                  backgroundColor: 'var(--caret-color)',
-                },
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {isGenerating ? t('hero.generating') : t('hero.generate')}
-            </Button>
           </form>
+
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'var(--sub-color)',
+              textAlign: 'center',
+              fontStyle: 'italic',
+              mt: 2,
+            }}
+          >
+            {t('hero.info')}
+          </Typography>
         </Stack>
       </Container>
     </Box>
   );
 });
 
-// Add display name
 Hero.displayName = 'Hero';
 
 export default Hero;

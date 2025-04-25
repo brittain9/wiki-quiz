@@ -10,7 +10,6 @@ import './global.css';
 import App from './App';
 import {
   AuthProvider,
-  CustomThemeProvider,
   OverlayProvider,
   QuizOptionsProvider,
   QuizStateProvider,
@@ -21,17 +20,15 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <CssBaseline />
     <I18nextProvider i18n={i18n}>
-      <CustomThemeProvider>
-        <AuthProvider>
-          <OverlayProvider>
-            <QuizOptionsProvider>
-              <QuizStateProvider>
-                <App />
-              </QuizStateProvider>
-            </QuizOptionsProvider>
-          </OverlayProvider>
-        </AuthProvider>
-      </CustomThemeProvider>
+      <AuthProvider>
+        <OverlayProvider>
+          <QuizOptionsProvider>
+            <QuizStateProvider>
+              <App />
+            </QuizStateProvider>
+          </QuizOptionsProvider>
+        </OverlayProvider>
+      </AuthProvider>
     </I18nextProvider>
   </React.StrictMode>,
 );
