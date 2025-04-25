@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useCustomTheme } from '../context/CustomThemeContext';
+import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
 
 const Footer = React.memo(() => {
   const { t } = useTranslation();

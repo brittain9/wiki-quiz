@@ -15,7 +15,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
-import { useCustomTheme } from '../context/CustomThemeContext';
+import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
 import { Question } from '../types/quiz.types';
 import { QuizResult, ResultOption } from '../types/quizResult.types';
 

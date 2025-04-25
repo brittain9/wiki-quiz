@@ -14,7 +14,7 @@ import * as React from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useCustomTheme } from '../context/CustomThemeContext';
+import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
 
 // Define a type for the highlight item
 interface HighlightItem {

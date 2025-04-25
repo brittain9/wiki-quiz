@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthProvider';
+import { useAuth } from '../context/AuthContext';
 import { logAuth } from '../utils/logger';
 
 /**

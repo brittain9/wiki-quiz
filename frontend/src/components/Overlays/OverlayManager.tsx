@@ -2,7 +2,7 @@ import React from 'react';
 
 import AccountOverlay from './AccountOverlay';
 import LoginOverlay from './LoginOverlay';
-import { useOverlay } from '../../context/OverlayContext';
+import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 
 /**
  * OverlayManager renders the appropriate overlay based on the current overlay state.

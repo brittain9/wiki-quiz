@@ -3,7 +3,7 @@ import { IconButton, Menu, MenuItem } from '@mui/material';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useQuizOptions } from '../../context/QuizOptionsContext';
+import { useQuizOptions } from '../../context/QuizOptionsContext/QuizOptionsContext';
 
 const LanguageToggle: React.FC = () => {
   const { quizOptions, setLanguage } = useQuizOptions();

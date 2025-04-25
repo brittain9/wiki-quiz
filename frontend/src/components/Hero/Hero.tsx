@@ -15,9 +15,9 @@ import React, {
 import { useTranslation } from 'react-i18next';
 
 import AnimatedTopics from './AnimatedTopics';
-import { useCustomTheme } from '../../context/CustomThemeContext';
-import { useQuizOptions } from '../../context/QuizOptionsContext';
-import { useQuizState } from '../../context/QuizStateContext';
+import { useCustomTheme } from '../../context/CustomThemeContext/CustomThemeContext';
+import { useQuizOptions } from '../../context/QuizOptionsContext/QuizOptionsContext';
+import { useQuizState } from '../../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../../hooks/useAuthCheck';
 import { quizApi, wikiApi } from '../../services';
 

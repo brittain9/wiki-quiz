@@ -24,7 +24,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-i18next": "^15.0.0",
-    "react-router-dom": "^6.26.1",
+    "react-router-dom": "^7.5.2",
     "recharts": "^2.15.1"
   },
   "devDependencies": {
@@ -46,7 +46,7 @@
     "prettier": "^3.5.3",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.28.0",
-    "vite": "latest",
+    "vite": "^6.3.3",
     "vite-plugin-eslint": "^1.8.1"
   }
 }

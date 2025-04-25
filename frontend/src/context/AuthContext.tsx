@@ -1,4 +1,4 @@
-// frontend/src/context/AuthProvider.tsx
+// src/context/AuthProvider.tsx
 import { AxiosError } from 'axios';
 import React, {
   createContext,
@@ -11,17 +11,15 @@ import React, {
 } from 'react';
 
 import { authApi } from '../services';
-import { AuthContext as AuthContextType, UserInfo } from '../types/auth';
+import { AuthContext as AuthContextType, UserInfo } from '../types';
 import { logAuth, logError } from '../utils/logger';
 
 // Create context with undefined initial value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isChecking, setIsChecking] = useState<boolean>(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);

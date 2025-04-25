@@ -6,23 +6,8 @@ import React, {
   useMemo,
 } from 'react';
 
-import { Quiz } from '../types/quiz.types';
-import { SubmissionResponse } from '../types/quizSubmission.types';
-
-interface QuizStateContextType {
-  isGenerating: boolean;
-  isQuizReady: boolean;
-
-  currentQuiz: Quiz | null;
-  currentSubmission: SubmissionResponse | null;
-  submissionHistory: SubmissionResponse[];
-
-  setIsGenerating: (isGenerating: boolean) => void;
-  setIsQuizReady: (isQuizReady: boolean) => void;
-  setCurrentQuiz: (quiz: Quiz | null) => void;
-  setCurrentSubmission: (submissionResponse: SubmissionResponse | null) => void;
-  addSubmissionToHistory: (submission: SubmissionResponse) => void;
-}
+import { QuizStateContextType } from './QuizStateContext.types';
+import { SubmissionResponse, Quiz } from '../../types';
 
 const QuizStateContext = createContext<QuizStateContextType | undefined>(
   undefined,

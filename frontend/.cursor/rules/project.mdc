@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
 # Project Coding Guidelines for Cursor AI (material-ui-vite-ts v5.0.0)
 
 This document guides the AI in generating and modifying code for this project. Please adhere strictly to these rules, conventions, and the project structure. Guidelines consider standard best practices as of early April 2025.

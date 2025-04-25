@@ -7,10 +7,10 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useCustomTheme } from '../context/CustomThemeContext';
+import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
 import {
   THEME_IDS,
   getTheme,

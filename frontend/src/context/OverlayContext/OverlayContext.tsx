@@ -1,25 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
 
-// Define explicit types for overlay data and options
-type OverlayType = 'login' | 'account' | 'quiz_result' | null;
+import {
+  OverlayContextType,
+  OverlayData,
+  OverlayType,
+} from './OverlayContext.types';
 
-interface OverlayData {
-  message?: string;
-  onSuccess?: () => void;
-  onCancel?: () => void;
-  resultId?: number;
-  [key: string]: unknown; // For any additional properties
-}
-
-export interface OverlayContextType {
-  currentOverlay: OverlayType;
-  overlayData: OverlayData | null;
-
-  showOverlay: (type: OverlayType, data?: OverlayData) => void;
-  hideOverlay: () => void;
-}
-
-// Update the context with these types
 const OverlayContext = createContext<OverlayContextType | null>(null);
 
 export const OverlayProvider: React.FC<React.PropsWithChildren> = ({

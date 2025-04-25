@@ -16,9 +16,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import QuizResultOverlay from './QuizResultOverlay';
-import { useAuth } from '../context/AuthProvider';
-import { useCustomTheme } from '../context/CustomThemeContext';
-import { useQuizState } from '../context/QuizStateContext';
+import { useAuth } from '../context/AuthContext';
+import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
+import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../hooks/useAuthCheck';
 import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';

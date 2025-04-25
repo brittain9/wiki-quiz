@@ -19,8 +19,8 @@ import {
 import React, { useEffect, useState, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAuth } from '../../context/AuthProvider';
-import { useOverlay } from '../../context/OverlayContext';
+import { useAuth } from '../../context/AuthContext';
+import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 import { createLogger } from '../../utils/logger';
 
 // Create a specialized logger for LoginButton

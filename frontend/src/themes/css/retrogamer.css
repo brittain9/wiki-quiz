@@ -13,10 +13,10 @@
   --error-extra-color: #b24531;
   --success-color: #9bbc0f;
   --warning-color: #dca03c;
-  
+
   /* Colors with transparency */
   --main-color-10: #8bac0f19; /* 10% opacity */
   --main-color-20: #8bac0f33; /* 20% opacity */
   --success-color-10: #9bbc0f19; /* 10% opacity */
   --error-color-10: #e76e5519; /* 10% opacity */
-} 
+}

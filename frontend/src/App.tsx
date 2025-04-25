@@ -8,7 +8,7 @@ import Footer from './components/Footer';
 import Hero from './components/Hero/Hero';
 import OverlayManager from './components/Overlays/OverlayManager';
 import ThemeSelector from './components/ThemeSelector';
-import { useCustomTheme } from './context/CustomThemeContext';
+import { useCustomTheme } from './context/CustomThemeContext/CustomThemeContext';
 
 // Lazy load components that aren't needed for initial render
 const Highlights = lazy(() => import('./components/Highlights'));

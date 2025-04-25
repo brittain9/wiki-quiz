@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
-import { useAuth } from '../context/AuthProvider';
-import { useOverlay } from '../context/OverlayContext';
+import { useAuth } from '../context/AuthContext';
+import { useOverlay } from '../context/OverlayContext/OverlayContext';
 
 interface UseAuthCheckOptions {
   /**

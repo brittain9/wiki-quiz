@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import React, { useEffect, useCallback } from 'react';
 
-import { useQuizOptions } from '../../context/QuizOptionsContext';
+import { useQuizOptions } from '../../context/QuizOptionsContext/QuizOptionsContext';
 
 const QuizOptionsComponent: React.FC = () => {
   const [expanded, setExpanded] = React.useState(false);

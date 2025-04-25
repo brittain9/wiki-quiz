@@ -10,9 +10,9 @@ import Typography from '@mui/material/Typography';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAuth } from '../../context/AuthProvider';
-import { useCustomTheme } from '../../context/CustomThemeContext';
-import { useOverlay } from '../../context/OverlayContext';
+import { useAuth } from '../../context/AuthContext';
+import { useCustomTheme } from '../../context/CustomThemeContext/CustomThemeContext';
+import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 
 const AccountOverlay: React.FC = () => {
   const { userInfo } = useAuth();

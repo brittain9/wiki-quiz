@@ -13,8 +13,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 import QuizResultOverlay from './QuizResultOverlay';
-import { useCustomTheme } from '../context/CustomThemeContext';
-import { useQuizState } from '../context/QuizStateContext';
+import { useCustomTheme } from '../context/CustomThemeContext/CustomThemeContext';
+import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
 import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';
 import { QuizSubmission, QuestionAnswer } from '../types/quizSubmission.types';

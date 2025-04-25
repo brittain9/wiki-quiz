@@ -1,30 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { quizApi } from '../services';
-
-interface QuizOptions {
-  topic: string;
-  numQuestions: number;
-  numOptions: number;
-  extractLength: number;
-  language: string;
-  selectedService: number | null;
-  selectedModel: number | null;
-  availableServices: Record<number, string>;
-  availableModels: Record<number, string>;
-}
-
-interface QuizOptionsContextType {
-  quizOptions: QuizOptions;
-  setTopic: (topic: string) => void;
-  setNumQuestions: (numQuestions: number) => void;
-  setNumOptions: (numOptions: number) => void;
-  setExtractLength: (extractLength: number) => void;
-  setLanguage: (language: string) => void;
-  setSelectedService: (serviceId: number | null) => void;
-  setSelectedModel: (modelId: number | null) => void;
-}
+import {
+  QuizOptions,
+  QuizOptionsContextType,
+} from './QuizOptionsContext.types';
+import { quizApi } from '../../services';
 
 const QuizOptionsContext = createContext<QuizOptionsContextType | null>(null);
 
