@@ -8,11 +8,13 @@ import { I18nextProvider } from 'react-i18next';
 import './global.css';
 
 import App from './App';
-import { AuthProvider } from './context/AuthContext/AuthContext';
-import { CustomThemeProvider } from './context/CustomThemeContext/CustomThemeContext';
-import { OverlayProvider } from './context/OverlayContext/OverlayContext';
-import { QuizOptionsProvider } from './context/QuizOptionsContext/QuizOptionsContext';
-import { QuizStateProvider } from './context/QuizStateContext/QuizStateContext';
+import {
+  AuthProvider,
+  CustomThemeProvider,
+  OverlayProvider,
+  QuizOptionsProvider,
+  QuizStateProvider,
+} from './context';
 import i18n from './i18n';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

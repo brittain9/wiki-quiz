@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import LanguageToggle from '../LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
-import LoginButton from '../Auth/LoginButton';
+import LoginButton from '../LoginButton';
 
 const QuizAppBar: React.FC = () => {
   const [open, setOpen] = React.useState(false);

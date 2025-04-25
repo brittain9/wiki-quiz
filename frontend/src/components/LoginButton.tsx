@@ -1,4 +1,4 @@
-// frontend/src/components/Auth/LoginButton.tsx
+// src/components/Auth/LoginButton.tsx
 import GoogleIcon from '@mui/icons-material/Google';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
@@ -19,12 +19,8 @@ import {
 import React, { useEffect, useState, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAuth } from '../../context/AuthContext/AuthContext';
-import { useOverlay } from '../../context/OverlayContext/OverlayContext';
-import { createLogger } from '../../utils/logger';
-
-// Create a specialized logger for LoginButton
-const logLoginButton = createLogger('LoginButton', '🔘', true);
+import { useAuth } from '../context/AuthContext/AuthContext';
+import { useOverlay } from '../context/OverlayContext/OverlayContext';
 
 const LoginButton = memo(() => {
   const {
@@ -41,68 +37,45 @@ const LoginButton = memo(() => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // Log component state changes
-  useEffect(() => {
-    logLoginButton('Auth state changed', {
-      isLoggedIn,
-      isChecking,
-      user: userInfo
-        ? {
-            id: userInfo.id,
-            email: userInfo.email,
-            firstName: userInfo.firstName,
-          }
-        : null,
-      hasError: !!error,
-    });
-  }, [isLoggedIn, isChecking, userInfo, error]);
-
   // Log error when it appears
   useEffect(() => {
     if (error) {
-      logLoginButton('Authentication error', { error });
+      console.error('Authentication error:', error);
     }
   }, [error]);
 
-  // Enhanced login handler
+  // Login handler
   const handleLoginWithGoogle = useCallback(() => {
-    logLoginButton('Google login button clicked');
     loginWithGoogle();
   }, [loginWithGoogle]);
 
   // Show account overlay
   const handleAccountClick = useCallback(() => {
-    logLoginButton('Account overlay button clicked');
     setAnchorEl(null); // Close menu
     showOverlay('account');
   }, [showOverlay]);
 
   // Handle logout
   const handleLogout = useCallback(async () => {
-    logLoginButton('Logout button clicked');
     setAnchorEl(null); // Close menu
     try {
       await logout();
-      logLoginButton('Logout completed');
     } catch (err) {
-      logLoginButton('Logout failed', { error: err });
+      console.error('Logout failed:', err);
     }
   }, [logout]);
 
   // Menu handling
   const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    logLoginButton('User menu opened');
     setAnchorEl(event.currentTarget);
   }, []);
 
   const handleMenuClose = useCallback(() => {
-    logLoginButton('User menu closed');
     setAnchorEl(null);
   }, []);
 
   // Display loading indicator while checking auth status
   if (isChecking) {
-    logLoginButton('Rendering loading state');
     return (
       <Box display="flex" alignItems="center" sx={{ minHeight: 40 }}>
         <CircularProgress size={24} sx={{ mr: 1 }} />
@@ -113,12 +86,6 @@ const LoginButton = memo(() => {
 
   // Display user avatar button if logged in
   if (isLoggedIn) {
-    logLoginButton('Rendering logged-in state', {
-      email: userInfo?.email,
-      firstName: userInfo?.firstName,
-      hasProfilePicture: !!userInfo?.profilePicture,
-    });
-
     return (
       <Box display="flex" alignItems="center" sx={{ minHeight: 40 }}>
         <Tooltip title={t('account.title')}>
@@ -200,46 +167,33 @@ const LoginButton = memo(() => {
   }
 
   // Display login button and error snackbar if logged out
-  logLoginButton('Rendering logged-out state');
-
   return (
-    <Box
-      sx={{
-        minHeight: 40,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Button
-        variant="outlined"
-        color="primary"
-        size="small"
-        startIcon={<GoogleIcon />}
-        onClick={handleLoginWithGoogle}
-        sx={{
-          minWidth: '100px',
-          height: '32px',
-          borderRadius: '16px',
-        }}
-      >
-        {t('login.loginButton')}
-      </Button>
+    <Box display="flex" alignItems="center">
+      {/* Display error in a snackbar if present */}
       <Snackbar
         open={!!error}
         autoHideDuration={6000}
         onClose={clearError}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert
-          onClose={clearError}
-          severity="error"
-          sx={{ width: '100%' }}
-          variant="filled"
-        >
+        <Alert onClose={clearError} severity="error" sx={{ width: '100%' }}>
           {error}
         </Alert>
       </Snackbar>
+
+      {/* Login button */}
+      <Button
+        variant="contained"
+        startIcon={<GoogleIcon />}
+        onClick={handleLoginWithGoogle}
+        sx={{
+          mr: 1,
+          backgroundColor: 'var(--main-color)',
+          color: 'var(--bg-color)',
+        }}
+      >
+        {t('login.loginButton')}
+      </Button>
     </Box>
   );
 });

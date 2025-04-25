@@ -14,7 +14,7 @@ import { useCustomTheme } from './context/CustomThemeContext/CustomThemeContext'
 
 // Lazy load components that aren't needed for initial render
 const LazyHighlights = lazy(() => import('./components/Highlights'));
-const LazyQuiz = lazy(() => import('./components/Quiz/Quiz'));
+const LazyQuiz = lazy(() => import('./components/Quiz/QuizContainer'));
 const LazySubmissionHistory = lazy(
   () => import('./components/SubmissionHistory'),
 );

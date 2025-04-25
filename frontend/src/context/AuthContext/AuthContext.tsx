@@ -11,7 +11,6 @@ import React, {
 
 import { AuthContext as AuthContextType, UserInfo } from './AuthContext.types';
 import { authApi } from '../../services';
-import { logAuth, logError } from '../../utils/logger';
 
 // Create context with undefined initial value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,25 +27,10 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
   // Check if user is logged in by fetching their profile
   const checkLoginStatus = useCallback(async () => {
-    logAuth('Checking login status');
+    console.log('Checking login status');
     try {
-      // Log cookie information for debugging
-      logAuth('Cookies present', {
-        cookiesLength: document.cookie.length > 0,
-        cookiesParsed: document.cookie
-          .split('; ')
-          .map((c) => c.split('=')[0])
-          .join(', '),
-      });
-
       // Use the authApi to get the current user
       const userData = await authApi.getCurrentUser();
-
-      logAuth('User authenticated successfully', {
-        id: userData.id,
-        email: userData.email,
-        firstName: userData.firstName,
-      });
 
       setUserInfo(userData);
       setIsLoggedIn(true);
@@ -55,9 +39,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
       const axiosError = err as AxiosError;
       // Don't treat 401 as an error - it just means user isn't logged in
       if (axiosError.response?.status !== 401) {
-        logError('Failed to check login status', err);
-      } else {
-        logAuth('User not authenticated', { status: 401 });
+        console.error('Failed to check login status', err);
       }
 
       setIsLoggedIn(false);
@@ -69,19 +51,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
   // Effect to run on mount and handle authentication redirects
   useEffect(() => {
-    logAuth('AuthProvider mounted, initializing auth check');
     setIsChecking(true);
 
     const params = new URLSearchParams(window.location.search);
     const errorParam = params.get('error');
     const fromAuthParam = params.get('fromAuth');
-
-    if (fromAuthParam === 'true') {
-      logAuth('Redirected from authentication flow', {
-        url: window.location.href,
-        params: Object.fromEntries([...params.entries()]),
-      });
-    }
 
     if (errorParam) {
       // Handle specific errors passed back from backend redirect
@@ -90,10 +64,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
           ? 'An account with this email already exists using a different sign-in method.'
           : 'Authentication failed. Please try again.';
 
-      logAuth('Authentication error from redirect', {
-        errorParam,
-        errorMessage,
-      });
+      console.error('Authentication error from redirect:', errorParam);
 
       setError(errorMessage);
       // Clean the URL
@@ -107,40 +78,26 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
   // Initialize Google OAuth login flow
   const loginWithGoogle = useCallback(() => {
-    logAuth('Initiating Google login');
     setError(null);
 
     authApi.initiateGoogleLogin().catch((err) => {
-      logError('Failed to initiate Google login', err);
+      console.error('Failed to initiate Google login', err);
       setError('Unable to start Google authentication. Please try again.');
     });
   }, []);
 
   // Log out the current user
   const logout = useCallback(async () => {
-    logAuth('Initiating logout');
     setError(null);
 
     try {
       await authApi.logout();
 
       // Update local state
-      logAuth('Logout successful, clearing user state');
       setUserInfo(null);
       setIsLoggedIn(false);
-
-      // Log cookies after logout for debugging
-      setTimeout(() => {
-        logAuth('Cookies after logout', {
-          cookiesLength: document.cookie.length > 0,
-          cookiesParsed: document.cookie
-            .split('; ')
-            .map((c) => c.split('=')[0])
-            .join(', '),
-        });
-      }, 100);
     } catch (err) {
-      logError('Logout failed', err);
+      console.error('Logout failed', err);
       setError('Failed to log out. Please try again.');
     }
   }, []);

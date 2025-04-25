@@ -24,42 +24,55 @@ import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 import { submissionApi } from '../../services';
 import { Question, QuizResult, ResultOption } from '../../types';
 
-const QuizResultOverlay: React.FC = () => {
+interface QuizResultOverlayProps {
+  quizResult?: QuizResult | null;
+  isLoading?: boolean;
+  error?: string | null;
+}
+
+const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
   const { t } = useTranslation();
   const { themeToDisplay } = useCustomTheme();
   const { currentOverlay, overlayData, hideOverlay } = useOverlay();
 
-  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [internalQuizResult, setInternalQuizResult] =
+    useState<QuizResult | null>(null);
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
+  const [internalError, setInternalError] = useState<string | null>(null);
+
+  // Determine if we're using props or internal state
+  const quizResult = props.quizResult || internalQuizResult;
+  const isLoading =
+    props.isLoading !== undefined ? props.isLoading : internalIsLoading;
+  const error = props.error !== undefined ? props.error : internalError;
 
   const isOpen = currentOverlay === 'quiz_result';
 
-  // Fetch quiz result when overlay opens
+  // Fetch quiz result when overlay opens (only if not using props)
   useEffect(() => {
-    if (isOpen && overlayData?.resultId) {
+    if (isOpen && overlayData?.resultId && !props.quizResult) {
       fetchQuizResult(overlayData.resultId);
     }
-  }, [isOpen, overlayData]);
+  }, [isOpen, overlayData, props.quizResult]);
 
   // Reset state when overlay closes
   useEffect(() => {
     if (!isOpen) {
-      setQuizResult(null);
+      setInternalQuizResult(null);
     }
   }, [isOpen]);
 
   const fetchQuizResult = async (submissionId: number) => {
-    setIsLoading(true);
-    setError(null);
+    setInternalIsLoading(true);
+    setInternalError(null);
     try {
       const result = await submissionApi.getSubmissionById(submissionId);
-      setQuizResult(result);
+      setInternalQuizResult(result);
     } catch (err) {
-      setError('Failed to fetch quiz result');
+      setInternalError('Failed to fetch quiz result');
       console.error('Error fetching quiz result:', err);
     } finally {
-      setIsLoading(false);
+      setInternalIsLoading(false);
     }
   };
 
@@ -335,6 +348,11 @@ const QuizResultOverlay: React.FC = () => {
       </>
     );
   };
+
+  // If used as a direct component (not in modal), just render the content
+  if (props.quizResult) {
+    return renderContent();
+  }
 
   return (
     <Modal

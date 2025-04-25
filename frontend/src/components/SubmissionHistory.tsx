@@ -1,3 +1,4 @@
+import CloseIcon from '@mui/icons-material/Close';
 import {
   Typography,
   List,
@@ -10,6 +11,7 @@ import {
   Chip,
   Modal,
   Button,
+  IconButton,
 } from '@mui/material';
 import { format } from 'date-fns';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -33,7 +35,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
   const [error, setError] = useState<string | null>(null);
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
-  const { currentTheme } = useCustomTheme();
+  const { themeToDisplay } = useCustomTheme();
 
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const [selectedQuizResult, setSelectedQuizResult] =
@@ -159,7 +161,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
           alignItems: 'center',
           minHeight: '200px',
         }}
-        className={`theme-${currentTheme}`}
+        className={`theme-${themeToDisplay}`}
       >
         <CircularProgress sx={{ color: 'var(--main-color)' }} />
       </Box>
@@ -171,7 +173,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
       <Typography
         align="center"
         sx={{ color: 'var(--error-color)' }}
-        className={`theme-${currentTheme}`}
+        className={`theme-${themeToDisplay}`}
       >
         {error}
       </Typography>
@@ -194,7 +196,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
           border: '1px solid var(--sub-alt-color)',
           borderRadius: 2,
         }}
-        className={`theme-${currentTheme}`}
+        className={`theme-${themeToDisplay}`}
       >
         <Typography
           variant="h5"
@@ -222,7 +224,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
           py: 4,
           mt: 3,
         }}
-        className={`theme-${currentTheme}`}
+        className={`theme-${themeToDisplay}`}
       >
         <Paper
           elevation={3}
@@ -247,7 +249,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
               opacity: 0.8,
             },
           }}
-          className={`theme-${currentTheme}`}
+          className={`theme-${themeToDisplay}`}
         >
           <Typography
             variant="h5"
@@ -332,7 +334,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
         open={isOverlayOpen}
         onClose={closeOverlay}
         aria-labelledby="quiz-result-details"
-        className={`theme-${currentTheme}`}
+        className={`theme-${themeToDisplay}`}
       >
         <Paper
           sx={{
@@ -380,11 +382,23 @@ const SubmissionHistory: React.FC = React.memo(() => {
           ) : (
             selectedQuizResult && (
               <>
-                <QuizResultOverlay
-                  quizResult={selectedQuizResult}
-                  isLoading={false}
-                  error={null}
-                />
+                <IconButton
+                  aria-label="close"
+                  onClick={closeOverlay}
+                  sx={{
+                    position: 'absolute',
+                    right: 12,
+                    top: 12,
+                    color: 'var(--sub-color)',
+                    '&:hover': {
+                      color: 'var(--main-color)',
+                      backgroundColor: 'var(--bg-color-secondary)',
+                    },
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+                <QuizResultOverlay quizResult={selectedQuizResult} />
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
                   <Button
                     variant="contained"

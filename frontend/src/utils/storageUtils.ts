@@ -1,5 +1,3 @@
-import { logError } from './logger';
-
 /**
  * Type-safe way to store data in localStorage with error handling
  */
@@ -9,7 +7,7 @@ export const setLocalStorageItem = <T>(key: string, value: T): boolean => {
     localStorage.setItem(key, serializedValue);
     return true;
   } catch (error) {
-    logError(`Failed to store item in localStorage: ${key}`, error);
+    console.error(`Failed to store item in localStorage: ${key}`, error);
     return false;
   }
 };
@@ -27,7 +25,7 @@ export const getLocalStorageItem = <T>(key: string, defaultValue: T): T => {
 
     return JSON.parse(serializedValue) as T;
   } catch (error) {
-    logError(`Failed to retrieve item from localStorage: ${key}`, error);
+    console.error(`Failed to retrieve item from localStorage: ${key}`, error);
     return defaultValue;
   }
 };
@@ -40,7 +38,7 @@ export const removeLocalStorageItem = (key: string): boolean => {
     localStorage.removeItem(key);
     return true;
   } catch (error) {
-    logError(`Failed to remove item from localStorage: ${key}`, error);
+    console.error(`Failed to remove item from localStorage: ${key}`, error);
     return false;
   }
 };
@@ -53,7 +51,7 @@ export const clearLocalStorage = (): boolean => {
     localStorage.clear();
     return true;
   } catch (error) {
-    logError('Failed to clear localStorage', error);
+    console.error('Failed to clear localStorage', error);
     return false;
   }
 };
@@ -68,7 +66,8 @@ export const isLocalStorageAvailable = (): boolean => {
     const result = localStorage.getItem(testKey) === testKey;
     localStorage.removeItem(testKey);
     return result;
-  } catch (_error) {
+  } catch (error) {
+    console.error('Failed to check localStorage availability', error);
     return false;
   }
 };
