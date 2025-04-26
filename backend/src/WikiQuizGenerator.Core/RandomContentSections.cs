@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace WikiQuizGenerator.Core;
 
 public static class RandomContentSections
 {
+    private static readonly Random Random = new Random();
+    
     public static string GetRandomContentSections(string extract, int requestedContentLength)
     {
         const int MIN_CONTENT_LENGTH = 500;
@@ -15,61 +15,65 @@ public static class RandomContentSections
         const int LENGTH_FOR_LARGER_SECTIONS = 3000;
         const int LARGER_SECTION_SIZE = 1000;
         const int SMALLER_SECTION_SIZE = 500;
-        const int MAX_ATTEMPTS = 1000;
 
+        // Early returns for edge cases
         if (string.IsNullOrEmpty(extract))
             return string.Empty;
-
+            
         int contentLength = Math.Clamp(requestedContentLength, MIN_CONTENT_LENGTH, MAX_CONTENT_LENGTH);
-
         if (contentLength >= extract.Length)
             return extract;
 
         int sectionSize = contentLength >= LENGTH_FOR_LARGER_SECTIONS ? LARGER_SECTION_SIZE : SMALLER_SECTION_SIZE;
-
-        var random = new Random();
         var result = new StringBuilder(contentLength);
-        var usedRanges = new List<(int Start, int End)>();
+        var usedPositions = new HashSet<int>();  // Faster lookup than List of ranges
 
-        int attempts = 0;
-        while (result.Length < contentLength && attempts < MAX_ATTEMPTS)
+        int targetLength = Math.Min(contentLength, extract.Length);
+        while (result.Length < targetLength)
         {
-            int remainingLength = extract.Length - usedRanges.Sum(r => r.End - r.Start);
-            if (remainingLength <= 0) break;
+            int remainingSpace = targetLength - result.Length;
+            int currentSectionSize = Math.Min(sectionSize, remainingSpace);
+            int maxStart = extract.Length - currentSectionSize;
+            int startPosition;
 
-            int maxStartPosition = Math.Max(0, extract.Length - sectionSize);
-            int startPosition = random.Next(maxStartPosition + 1);
-            int endPosition = Math.Min(startPosition + sectionSize, extract.Length);
-
-            var overlapRange = FindOverlappingRange(usedRanges, startPosition, endPosition);
-            if (overlapRange == null)
+            // Find a non-overlapping position efficiently
+            int attempts = 0;
+            do
             {
-                int actualSectionSize = Math.Min(endPosition - startPosition, contentLength - result.Length);
-                result.Append(extract.AsSpan(startPosition, actualSectionSize));
-                usedRanges.Add((startPosition, startPosition + actualSectionSize));
-                usedRanges.Sort((a, b) => a.Start.CompareTo(b.Start));
-                attempts = 0;
-            }
-            else
-            {
+                startPosition = Random.Next(maxStart + 1);
                 attempts++;
-                // Try to adjust the start position to avoid overlap
-                startPosition = overlapRange.Value.End;
-                if (startPosition + sectionSize <= extract.Length)
+                if (attempts > 100)  // Prevent infinite loop
                 {
-                    endPosition = startPosition + sectionSize;
-                    continue;
+                    return FillToLength(extract, targetLength, result);
                 }
-            }
-        }
+            } while (!IsPositionAvailable(usedPositions, startPosition, currentSectionSize));
 
-        // If we couldn't fill the requested length, fill with remaining content
-        if (result.Length < contentLength)
-        {
-            FillRemainingContent(extract, contentLength, result, usedRanges);
+            // Add the section
+            result.Append(extract, startPosition, currentSectionSize);
+            MarkPositionUsed(usedPositions, startPosition, currentSectionSize);
         }
 
         return result.ToString();
+    }
+
+        private static bool IsPositionAvailable(HashSet<int> usedPositions, int start, int length)
+    {
+        int end = start + length;
+        for (int i = start; i < end; i++)
+        {
+            if (usedPositions.Contains(i))
+                return false;
+        }
+        return true;
+    }
+
+    private static void MarkPositionUsed(HashSet<int> usedPositions, int start, int length)
+    {
+        int end = start + length;
+        for (int i = start; i < end; i++)
+        {
+            usedPositions.Add(i);
+        }
     }
 
     private static (int Start, int End)? FindOverlappingRange(List<(int Start, int End)> ranges, int start, int end)
@@ -96,6 +100,23 @@ public static class RandomContentSections
         }
     }
 
+        private static string FillToLength(string extract, int targetLength, StringBuilder result)
+    {
+        // … existing code …
+        int remaining = targetLength - result.Length;
+        if (remaining > 0)
+        {
+            int start = 0;
+            while (result.Length < targetLength && start < extract.Length)
+            {
+                int length = Math.Min(targetLength - result.Length, extract.Length - start);
+                result.Append(extract, start, length);
+                start += length;
+            }
+        }
+        return result.ToString();
+    }
+    
     private static List<(int Start, int End)> GetUnusedRanges(int totalLength, List<(int Start, int End)> usedRanges)
     {
         var unusedRanges = new List<(int Start, int End)>();
