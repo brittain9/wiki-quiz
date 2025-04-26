@@ -106,12 +106,6 @@ body {
   color: var(--text-color) !important;
 }
 
-.MuiAppBar-root {
-  background-color: var(--bg-color) !important;
-  color: var(--text-color) !important;
-  border-bottom: 1px solid var(--sub-alt-color);
-}
-
 .MuiDrawer-paper {
   background-color: var(--bg-color) !important;
   color: var(--text-color) !important;

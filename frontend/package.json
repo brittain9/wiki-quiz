@@ -19,6 +19,7 @@
     "@types/throttle-debounce": "^5.0.2",
     "axios": "^1.8.4",
     "date-fns": "^3.6.0",
+    "framer-motion": "^12.9.2",
     "i18next": "^23.12.2",
     "i18next-browser-languagedetector": "^8.0.0",
     "i18next-http-backend": "^3.0.2",

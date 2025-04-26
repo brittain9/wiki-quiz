@@ -79,9 +79,9 @@ const LoginButton = memo(() => {
     return (
       <Box display="flex" alignItems="center" sx={{ minHeight: 40 }}>
         <CircularProgress size={24} sx={{ mr: 1 }} />
-        <Typography variant="body2">Checking status...</Typography>
+        <Typography variant="body2">Logging in...</Typography>
       </Box>
-    );
+      );
   }
 
   // Display user avatar button if logged in
@@ -183,13 +183,30 @@ const LoginButton = memo(() => {
 
       {/* Login button */}
       <Button
-        variant="contained"
+        variant="outlined"
         startIcon={<GoogleIcon />}
         onClick={handleLoginWithGoogle}
         sx={{
           mr: 1,
-          backgroundColor: 'var(--main-color)',
-          color: 'var(--bg-color)',
+          borderRadius: '999px',
+          px: 2,
+          py: 0.5,
+          minHeight: 32,
+          fontWeight: 500,
+          fontSize: '0.95rem',
+          textTransform: 'none',
+          letterSpacing: 0.2,
+          borderColor: 'var(--main-color)',
+          color: 'var(--main-color)',
+          backgroundColor: 'transparent',
+          boxShadow: 'none',
+          transition: 'background 0.2s, border-color 0.2s, color 0.2s',
+          '&:hover': {
+            backgroundColor: 'var(--main-color-10)', // subtle tint on hover
+            borderColor: 'var(--main-color)',
+            color: 'var(--main-color)',
+            boxShadow: 'none',
+          },
         }}
       >
         {t('login.loginButton')}
