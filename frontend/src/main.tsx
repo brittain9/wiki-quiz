@@ -19,7 +19,7 @@ import {
   QuizOptionsProvider,
   QuizStateProvider,
 } from './context';
-import i18n from './i18n';
+import i18n from './i18n/i18n';
 import { initTheme } from './services/theme-controller';
 import { createAppTheme } from './theme/mui-theme';
 
