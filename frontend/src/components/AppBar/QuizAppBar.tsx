@@ -15,7 +15,6 @@ import { useTranslation } from 'react-i18next';
 import LanguageToggle from './LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
 import LoginButton from '../LoginButton';
-import ThemeSelector from '../ThemeSelector';
 
 const QuizAppBar: React.FC = () => {
   const [open, setOpen] = React.useState(false);
@@ -131,7 +130,6 @@ const QuizAppBar: React.FC = () => {
               alignItems: 'center',
             }}
           >
-            <ThemeSelector />
             <QuizOptionsComponent />
             <LanguageToggle />
             <LoginButton />
@@ -160,9 +158,6 @@ const QuizAppBar: React.FC = () => {
                 <Divider sx={{ my: 2 }} />
                 <MenuItem onClick={() => scrollToSection('highlights')}>
                   {t('appBar.highlights')}
-                </MenuItem>
-                <MenuItem>
-                  <ThemeSelector />
                 </MenuItem>
                 <MenuItem>
                   <LoginButton />

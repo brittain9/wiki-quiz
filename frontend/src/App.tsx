@@ -4,6 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import React, { useMemo, lazy, Suspense } from 'react';
 
 import { QuizAppBar, Footer, Hero, OverlayManager } from './components';
+import ThemeSelector from './components/ThemeSelector';
 
 // Lazy load components that aren't needed for initial render
 const LazyHighlights = lazy(() => import('./components/Highlights'));
@@ -33,8 +34,9 @@ const App: React.FC = React.memo(() => {
       className="app-container"
       sx={{
         minHeight: '100vh',
-        backgroundColor: '#323437',
-        color: '#d1d0c5',
+        backgroundColor: 'var(--bg-color)',
+        color: 'var(--text-color)',
+        position: 'relative',
       }}
     >
       <QuizAppBar />
@@ -46,6 +48,9 @@ const App: React.FC = React.memo(() => {
       </Suspense>
       <Footer />
       <OverlayManager />
+
+      {/* Floating theme selector button */}
+      <ThemeSelector />
     </Box>
   );
 });
