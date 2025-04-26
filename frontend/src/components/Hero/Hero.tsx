@@ -240,17 +240,6 @@ const Hero = React.memo(() => {
             </span>
             <AnimatedTopics />
           </Typography>
-          <Typography
-            sx={{
-              fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-              color: 'var(--sub-color)',
-              textAlign: 'center',
-              mb: 2,
-            }}
-          >
-            {t('hero.description')}
-          </Typography>
-
           <form
             onSubmit={handleSubmit}
             style={{ width: '100%', maxWidth: '500px' }}
@@ -269,12 +258,12 @@ const Hero = React.memo(() => {
                 value={topicInput}
                 onChange={handleTopicChange}
                 disabled={isGenerating}
-                placeholder={t('hero.topicPlaceholder')}
+                placeholder={t('hero.placeholder')}
                 variant="outlined"
                 error={!!error}
                 helperText={error}
                 inputProps={{
-                  'aria-label': t('hero.topicLabel'),
+                  'aria-label': t('hero.placeholder'),
                 }}
                 sx={{
                   bgcolor: 'var(--bg-color-secondary)',
@@ -317,7 +306,7 @@ const Hero = React.memo(() => {
               mt: 2,
             }}
           >
-            {t('hero.info')}
+            {t('hero.topicInfo')}
           </Typography>
         </Stack>
       </Container>

@@ -1,0 +1,26 @@
+/* Synthwave theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #2b213a;
+  --bg-color-secondary: #241b2f;
+  --bg-color-tertiary: #322541;
+  --main-color: #ff00ff;
+  --caret-color: #ff00ff;
+  --sub-color: #9179b7;
+  --sub-alt-color: #49426c;
+  --text-color: #f8f8ff;
+  --error-color: #ff5555;
+  --error-extra-color: #eb3b3b;
+  --success-color: #72f1b8;
+  --warning-color: #ff9e64;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(255, 0, 255, 0.1); /* 10% opacity */
+  --main-color-20: rgba(255, 0, 255, 0.2); /* 20% opacity */
+  --success-color-10: rgba(114, 241, 184, 0.1); /* 10% opacity */
+  --error-color-10: rgba(255, 85, 85, 0.1); /* 10% opacity */
+} 

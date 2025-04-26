@@ -12,57 +12,30 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
   Divider,
 } from '@mui/material';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 import * as ThemeController from '../services/theme-controller';
 
 interface Theme {
   id: string;
   name: string;
-  color: string;
-  description: string;
+  file: string;
+  colors: string[];
 }
-
-const themes: Theme[] = [
-  {
-    id: 'dark',
-    name: 'Dark',
-    color: '#7c3aed',
-    description: 'Modern dark theme with purple accents',
-  },
-  {
-    id: 'light',
-    name: 'Light',
-    color: '#6d28d9',
-    description: 'Clean light theme with violet accents',
-  },
-  {
-    id: 'nature',
-    name: 'Nature',
-    color: '#86c98f',
-    description: 'Forest-inspired dark green theme',
-  },
-  {
-    id: 'contrast',
-    name: 'High Contrast',
-    color: '#ffcc00',
-    description: 'Maximum contrast for accessibility',
-  },
-];
 
 // Main theme selector component with floating button and dropdown
 const ThemeSelector: React.FC = () => {
-  const [currentTheme, setCurrentTheme] = React.useState<string>(
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [currentTheme, setCurrentTheme] = useState<string>(
     localStorage.getItem('theme') || 'dark',
   );
-  const [open, setOpen] = React.useState(false);
-  const [previewingTheme, setPreviewingTheme] = React.useState<string | null>(
+  const [open, setOpen] = useState(false);
+  const [previewingTheme, setPreviewingTheme] = useState<string | null>(
     null,
   );
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const previewTimerRef = useRef<number | null>(null);
 
@@ -70,6 +43,16 @@ const ThemeSelector: React.FC = () => {
     // Load the theme from localStorage on component mount
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setCurrentTheme(savedTheme);
+
+    // Fetch themes from the JSON file
+    fetch('/themes/themes.json')
+      .then((response) => response.json())
+      .then((data) => {
+        setThemes(data.themes);
+      })
+      .catch((error) => {
+        console.error('Error loading themes:', error);
+      });
 
     // Clear any preview timers on unmount
     return () => {
@@ -227,60 +210,52 @@ const ThemeSelector: React.FC = () => {
                           },
                         }}
                       >
-                        <Box
+                        <Box 
                           sx={{
-                            width: 24,
-                            height: 24,
-                            borderRadius: '50%',
-                            bgcolor: theme.color,
-                            border: '2px solid var(--sub-alt-color)',
-                            mr: 2,
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            mr: 2,
                           }}
                         >
-                          {currentTheme === theme.id && (
-                            <CheckIcon
+                          {/* Theme color swatches */}
+                          {theme.colors.map((color, colorIndex) => (
+                            <Box
+                              key={colorIndex}
                               sx={{
-                                fontSize: 16,
-                                color: isContrastingWithBackground(theme.color)
-                                  ? '#fff'
-                                  : '#000',
+                                width: 20,
+                                height: 20,
+                                ml: colorIndex > 0 ? -1 : 0,
+                                zIndex: 3 - colorIndex,
+                                borderRadius: '50%',
+                                bgcolor: color,
+                                border: '1px solid var(--sub-alt-color)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                               }}
-                            />
-                          )}
+                            >
+                              {currentTheme === theme.id && colorIndex === 0 && (
+                                <CheckIcon
+                                  sx={{
+                                    fontSize: 14,
+                                    color: isContrastingWithBackground(color)
+                                      ? '#fff'
+                                      : '#000',
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          ))}
                         </Box>
                         <ListItemText
                           primary={
                             <Typography
+                              variant="body1"
                               sx={{
                                 fontWeight:
                                   currentTheme === theme.id ? 'bold' : 'normal',
                               }}
                             >
                               {theme.name}
-                              {previewingTheme === theme.id && (
-                                <Typography
-                                  component="span"
-                                  variant="caption"
-                                  sx={{
-                                    ml: 1,
-                                    color: 'var(--main-color)',
-                                    fontStyle: 'italic',
-                                  }}
-                                >
-                                  (Previewing)
-                                </Typography>
-                              )}
-                            </Typography>
-                          }
-                          secondary={
-                            <Typography
-                              variant="body2"
-                              sx={{ color: 'var(--sub-color)', mt: 0.5 }}
-                            >
-                              {theme.description}
                             </Typography>
                           }
                         />
@@ -296,32 +271,31 @@ const ThemeSelector: React.FC = () => {
     </Popper>
   );
 
-  // Element to store the current theme name for ThemeController
-  const themeNameElement = (
-    <Box className="current-theme" sx={{ display: 'none' }}>
-      <span className="text">{currentTheme}</span>
-    </Box>
-  );
-
   return (
     <>
       {floatingButton}
       {themeMenu}
-      {themeNameElement}
     </>
   );
 };
 
-// Helper function to determine if text should be white or black based on background
+// Helper function to determine if a color should use white or black text
 function isContrastingWithBackground(color: string): boolean {
-  // Simple contrast check for hex colors
+  if (!color) return true;
+
   if (color.startsWith('#')) {
-    const r = parseInt(color.slice(1, 3), 16);
-    const g = parseInt(color.slice(3, 5), 16);
-    const b = parseInt(color.slice(5, 7), 16);
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    // Calculate luminance - dark colors need bright text
     return r * 0.299 + g * 0.587 + b * 0.114 < 128;
   }
-  return true;
+
+  return true; // Default to white text on complex colors
 }
 
 export default ThemeSelector;

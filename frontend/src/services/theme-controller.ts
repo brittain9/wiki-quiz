@@ -23,63 +23,55 @@ export const colorVars = [
 // Track current state
 export const randomTheme: string | null = null;
 let isPreviewingTheme = false;
-let loadStyleLoaderTimeouts: NodeJS.Timeout[] = [];
+let loadStyleLoaderTimeouts: number[] = [];
+const loadedThemes = new Set<string>();
+const themeLoadPromises = new Map<string, Promise<void>>(); // Track in-progress loads
 
 // Load a theme stylesheet
 export async function loadStyle(name: string): Promise<void> {
   return new Promise((resolve) => {
-    console.debug('Loading theme style:', name);
-
+    const themeUrl = `/themes/${name}.css`;
+    const currentThemeElement = document.getElementById('currentTheme');
+    // If the current theme is already applied, do nothing
+    if (currentThemeElement && currentThemeElement.getAttribute('href') === themeUrl) {
+      resolve();
+      return;
+    }
+    function swapCurrentToNext(): void {
+      const current = document.getElementById('currentTheme');
+      const next = document.getElementById('nextTheme');
+      if (!next) return;
+      if (current) current.remove();
+      next.id = 'currentTheme';
+    }
     // Show loader after short delay
     loadStyleLoaderTimeouts.push(
       setTimeout(() => {
-        // Show loading indicator
         document.body.classList.add('theme-loading');
       }, 100),
     );
-
-    // Remove any previous next theme
-    const nextTheme = document.getElementById('nextTheme');
-    if (nextTheme) nextTheme.remove();
-
-    // Create new link element
-    const headScript = document.querySelector('#currentTheme');
+    // Remove any previous next theme link (safety measure)
+    document.getElementById('nextTheme')?.remove();
+    const headScript = document.getElementById('currentTheme');
     const link = document.createElement('link');
     link.type = 'text/css';
     link.rel = 'stylesheet';
     link.id = 'nextTheme';
-
-    // Handle successful load
     link.onload = (): void => {
-      console.debug('Theme loaded:', name);
       document.body.classList.remove('theme-loading');
-
-      // Swap current with next theme
-      const current = document.getElementById('currentTheme');
-      if (current) current.remove();
-      link.id = 'currentTheme';
-
-      // Clear timeouts
+      swapCurrentToNext();
       loadStyleLoaderTimeouts.forEach((t) => clearTimeout(t));
       loadStyleLoaderTimeouts = [];
       resolve();
     };
-
-    // Handle load error
     link.onerror = (e): void => {
-      console.error(`Failed to load theme ${name}`, e);
       document.body.classList.remove('theme-loading');
-
-      // Clear timeouts
+      document.getElementById('nextTheme')?.remove();
       loadStyleLoaderTimeouts.forEach((t) => clearTimeout(t));
       loadStyleLoaderTimeouts = [];
       resolve();
     };
-
-    // Set the href to theme CSS
-    link.href = `/themes/${name}.css`;
-
-    // Add to document
+    link.href = themeUrl;
     if (headScript === null) {
       document.head.appendChild(link);
     } else {
@@ -113,10 +105,10 @@ export async function apply(
 ): Promise<void> {
   console.debug('Applying theme:', themeName, 'preview:', isPreview);
 
-  // Clear any custom theme
+  // Clear any custom theme styles applied directly to the element
   clearCustomTheme();
 
-  // Load the theme CSS
+  // Load the theme CSS (will use cache if available)
   await loadStyle(themeName);
 
   // Apply custom colors if needed
@@ -131,13 +123,13 @@ export async function apply(
     }
   }
 
-  // Update UI elements
+  // Update UI elements that depend on theme colors
   updateThemeElements();
 
-  // Update theme name in UI
+  // Update theme name display in UI
   updateThemeName(isPreview ? themeName : undefined);
 
-  // Update dark mode status
+  // Update dark mode status based on the effective background color
   const bgColor = getComputedStyle(document.documentElement)
     .getPropertyValue('--bg-color')
     .trim();
@@ -153,36 +145,44 @@ export async function apply(
   updateMuiThemeMode(isDark);
 }
 
-// Simple dark color detection
+// Simple dark color detection based on luminance
 function isColorDark(color: string): boolean {
-  // Convert hex color to RGB and check luminance
-  if (!color) return true; // Default to dark if no color
+  if (!color) return true; // Default to dark if color is missing or empty
 
-  // Handle hex values
+  // Handle hex values (e.g., #rgb, #rrggbb)
   if (color.startsWith('#')) {
-    const r = parseInt(color.slice(1, 3), 16);
-    const g = parseInt(color.slice(3, 5), 16);
-    const b = parseInt(color.slice(5, 7), 16);
-    return r * 0.299 + g * 0.587 + b * 0.114 < 128;
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      // Luminance formula
+      return r * 0.299 + g * 0.587 + b * 0.114 < 128;
+    }
   }
 
-  // Handle rgb values
+  // Handle rgb/rgba values (e.g., rgb(r, g, b), rgba(r, g, b, a))
   if (color.startsWith('rgb')) {
     const parts = color.match(/\d+/g);
     if (parts && parts.length >= 3) {
       const r = parseInt(parts[0], 10);
       const g = parseInt(parts[1], 10);
       const b = parseInt(parts[2], 10);
+      // Luminance formula
       return r * 0.299 + g * 0.587 + b * 0.114 < 128;
     }
   }
 
-  return true; // Default to dark
+  console.warn('Could not determine darkness for color:', color, '- defaulting to dark.');
+  return true; // Default to dark if format is unrecognized
 }
 
 // Update any theme-dependent UI elements
 function updateThemeElements(): void {
-  // Add code here to update charts or other UI elements
+  // Placeholder for updating charts or other UI elements that need explicit color updates
 }
 
 // Update theme name display
@@ -195,7 +195,7 @@ function updateThemeName(nameOverride?: string): void {
   }
 }
 
-// Preview a theme
+// Preview a theme (debounced)
 export function preview(
   themeIdentifier: string,
   customColorsOverride?: string[],
@@ -203,38 +203,45 @@ export function preview(
   debouncedPreview(themeIdentifier, customColorsOverride);
 }
 
-// Debounced preview to prevent rapid theme changes
+// Debounced preview function to prevent rapid theme changes during hover/selection
 const debouncedPreview = debounce<(t: string, c?: string[]) => void>(
-  250,
+  250, // Debounce interval in milliseconds
   (themeIdentifier, customColorsOverride) => {
     isPreviewingTheme = true;
+    // Apply the theme in preview mode
     void apply(themeIdentifier, customColorsOverride, true);
   },
 );
 
-// Clear theme preview
-export async function clearPreview(applyTheme = true): Promise<void> {
+// Clear theme preview and revert to the saved theme
+export async function clearPreview(applySavedTheme = true): Promise<void> {
   if (isPreviewingTheme) {
     isPreviewingTheme = false;
-    if (applyTheme) {
+    if (applySavedTheme) {
+      // Re-apply the theme stored in localStorage
       const savedTheme = localStorage.getItem('theme') || 'dark';
-      const customTheme = JSON.parse(
+      const customThemeColors = JSON.parse(
         localStorage.getItem('customTheme') || 'null',
       );
-      await apply(savedTheme, customTheme);
+      await apply(savedTheme, customThemeColors);
     }
   }
 }
 
-// Set the actual theme
+// Set the actual theme and save it to localStorage
 export async function setTheme(themeName: string): Promise<void> {
+  // Apply the theme permanently (not preview)
   await apply(themeName);
+  // Save the chosen theme name
   localStorage.setItem('theme', themeName);
+  // Clear any custom theme colors if a standard theme is set
+  localStorage.removeItem('customTheme');
 }
 
-// Initialize theme based on saved preferences
+// Initialize theme based on saved preferences on app load
 export async function initTheme(): Promise<void> {
   const savedTheme = localStorage.getItem('theme') || 'dark';
-  const customTheme = JSON.parse(localStorage.getItem('customTheme') || 'null');
-  await apply(savedTheme, customTheme);
+  const customThemeColors = JSON.parse(localStorage.getItem('customTheme') || 'null');
+  // Apply the saved theme or custom theme colors
+  await apply(savedTheme, customThemeColors);
 }

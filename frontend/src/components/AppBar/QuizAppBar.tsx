@@ -171,7 +171,6 @@ const QuizAppBar: React.FC = () => {
   );
 };
 
-// Add display name
 QuizAppBar.displayName = 'QuizAppBar';
 
 export default QuizAppBar;
