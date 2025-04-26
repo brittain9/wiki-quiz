@@ -18,24 +18,22 @@ import LoginButton from '../LoginButton';
 
 const QuizAppBar: React.FC = () => {
   const [open, setOpen] = React.useState(false);
-  const [visible, setVisible] = React.useState(true);
+  const [appBarState, setAppBarState] = React.useState<'docked' | 'visible'>('docked');
   const { t } = useTranslation();
 
   const timerRef = React.useRef<number | null>(null);
 
   const showAppBar = React.useCallback(() => {
-    setVisible(true);
+    setAppBarState('visible');
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current);
     }
     timerRef.current = window.setTimeout(() => {
-      setVisible(false);
+      setAppBarState('docked');
     }, 3000);
   }, []);
 
   React.useEffect(() => {
-    showAppBar();
-
     const handleScroll = () => {
       showAppBar();
     };
@@ -76,6 +74,16 @@ const QuizAppBar: React.FC = () => {
     }
   };
 
+  const getTransformValue = () => {
+    switch (appBarState) {
+      case 'visible':
+        return 'translateY(0)';
+      case 'docked':
+      default:
+        return 'translateY(-90%)';
+    }
+  };
+
   return (
     <AppBar
       position="fixed"
@@ -84,8 +92,11 @@ const QuizAppBar: React.FC = () => {
         bgcolor: 'transparent',
         backgroundImage: 'none',
         mt: 2,
-        transition: 'transform 0.3s ease-in-out',
-        transform: visible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.3s cubic-bezier(.4,2,.6,1)',
+        transform: getTransformValue(),
+        '&:hover': {
+          transform: 'translateY(0)',
+        },
       }}
     >
       <Container maxWidth="lg">

@@ -106,6 +106,17 @@ body {
   color: var(--text-color) !important;
 }
 
+/* Exception for the AppBar's Paper */
+.MuiAppBar-root .MuiPaper-root,
+.MuiAppBar-root.MuiPaper-root {
+  background-color: transparent !important;
+}
+
+/* Add specific override for login menu */
+.MuiMenu-paper {
+  background-color: var(--bg-color) !important;
+}
+
 .MuiDrawer-paper {
   background-color: var(--bg-color) !important;
   color: var(--text-color) !important;

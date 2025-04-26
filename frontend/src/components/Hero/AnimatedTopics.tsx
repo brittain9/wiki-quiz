@@ -1,7 +1,7 @@
 import Typography from '@mui/material/Typography';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import './AnimatedTopics.css';
+import { motion } from 'framer-motion';
 
 const TYPING_SPEED = 500;
 const BACKSPACE_SPEED = 50;
@@ -18,6 +18,8 @@ const AnimatedTopics: React.FC = () => {
   const [currentTopicIndex, setCurrentTopicIndex] = React.useState(0);
   const [displayText, setDisplayText] = React.useState('');
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const wordRef = React.useRef<HTMLSpanElement>(null);
+  const [underlineWidth, setUnderlineWidth] = React.useState<number | undefined>(undefined);
 
   React.useEffect(() => {
     if (topics.length === 0) return;
@@ -59,19 +61,31 @@ const AnimatedTopics: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [topics, currentTopicIndex, displayText, isDeleting]);
 
+  React.useEffect(() => {
+    if (wordRef.current) {
+      setUnderlineWidth(wordRef.current.offsetWidth);
+    }
+  }, [displayText]);
+
   if (topics.length === 0) {
     return null;
   }
 
   return (
     <span
-      className="animated-topic-container"
       style={{
         display: 'inline-flex',
         alignItems: 'baseline',
         justifyContent: 'flex-start',
         textAlign: 'left',
-        minWidth: '200px', // Provide enough space for most words
+        minWidth: '180px',
+        maxWidth: '100vw',
+        width: 'clamp(200px, 32vw, 420px)',
+        position: 'relative',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+        verticalAlign: 'bottom',
       }}
     >
       <Typography
@@ -83,13 +97,26 @@ const AnimatedTopics: React.FC = () => {
           transition: 'color 0.5s ease',
           display: 'inline',
           whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          verticalAlign: 'bottom',
+          position: 'relative',
+          zIndex: 1,
+          letterSpacing: 0,
         }}
       >
-        {displayText}
+        <span ref={wordRef} style={{ padding: 0, margin: 0, letterSpacing: 0, display: 'inline' }}>{displayText}</span>
+        <motion.span
+          style={{ position: 'relative', zIndex: 2, padding: 0, margin: 0, left: 0, display: 'inline', font: 'inherit', letterSpacing: 0, marginLeft: '-0.08em' }}
+          initial={{ opacity: 1 }}
+          animate={{ opacity: [1, 0, 1] }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          |
+        </motion.span>
       </Typography>
-      <span className="cursor">|</span>
     </span>
   );
-};
+}
 
 export default AnimatedTopics;

@@ -15,7 +15,17 @@
     "title": "Wikipedia Quiz App"
   },
   "hero": {
-    "topics": ["Pluto", "Sushi", "Radar", "Bison", "Fungi", "Ozone"],
+      "topics": [
+        "Music",
+        "Travel",
+        "Climate",
+        "Dinosaurs",
+        "Biography",
+        "Revolution",
+        "Baking",
+        "Circuits",
+        "Festival"
+       ],
     "generateQuiz": "Generate a quiz about",
     "topicInfo": "Enter any topic you're curious about, and we'll generate a custom quiz just for you.",
     "placeholder": "Your quiz topic",
