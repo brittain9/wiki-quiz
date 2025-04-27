@@ -11,8 +11,8 @@ public class AIResponse
     public IList<Question> Questions { get; set; }
 
     public long ResponseTime { get; set; } // in milliseconds
-    public int? PromptTokenUsage { get; set; }
-    public int? CompletionTokenUsage { get; set; }
+    public int? InputTokenCount { get; set; }
+    public int? OutputTokenCount { get; set; }
     public string? ModelName { get; set; }
 
     // Navigational Property for one-to-one relationship between ai response and wikipedia page

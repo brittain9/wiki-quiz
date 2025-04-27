@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace WikiQuizGenerator.Data;
 
-// This class is needed to run migrations even if it's not called at all
-// is this still needed?
+// This class is needed to run migrations. Removing it causes errors
 internal class WikiQuizDbContextFactory : IDesignTimeDbContextFactory<WikiQuizDbContext>
 {
     public WikiQuizDbContext CreateDbContext(string[] args)

@@ -61,6 +61,7 @@ public class QuestionGenerator : IQuestionGenerator
         FunctionResult result = null!;
         var generationAttempts = 0;;
 
+        // TODO: models hsould be good enough to generated proper json, if not on first try, just return internal server error
         do
         {
             if (generationAttempts > 0)
@@ -93,12 +94,15 @@ public class QuestionGenerator : IQuestionGenerator
             ResponseTime = sw.ElapsedMilliseconds,
         };
 
-        // // Add OpenAI usage info if available
-        // if (result.Metadata.TryGetValue("Usage", out object? usageObj) && usageObj is CompletionsUsage usage)
-        // {
-        //     aiResponse.PromptTokenUsage = usage.PromptTokens;
-        //     aiResponse.CompletionTokenUsage = usage.CompletionTokens;
-        // }
+        // Add OpenAI usage info if available
+        // TODO: In the future, we can look into input token caching to potentially reduce costs for the prompt templates
+        if (result.Metadata.TryGetValue("Usage", out object? usageObj) && usageObj is OpenAI.Chat.ChatTokenUsage usage)
+        {
+            aiResponse.InputTokenCount = usage.InputTokenCount;
+            aiResponse.OutputTokenCount = usage.OutputTokenCount;
+
+            _logger.LogInformation($"Token Usage - Input: {usage.InputTokenCount}, Output: {usage.OutputTokenCount}");
+        }
 
         return aiResponse;
     }
