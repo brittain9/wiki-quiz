@@ -45,8 +45,8 @@ public static class QuizEndpoints
     private static async Task<IResult> HandleGetBasicQuiz(
         [FromServices] IQuizGenerator quizGenerator,
         [FromQuery] string topic,
-        [FromQuery] int aiService,
-        [FromQuery] int model,
+        [FromQuery] string aiService,
+        [FromQuery] string model,
         [FromQuery] string language = "en",
         [FromQuery] int numQuestions = 5,
         [FromQuery] int numOptions = 4,
@@ -59,6 +59,7 @@ public static class QuizEndpoints
 
         var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, aiService, model, numQuestions, numOptions, extractLength);
 
+        // TODO add null type pattern where we have NullQuiz object
         if (quiz == null)
         {
             return TypedResults.NotFound("Could not generate quiz content for the given topic.");

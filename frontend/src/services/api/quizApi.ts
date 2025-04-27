@@ -47,10 +47,9 @@ export const quizApi = {
   /**
    * Retrieves the available AI service options.
    */
-  getAiServices: async (): Promise<Record<number, string>> => {
+  getAiServices: async (): Promise<string[]> => {
     try {
-      const response =
-        await apiClient.get<Record<number, string>>('/ai/services');
+      const response = await apiClient.get<string[]>('/ai/services');
       return response.data;
     } catch (error) {
       console.error('Error fetching AI services:', error);
@@ -61,9 +60,9 @@ export const quizApi = {
   /**
    * Retrieves the available AI models for a specific service ID.
    */
-  getAiModels: async (serviceId: number): Promise<Record<number, string>> => {
+  getAiModels: async (serviceId: string): Promise<string[]> => {
     try {
-      const response = await apiClient.get<Record<number, string>>(
+      const response = await apiClient.get<string[]>(
         '/ai/models',
         {
           params: { aiServiceId: serviceId },

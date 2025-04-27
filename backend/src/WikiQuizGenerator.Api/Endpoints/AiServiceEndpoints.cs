@@ -20,7 +20,7 @@ public static class AiServiceEndpoints
         });
 
         // Endpoint for getting models based on AI service ID
-        group.MapGet("/models", (IAiServiceManager aiServiceManager, int? aiServiceId)
+        group.MapGet("/models", (IAiServiceManager aiServiceManager, string aiServiceId)
             => Results.Ok(aiServiceManager.GetModels(aiServiceId)))
         .WithName("GetAiModels")
         .WithOpenApi(operation =>

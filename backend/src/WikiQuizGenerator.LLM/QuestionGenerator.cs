@@ -28,8 +28,8 @@ public class QuestionGenerator : IQuestionGenerator
         // create the kernel with the specified ai service
         var kernelBuilder = Kernel.CreateBuilder();
 
-        // Only support OpenAI for now
-        if (aiServiceManager.SelectedService == "OpenAI" && AiServiceManager.IsOpenAiAvailable)
+        // TODO: change this horrible code
+        if (aiServiceManager.SelectedService == "OpenAi" && AiServiceManager.IsOpenAiAvailable)
         {
             kernelBuilder.AddOpenAIChatCompletion(aiServiceManager.SelectedModelId!, AiServiceManager.OpenAiApiKey!);
         }

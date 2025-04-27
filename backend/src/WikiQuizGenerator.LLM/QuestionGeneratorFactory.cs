@@ -14,7 +14,7 @@ public class QuestionGeneratorFactory : IQuestionGeneratorFactory
         _serviceProvider = serviceProvider;
     }
 
-    public IQuestionGenerator Create(IAiServiceManager aiServiceManager, int aiService, int model)
+    public IQuestionGenerator Create(IAiServiceManager aiServiceManager, string aiService, string model)
     {
         var promptManager = _serviceProvider.GetRequiredService<PromptManager>();
         var logger = _serviceProvider.GetRequiredService<ILogger<QuestionGenerator>>();

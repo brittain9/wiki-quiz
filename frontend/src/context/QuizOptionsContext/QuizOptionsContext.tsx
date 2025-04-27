@@ -39,7 +39,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
     i18n.changeLanguage(language);
   };
 
-  const setSelectedService = async (serviceId: number | null) => {
+  const setSelectedService = async (serviceId: string | null) => {
     setQuizOptions((prev) => ({
       ...prev,
       selectedService: serviceId,
@@ -48,7 +48,11 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
     }));
     if (serviceId !== null) {
       try {
-        const models = await quizApi.getAiModels(serviceId);
+        const modelsArr = await quizApi.getAiModels(serviceId);
+        const models: Record<string, string> = {};
+        modelsArr.forEach((model) => {
+          models[model] = model;
+        });
         setQuizOptions((prev) => ({
           ...prev,
           availableModels: models,
@@ -59,7 +63,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
     }
   };
 
-  const setSelectedModel = (modelId: number | null) => {
+  const setSelectedModel = (modelId: string | null) => {
     setQuizOptions((prev) => ({
       ...prev,
       selectedModel: modelId,
@@ -69,10 +73,12 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const services = await quizApi.getAiServices();
-        const firstServiceId = Object.keys(services)[0]
-          ? parseInt(Object.keys(services)[0])
-          : null;
+        const servicesArr = await quizApi.getAiServices();
+        const services: Record<string, string> = {};
+        servicesArr.forEach((service) => {
+          services[service] = service;
+        });
+        const firstServiceId = Object.keys(services)[0] || null;
 
         setQuizOptions((prev) => ({
           ...prev,
@@ -81,10 +87,12 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
         }));
 
         if (firstServiceId !== null) {
-          const models = await quizApi.getAiModels(firstServiceId);
-          const firstModelId = Object.keys(models)[0]
-            ? parseInt(Object.keys(models)[0])
-            : null;
+          const modelsArr = await quizApi.getAiModels(firstServiceId);
+          const models: Record<string, string> = {};
+          modelsArr.forEach((model) => {
+            models[model] = model;
+          });
+          const firstModelId = Object.keys(models)[0] || null;
 
           setQuizOptions((prev) => ({
             ...prev,

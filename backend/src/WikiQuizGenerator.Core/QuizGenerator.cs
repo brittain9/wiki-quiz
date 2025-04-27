@@ -21,7 +21,7 @@ public class QuizGenerator : IQuizGenerator
         _quizRepository = quizRepository;
     }
 
-    public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, int aiService, int model, int numQuestions, int numOptions, int extractLength)
+    public async Task<Quiz> GenerateBasicQuizAsync(string topic, Languages language, string aiService, string model, int numQuestions, int numOptions, int extractLength)
     {
         _logger.LogTrace($"Generating a basic quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
         

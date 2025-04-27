@@ -4,10 +4,10 @@ export interface QuizOptions {
   numOptions: number;
   extractLength: number;
   language: string;
-  selectedService: number | null;
-  selectedModel: number | null;
-  availableServices: Record<number, string>;
-  availableModels: Record<number, string>;
+  selectedService: string | null;
+  selectedModel: string | null;
+  availableServices: Record<string, string>;
+  availableModels: Record<string, string>;
 }
 
 export interface QuizOptionsContextType {
@@ -17,6 +17,6 @@ export interface QuizOptionsContextType {
   setNumOptions: (numOptions: number) => void;
   setExtractLength: (extractLength: number) => void;
   setLanguage: (language: string) => void;
-  setSelectedService: (serviceId: number | null) => void;
-  setSelectedModel: (modelId: number | null) => void;
+  setSelectedService: (serviceId: string | null) => void;
+  setSelectedModel: (modelId: string | null) => void;
 }
