@@ -20,6 +20,10 @@
 	    <None Update="PromptTemplates\**\*">
 		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	    </None>
+        <!-- Include all files in the Config directory -->
+        <None Update="Config\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 	
 </Project>

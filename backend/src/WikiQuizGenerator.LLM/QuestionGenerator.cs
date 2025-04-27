@@ -28,25 +28,14 @@ public class QuestionGenerator : IQuestionGenerator
         // create the kernel with the specified ai service
         var kernelBuilder = Kernel.CreateBuilder();
 
-        string modelId = aiServiceManager.SelectedService switch
+        // Only support OpenAI for now
+        if (aiServiceManager.SelectedService == "OpenAI" && AiServiceManager.IsOpenAiAvailable)
         {
-            AiService.OpenAi => AiServiceManager.OpenAiModelNames[aiServiceManager.SelectedOpenAiModel],
-            AiService.Perplexity => AiServiceManager.PerplexityModelNames[aiServiceManager.SelectedPerplexityModel],
-            _ => throw new ArgumentException("Invalid AI service selected.")
-        };
-        
-        switch (aiServiceManager.SelectedService)
+            kernelBuilder.AddOpenAIChatCompletion(aiServiceManager.SelectedModelId!, AiServiceManager.OpenAiApiKey!);
+        }
+        else
         {
-            case AiService.OpenAi:
-                if (AiServiceManager.IsOpenAiAvailable)
-                    kernelBuilder.AddOpenAIChatCompletion(modelId, AiServiceManager.OpenAiApiKey!);
-                break;
-            case AiService.Perplexity:
-                if (AiServiceManager.IsPerplexityAvailable)
-                    kernelBuilder.AddPerplexityAIChatCompletion(modelId, AiServiceManager.PerplexityApiKey!);
-                break;
-            default:
-                throw new ArgumentException("Invalid AI service selected.");
+            throw new ArgumentException("Invalid or unavailable AI service selected.");
         }
         
         _kernel = kernelBuilder.Build();
@@ -104,16 +93,12 @@ public class QuestionGenerator : IQuestionGenerator
             ResponseTime = sw.ElapsedMilliseconds,
         };
 
-        //if (result.Metadata.TryGetValue("Usage", out object? usageObj) && (usageObj is CompletionsUsage usage ))
-        //{
-        //    aiResponse.PromptTokenUsage = usage.PromptTokens;
-        //    aiResponse.CompletionTokenUsage = usage.CompletionTokens;
-        //} 
-        //else if (result.Metadata.TryGetValue("Usage", out object? PerUsageObj) && PerUsageObj is PerplexityUsage perUsage)
-        //{
-        //    aiResponse.PromptTokenUsage = perUsage.PromptTokens;
-        //    aiResponse.CompletionTokenUsage = perUsage.CompletionTokens;
-        //}
+        // // Add OpenAI usage info if available
+        // if (result.Metadata.TryGetValue("Usage", out object? usageObj) && usageObj is CompletionsUsage usage)
+        // {
+        //     aiResponse.PromptTokenUsage = usage.PromptTokens;
+        //     aiResponse.CompletionTokenUsage = usage.CompletionTokens;
+        // }
 
         return aiResponse;
     }

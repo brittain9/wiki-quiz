@@ -1,0 +1,22 @@
+{
+  "OpenAi": [
+    {
+      "Id": "gpt-4.1-nano",
+      "Name": "GPT-4.1 nano",
+      "MaxTokens": 32768,
+      "ContextWindow": 1047576,
+      "CostPer1MInputTokens": 0.1,
+      "CostPer1MCachedInputTokens": 0.03,
+      "CostPer1MOutputTokens": 0.4
+    },
+    {
+      "Id": "gpt-4.1-mini",
+      "Name": "GPT-4.1 mini",
+      "MaxTokens": 32768,
+      "ContextWindow": 1047576,
+      "CostPer1MInputTokens": 0.4,
+      "CostPer1MCachedInputTokens": 0.1,
+      "CostPer1MOutputTokens": 1.6
+    }
+  ]
+}
