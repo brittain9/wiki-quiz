@@ -16,7 +16,8 @@ public interface IQuizGenerator
         string model, 
         int numQuestions, 
         int numOptions, 
-        int extractLength, 
+        int extractLength,
+        Guid createdBy,
         CancellationToken cancellation = default);
 }
 

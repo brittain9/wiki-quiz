@@ -1,8 +1,6 @@
-using WikiQuizGenerator.Core.Models;
-using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using WikiQuizGenerator.Core.Interfaces;
+using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Data.Repositories;
 
@@ -17,12 +15,6 @@ public class QuizRepository : IQuizRepository
 
     public async Task<Quiz> AddAsync(Quiz quiz)
     {
-        foreach (var aiResponse in quiz.AIResponses)
-        {
-            // Ensure ModelConfig is attached to the context
-            _context.Entry(aiResponse.ModelConfig).State = EntityState.Unchanged;
-        }
-
         await _context.Set<Quiz>().AddAsync(quiz);
         await _context.SaveChangesAsync();
         return quiz;
@@ -73,7 +65,7 @@ public class QuizRepository : IQuizRepository
 
         }
     }
-    
+
     public async Task<IEnumerable<Submission>> GetRecentQuizSubmissionsAsync(int count)
     {
         var recentSubmissions = await _context.Set<Submission>()
@@ -104,7 +96,7 @@ public class QuizRepository : IQuizRepository
             .Include(qs => qs.User)
             .ToListAsync();
     }
-    
+
     public async Task<IEnumerable<Submission>> GetSubmissionsByUserIdAsync(Guid userId)
     {
         return await _context.QuizSubmissions
@@ -115,7 +107,7 @@ public class QuizRepository : IQuizRepository
             .OrderByDescending(s => s.SubmissionTime)
             .ToListAsync();
     }
-    
+
     public async Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId)
     {
         return await _context.QuizSubmissions
@@ -130,5 +122,11 @@ public class QuizRepository : IQuizRepository
     {
         return await _context.QuizSubmissions
             .FirstOrDefaultAsync(s => s.QuizId == quizId && s.UserId == userId);
+    }
+
+    public async Task<ModelConfig?> GetModelConfigByIdAsync(int modelConfigId)
+    {
+        return await _context.ModelConfigs
+            .FirstOrDefaultAsync(m => m.Id == modelConfigId);
     }
 }

@@ -101,7 +101,6 @@ public class QuestionGenerator : IQuestionGenerator
             WikipediaPageId = page.Id,
             WikipediaPage = page,
             ModelConfigId = modelInfo.Id,
-            ModelConfig = modelInfo,
             ResponseTime = sw.ElapsedMilliseconds,
         };
 

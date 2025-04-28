@@ -32,7 +32,14 @@ const AccountOverlay: React.FC = () => {
       setCostError(null);
       quizApi.getUserCost()
         .then((data) => {
-          setUserCost(data.TotalCost);
+          // Cast to any to handle both property names
+          const apiData = data as any;
+          const cost = typeof apiData.totalCost === 'number' && !isNaN(apiData.totalCost)
+            ? apiData.totalCost
+            : typeof apiData.TotalCost === 'number' && !isNaN(apiData.TotalCost)
+              ? apiData.TotalCost
+              : 0;
+          setUserCost(cost);
           setLoadingCost(false);
         })
         .catch((err) => {
@@ -54,6 +61,27 @@ const AccountOverlay: React.FC = () => {
       firstName.charAt(0).toUpperCase() ||
       '?'
     );
+  };
+
+  // Format cost display
+  const getFormattedCost = () => {
+    if (userCost === null) return '0.00';
+    return typeof userCost === 'number' && !isNaN(userCost) 
+      ? userCost.toFixed(2) 
+      : '0.00';
+  };
+
+  // Calculate progress percentage
+  const getProgressPercentage = () => {
+    if (userCost === null) return 0;
+    return typeof userCost === 'number' && !isNaN(userCost) 
+      ? Math.min((userCost / COST_LIMIT) * 100, 100) 
+      : 0;
+  };
+
+  // Determine if cost exceeds limit
+  const isCostExceeded = () => {
+    return typeof userCost === 'number' && !isNaN(userCost) && userCost >= COST_LIMIT;
   };
 
   if (!userInfo) {
@@ -163,13 +191,13 @@ const AccountOverlay: React.FC = () => {
                       <Typography variant="body2" color="inherit">
                         {t('account.usage') || 'Usage'}
                       </Typography>
-                      <Typography variant="body2" color={typeof userCost === 'number' && userCost >= COST_LIMIT ? 'error' : 'inherit'}>
-                        ${typeof userCost === 'number' && !isNaN(userCost) ? userCost.toFixed(2) : '0.00'} / ${COST_LIMIT.toFixed(2)}
+                      <Typography variant="body2" color={isCostExceeded() ? 'error' : 'inherit'}>
+                        ${getFormattedCost()} / ${COST_LIMIT.toFixed(2)}
                       </Typography>
                     </Box>
                     <LinearProgress
                       variant="determinate"
-                      value={typeof userCost === 'number' && !isNaN(userCost) ? Math.min((userCost / COST_LIMIT) * 100, 100) : 0}
+                      value={getProgressPercentage()}
                       color="error"
                       sx={{ height: 10, borderRadius: 5, backgroundColor: 'rgba(255,0,0,0.1)' }}
                     />

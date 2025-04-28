@@ -10,6 +10,7 @@ public class Quiz
     public string Title { get; set; }
     public DateTime CreatedAt { get; set; }
     // These contain the questions and some extra information
+    public Guid CreatedBy { get; set; }
     public IList<AIResponse> AIResponses { get; set; } = new List<AIResponse>();
     
     [JsonIgnore]

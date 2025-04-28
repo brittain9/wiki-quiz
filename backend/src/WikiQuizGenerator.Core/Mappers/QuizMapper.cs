@@ -35,10 +35,6 @@ public static class QuizMapper
             Id = aiResponse.Id,
             ResponseTopic = aiResponse.WikipediaPage.Title,
             TopicUrl = aiResponse.WikipediaPage.Url,
-            ResponseTime = aiResponse.ResponseTime,
-            InputTokenCount = aiResponse.InputTokenCount,
-            OutputTokenCount = aiResponse.OutputTokenCount,
-            ModelName = aiResponse.ModelConfig.Name,
             Questions = questionsDtos
         };
     }

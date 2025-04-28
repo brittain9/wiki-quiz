@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using WikiQuizGenerator.Core.Interfaces;
+using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Api;
 

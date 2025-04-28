@@ -90,6 +90,7 @@ public static class QuizEndpoints
             numQuestions,
             numOptions,
             extractLength,
+            userId,
             cancellationToken);
 
         // TODO add null type pattern where we have NullQuiz object

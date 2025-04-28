@@ -16,12 +16,6 @@ public class AIResponseDto
     public string ResponseTopic { get; set; }
     public string TopicUrl { get; set; }
 
-    // Metadata; user doesn't need to see this, but I want to for now.
-    public long ResponseTime { get; set; } // in milliseconds
-    public int? InputTokenCount { get; set; }
-    public int? OutputTokenCount { get; set; }
-    public string? ModelName { get; set; }
-
     public IList<QuestionDto> Questions { get; set; }
 }
 

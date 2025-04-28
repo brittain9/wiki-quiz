@@ -70,14 +70,6 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
 
-        modelBuilder.Entity<AIResponse>(entity =>
-        {
-            entity.HasOne(a => a.ModelConfig)
-                  .WithMany() // Assuming ModelConfig does not have a collection of AIResponses
-                  .HasForeignKey(a => a.ModelConfigId)
-                  .OnDelete(DeleteBehavior.Restrict); // Prevent cascading deletes
-        });
-
         // This is optional as entity framework would do this anyway, but for learning I will keep it
         // Create the join entity for the many-to-many relationship between page and category
         modelBuilder.Entity<WikipediaPage>()

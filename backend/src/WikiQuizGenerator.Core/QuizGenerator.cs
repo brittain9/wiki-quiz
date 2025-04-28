@@ -29,6 +29,7 @@ public class QuizGenerator : IQuizGenerator
         int numQuestions,
         int numOptions,
         int extractLength,
+        Guid createdBy,
         CancellationToken cancellationToken)
     {
         _logger.LogTrace($"Generating a basic quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
@@ -47,6 +48,7 @@ public class QuizGenerator : IQuizGenerator
         {
             Title = page.Title,
             CreatedAt = DateTime.UtcNow,
+            CreatedBy = createdBy,
             AIResponses = new List<AIResponse> { aiResponse }
         };
 
