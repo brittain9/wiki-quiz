@@ -40,7 +40,7 @@ export const quizApi = {
         throw new Error(`Please enter a valid Wikipedia topic.`);
       }
       console.error('Error creating basic quiz:', error);
-      throw new Error(`Failed to create quiz: ${parseApiError(error)}`);
+      throw new Error(`${parseApiError(error)}`);
     }
   },
 

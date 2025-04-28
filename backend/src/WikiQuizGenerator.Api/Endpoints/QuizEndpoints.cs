@@ -18,7 +18,7 @@ public static class QuizEndpoints
 
         group.MapPost("/basicquiz", HandleGetBasicQuiz)
              .WithName("GenerateBasicQuiz")
-             .RequireRateLimiting("QuizGenerationLimit")
+             .RequireRateLimiting("QuizLimit")
              .WithOpenApi(operation => new(operation)
              {
                  Summary = "Generate basic quiz from topic/language",
@@ -35,7 +35,7 @@ public static class QuizEndpoints
 
         group.MapPost("/submitquiz", HandleSubmitQuiz)
              .WithName("SubmitQuiz")
-             .RequireRateLimiting("QuizSubmissionLimit")
+             .RequireRateLimiting("QuizLimit")
              .WithOpenApi(operation => new(operation)
              {
                  Summary = "Submit quiz answers",

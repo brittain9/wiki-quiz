@@ -18,9 +18,6 @@ public partial class Program
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ErrorHandlerMiddleware>();
 
-        app.UseRequestTimeouts();
-        app.UseRateLimiter();
-
         // Only use HTTPS redirection in Production
         if (!app.Environment.IsDevelopment())
         {
@@ -35,6 +32,9 @@ public partial class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseRequestTimeouts();
+        app.UseRateLimiter();
 
         // Map Endpoints AFTER Auth
         app.MapAuthEndpoints();

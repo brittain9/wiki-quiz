@@ -13,6 +13,7 @@ using WikiQuizGenerator.Core.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http.Timeouts;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 
 public partial class Program
@@ -68,48 +69,39 @@ public partial class Program
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = 100,        // 100 requests
-                        Window = TimeSpan.FromMinutes(10) // per 10 minutes
+                        PermitLimit = 50,        // 100 requests
+                        Window = TimeSpan.FromMinutes(2) // per 2 minutes
                     }));
 
-            // Specific rate limiter for quiz generation
-            options.AddPolicy("QuizGenerationLimit", httpContext =>
+            options.AddPolicy("QuizLimit", httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     partitionKey: GetPartitionKeyFromUser(httpContext),
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = 20,         // 20 quiz generations
-                        Window = TimeSpan.FromMinutes(10) // per 10 minutes
+                        PermitLimit = 2,         // 2 quiz generations
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
                     }));
 
-            // Specific rate limiter for quiz submissions
-            options.AddPolicy("QuizSubmissionLimit", httpContext =>
-                RateLimitPartition.GetFixedWindowLimiter(
-                    partitionKey: GetPartitionKeyFromUser(httpContext),
-                    factory: _ => new FixedWindowRateLimiterOptions
-                    {
-                        AutoReplenishment = true,
-                        PermitLimit = 20,         // 20 submissions
-                        Window = TimeSpan.FromMinutes(10) // per 10 minutes
-                    }));
-
-            // Configure rate limiting response
+            // Configure rate limiting response - simplified for better performance
             options.OnRejected = async (context, token) =>
             {
                 context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.HttpContext.Response.ContentType = "application/json";
-
-                var response = new
+                
+                var retryAfterSeconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter) 
+                    ? (int)retryAfter.TotalSeconds 
+                    : 60; // Default to 60 seconds if not specified
+                
+                context.HttpContext.Response.Headers.Append("Retry-After", retryAfterSeconds.ToString());
+                
+                await context.HttpContext.Response.WriteAsJsonAsync(new 
                 {
                     title = "Too Many Requests",
-                    detail = "You have exceeded the rate limit. Please try again later.",
-                    retryAfter = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter)
-                        ? (object)retryAfter.TotalSeconds
-                        : null
-                };
-
-                await context.HttpContext.Response.WriteAsJsonAsync(response, token);
+                    detail = $"Rate limit exceeded. Please try again after {retryAfterSeconds} seconds.",
+                    retryAfter = retryAfterSeconds
+                }, token);
             };
         });
 
@@ -121,8 +113,6 @@ public partial class Program
                 Timeout = TimeSpan.FromSeconds(60),
                 TimeoutStatusCode = 504
             };
-
-
         });
 
         services.AddDataServices();
@@ -175,18 +165,30 @@ public partial class Program
 
     private static string GetPartitionKeyFromUser(HttpContext httpContext)
     {
-        // If user is authenticated, use their ID as the partition key
+        // If user is authenticated, use user ID as the partition key (most reliable)
         if (httpContext.User?.Identity?.IsAuthenticated == true)
         {
             var userId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userId))
             {
-                return userId;
+                return $"u:{userId}";
             }
         }
 
-        // Fall back to IP address for unauthenticated requests
-        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        return $"ip:{ipAddress}";
+        // For anonymous users, combine IP and basic browser fingerprinting
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
+        
+        // Get basic browser fingerprint from User-Agent (first 2 segments only for stability)
+        var userAgent = httpContext.Request.Headers.UserAgent.ToString();
+        if (!string.IsNullOrEmpty(userAgent))
+        {
+            // Parse just the browser name/version for better stability
+            var segments = userAgent.Split(' ');
+            var browserInfo = segments.Length > 0 ? segments[0] : "";
+            
+            return $"i:{ipAddress}:{browserInfo.GetHashCode() & 0x7FFFFFFF}"; // Positive hash only
+        }
+        
+        return $"i:{ipAddress}";
     }
 }
