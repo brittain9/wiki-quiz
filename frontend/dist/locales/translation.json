@@ -1,0 +1,59 @@
+{
+  "button": {
+    "close": "关闭"
+  },
+  "appBar": {
+    "title": "Wiki Quiz App",
+    "highlights": "亮点"
+  },
+  "footer": {
+    "title": "维基百科问答应用"
+  },
+  "hero": {
+    "topics": ["主题1", "主题2", "主题3"],
+    "generateQuiz": "生成关于以下内容的问答",
+    "topicInfo": "输入任何你感兴趣的主题，我们将为你生成一个定制的问答。",
+    "placeholder": "你的问答主题",
+    "generatingButtonText": "正在生成",
+    "startButtonText": "立即开始"
+  },
+  "recentSubmissions": {
+    "title": "最近提交的内容",
+    "noHistory": "做个测验来了解你的历史！"
+  },
+  "quizresultoverlay": {
+    "title": "测验结果",
+    "score": "分数",
+    "question": "问题"
+  },
+  "highlights": {
+    "title": "亮点",
+    "info": "探索我们产品的突出之处：适应性、耐用性、用户友好的设计和创新。享受可靠的客户支持和每一个细节的精准。",
+    "items": {
+      "dynamic_quiz": {
+        "title": "动态测验生成",
+        "desc": "利用人工智能和维基百科生成引人入胜的主题测验，根据您的需求进行调整，提升用户参与度和学习效果。"
+      },
+      "inclusive_design": {
+        "title": "为所有用户设计的包容性设计",
+        "desc": "我们的应用程序旨在满足广泛用户的需求，让每个人都能探索并激发对各种主题的兴趣。"
+      },
+      "multilingual_support": {
+        "title": "支持9种语言",
+        "desc": "提供包括英语、西班牙语、法语、日语、中文等在内的九种语言的测验，确保全球用户都能轻松访问。"
+      },
+      "intelligent_search": {
+        "title": "智能搜索",
+        "desc": "利用智能搜索功能精准定位主题，为用户提供数百万维基百科文章中相关且准确的测验内容。"
+      },
+      "ai_integration": {
+        "title": "无缝AI集成",
+        "desc": "轻松集成领先的AI API，如OpenAI和Perplexity，确保先进的性能和功能。"
+      },
+      "meticulous_design": {
+        "title": "每个细节都精准设计",
+        "desc": "从使用React和TypeScript构建的前端到由.NET 8和PostgreSQL驱动的后端，每个组件都经过精心设计以实现最佳性能。"
+      }
+    }
+  }
+}
