@@ -107,7 +107,7 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
         foreach (var modelConfig in modelConfigs)
         {
             // Check if the entry already exists in the database
-            var exists = await ModelConfigs.AnyAsync(m => m.modelId == modelConfig.modelId, cancellationToken);
+            var exists = await ModelConfigs.AnyAsync(m => m.ModelId == modelConfig.ModelId, cancellationToken);
             if (!exists)
             {
                 ModelConfigs.Add(modelConfig);

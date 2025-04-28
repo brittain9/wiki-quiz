@@ -17,6 +17,12 @@ public class QuizRepository : IQuizRepository
 
     public async Task<Quiz> AddAsync(Quiz quiz)
     {
+        foreach (var aiResponse in quiz.AIResponses)
+        {
+            // Ensure ModelConfig is attached to the context
+            _context.Entry(aiResponse.ModelConfig).State = EntityState.Unchanged;
+        }
+
         await _context.Set<Quiz>().AddAsync(quiz);
         await _context.SaveChangesAsync();
         return quiz;

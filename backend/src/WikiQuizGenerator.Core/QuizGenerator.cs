@@ -22,17 +22,17 @@ public class QuizGenerator : IQuizGenerator
     }
 
     public async Task<Quiz> GenerateBasicQuizAsync(
-        string topic, 
-        Languages language, 
-        string aiService, 
-        string model, 
-        int numQuestions, 
-        int numOptions, 
+        string topic,
+        Languages language,
+        string aiService,
+        string model,
+        int numQuestions,
+        int numOptions,
         int extractLength,
         CancellationToken cancellationToken)
     {
         _logger.LogTrace($"Generating a basic quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
-        
+
         WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language, cancellationToken); // throws error and returns result in middleware if page doesn't exist
 
         var content = RandomContentSections.GetRandomContentSections(page.Extract, extractLength);

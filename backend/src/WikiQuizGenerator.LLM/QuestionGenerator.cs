@@ -88,7 +88,7 @@ public class QuestionGenerator : IQuestionGenerator
 
         var modelInfo = _aiServiceManager.AiServices
             .SelectMany(kvp => kvp.Value)
-            .FirstOrDefault(m => m.modelId == _aiServiceManager.SelectedModelId);
+            .FirstOrDefault(m => m.ModelId == _aiServiceManager.SelectedModelId);
 
         if (modelInfo == null)
         {
@@ -101,6 +101,7 @@ public class QuestionGenerator : IQuestionGenerator
             WikipediaPageId = page.Id,
             WikipediaPage = page,
             ModelConfigId = modelInfo.Id,
+            ModelConfig = modelInfo,
             ResponseTime = sw.ElapsedMilliseconds,
         };
 

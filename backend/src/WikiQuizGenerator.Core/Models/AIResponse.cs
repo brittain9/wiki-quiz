@@ -30,13 +30,13 @@ public class AIResponse
     public double CalculateCost()
     {
         if (InputTokenCount == null || OutputTokenCount == null || ModelConfig == null ||
-            ModelConfig.CostPer1MInputTokens == null || ModelConfig.CostPer1KOutputTokens == null)
+            ModelConfig.CostPer1MInputTokens == null || ModelConfig.CostPer1MOutputTokens == null)
         {
             return 0.0;
         }
 
         double inputCost = (InputTokenCount.Value / 1_000_000.0) * ModelConfig.CostPer1MInputTokens;
-        double outputCost = (OutputTokenCount.Value / 1_000_000.0) * ModelConfig.CostPer1KOutputTokens;
+        double outputCost = (OutputTokenCount.Value / 1_000_000.0) * ModelConfig.CostPer1MOutputTokens;
 
         return inputCost + outputCost;
     }

@@ -82,7 +82,15 @@ public static class QuizEndpoints
 
         var lang = LanguagesExtensions.GetLanguageFromCode(language);
 
-        var quiz = await quizGenerator.GenerateBasicQuizAsync(topic, lang, aiService, model, numQuestions, numOptions, extractLength, cancellationToken);
+        var quiz = await quizGenerator.GenerateBasicQuizAsync(
+            topic,
+            lang,
+            aiService,
+            model,
+            numQuestions,
+            numOptions,
+            extractLength,
+            cancellationToken);
 
         // TODO add null type pattern where we have NullQuiz object
         if (quiz == null)
@@ -93,7 +101,6 @@ public static class QuizEndpoints
         var quizDto = QuizMapper.ToDto(quiz);
 
         return TypedResults.Created((string?)null, quizDto);
- 
     }
 
     private static async Task<IResult> HandleSubmitQuiz(

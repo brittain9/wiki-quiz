@@ -56,7 +56,7 @@ public class AiServiceManager : IAiServiceManager
             throw new ArgumentException("Invalid model selected.");
 
         SelectedService = aiServiceId;
-        SelectedModelId = model.modelId;
+        SelectedModelId = model.ModelId;
     }
 
     public string[] GetAvailableAiServices()
