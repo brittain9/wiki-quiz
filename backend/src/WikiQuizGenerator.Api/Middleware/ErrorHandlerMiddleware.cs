@@ -40,6 +40,11 @@ namespace WikiQuizGenerator.Middleware
 
             switch (ex)
             {
+                case OperationCanceledException:
+                    context.Response.StatusCode = StatusCodes.Status504GatewayTimeout;
+                    response.Message = "The request was canceled due to a timeout. Please try again with simpler parameters or try later.";
+                    _logger.LogWarning(ex, "Request was canceled or timed out: {Path}", context.Request.Path);
+                    break;
                 case LanguageException langEx:
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     response.Message = $"Invalid language code: {langEx.Message}";

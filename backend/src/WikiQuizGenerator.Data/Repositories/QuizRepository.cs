@@ -40,7 +40,7 @@ public class QuizRepository : IQuizRepository
             .ToListAsync();
     }
 
-    public async Task<Quiz> GetByIdAsync(int id)
+    public async Task<Quiz> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         return await _context.Set<Quiz>()
             .Include(q => q.AIResponses)
@@ -50,7 +50,7 @@ public class QuizRepository : IQuizRepository
             .FirstOrDefaultAsync(q => q.Id == id);
     }
 
-    public async Task<Submission> AddSubmissionAsync(Submission submission)
+    public async Task<Submission> AddSubmissionAsync(Submission submission, CancellationToken cancellationToken)
     {
         _context.QuizSubmissions.Add(submission);
         await _context.SaveChangesAsync();
@@ -118,5 +118,11 @@ public class QuizRepository : IQuizRepository
             .Include(qs => qs.Answers)
             .Include(qs => qs.User)
             .FirstOrDefaultAsync(qs => qs.Id == submissionId && qs.UserId == userId);
+    }
+
+    public async Task<Submission?> GetUserSubmissionByQuizIdAsync(int quizId, Guid userId, CancellationToken cancellationToken)
+    {
+        return await _context.QuizSubmissions
+            .FirstOrDefaultAsync(s => s.QuizId == quizId && s.UserId == userId);
     }
 }

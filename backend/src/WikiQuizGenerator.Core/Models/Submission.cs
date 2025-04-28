@@ -7,7 +7,6 @@ public class Submission
     public int Id { get; set; }
     public int QuizId { get; set; }
     public Guid UserId { get; set; }
-    
     public Quiz Quiz { get; set; }
     public User User { get; set; }
     public List<QuestionAnswer> Answers { get; set; } = new List<QuestionAnswer>();

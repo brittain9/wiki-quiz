@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -69,6 +70,14 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
 
+        modelBuilder.Entity<AIResponse>(entity =>
+        {
+            entity.HasOne(a => a.ModelConfig)
+                  .WithMany() // Assuming ModelConfig does not have a collection of AIResponses
+                  .HasForeignKey(a => a.ModelConfigId)
+                  .OnDelete(DeleteBehavior.Restrict); // Prevent cascading deletes
+        });
+
         // This is optional as entity framework would do this anyway, but for learning I will keep it
         // Create the join entity for the many-to-many relationship between page and category
         modelBuilder.Entity<WikipediaPage>()
@@ -81,6 +90,33 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
                 j => j.HasKey("WikipediaCategoryId", "WikipediaPageId"));
     }
 
+    public async Task SeedModelConfigsAsync(string configPath, CancellationToken cancellationToken = default)
+    {
+        if (!File.Exists(configPath))
+            throw new FileNotFoundException($"AI services config not found at {configPath}");
+
+        var json = File.ReadAllText(configPath);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+        var rawData = JsonSerializer.Deserialize<Dictionary<string, List<ModelConfig>>>(json, options);
+        if (rawData == null)
+            throw new InvalidOperationException("The AI services configuration file is empty or invalid.");
+
+        var modelConfigs = rawData.SelectMany(kvp => kvp.Value).ToList();
+
+        foreach (var modelConfig in modelConfigs)
+        {
+            // Check if the entry already exists in the database
+            var exists = await ModelConfigs.AnyAsync(m => m.modelId == modelConfig.modelId, cancellationToken);
+            if (!exists)
+            {
+                ModelConfigs.Add(modelConfig);
+            }
+        }
+
+        await SaveChangesAsync(cancellationToken);
+    }
+
     public DbSet<User> Users { get; set; }
     public DbSet<WikipediaPage> WikipediaPages { get; set; }
     public DbSet<WikipediaCategory> WikipediaCategories { get; set; }
@@ -88,4 +124,5 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<AIResponse> AIResponses { get; set; }
     public DbSet<Question> Questions { get; set; }
+    public DbSet<ModelConfig> ModelConfigs { get; set; }
 }

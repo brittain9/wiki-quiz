@@ -38,7 +38,7 @@ public static class QuizMapper
             ResponseTime = aiResponse.ResponseTime,
             InputTokenCount = aiResponse.InputTokenCount,
             OutputTokenCount = aiResponse.OutputTokenCount,
-            ModelName = aiResponse.ModelName,
+            ModelName = aiResponse.ModelConfig.Name,
             Questions = questionsDtos
         };
     }

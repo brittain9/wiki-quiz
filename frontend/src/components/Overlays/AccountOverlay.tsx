@@ -9,15 +9,38 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import LinearProgress from '@mui/material/LinearProgress';
 
 import { useAuth } from '../../context/AuthContext/AuthContext';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
+import { quizApi } from '../../services/api';
 
 const AccountOverlay: React.FC = () => {
   const { userInfo } = useAuth();
   const { currentOverlay, hideOverlay } = useOverlay();
   const { t } = useTranslation();
   const isOpen = currentOverlay === 'account';
+
+  const [userCost, setUserCost] = React.useState<number | null>(null);
+  const [loadingCost, setLoadingCost] = React.useState(false);
+  const [costError, setCostError] = React.useState<string | null>(null);
+  const COST_LIMIT = 0.25;
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setLoadingCost(true);
+      setCostError(null);
+      quizApi.getUserCost()
+        .then((data) => {
+          setUserCost(data.TotalCost);
+          setLoadingCost(false);
+        })
+        .catch((err) => {
+          setCostError(err.message || 'Error fetching cost');
+          setLoadingCost(false);
+        });
+    }
+  }, [isOpen]);
 
   // Calculate the avatar initials from first and last name
   const getInitials = () => {
@@ -128,6 +151,31 @@ const AccountOverlay: React.FC = () => {
               <Typography variant="body1" sx={{ opacity: 0.8 }}>
                 {userInfo.email}
               </Typography>
+              {/* Cost usage progress bar */}
+              <Box sx={{ width: '100%', mt: 3 }}>
+                {loadingCost ? (
+                  <LinearProgress color="error" />
+                ) : costError ? (
+                  <Typography color="error" variant="body2">{costError}</Typography>
+                ) : userCost !== null ? (
+                  <>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                      <Typography variant="body2" color="inherit">
+                        {t('account.usage') || 'Usage'}
+                      </Typography>
+                      <Typography variant="body2" color={typeof userCost === 'number' && userCost >= COST_LIMIT ? 'error' : 'inherit'}>
+                        ${typeof userCost === 'number' && !isNaN(userCost) ? userCost.toFixed(2) : '0.00'} / ${COST_LIMIT.toFixed(2)}
+                      </Typography>
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={typeof userCost === 'number' && !isNaN(userCost) ? Math.min((userCost / COST_LIMIT) * 100, 100) : 0}
+                      color="error"
+                      sx={{ height: 10, borderRadius: 5, backgroundColor: 'rgba(255,0,0,0.1)' }}
+                    />
+                  </>
+                ) : null}
+              </Box>
             </Box>
 
             {/* Footer */}

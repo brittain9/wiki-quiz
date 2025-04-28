@@ -163,8 +163,8 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<int?>("InputTokenCount")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ModelName")
-                        .HasColumnType("text");
+                    b.Property<int>("ModelConfigId")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("OutputTokenCount")
                         .HasColumnType("integer");
@@ -180,11 +180,49 @@ namespace WikiQuizGenerator.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ModelConfigId");
+
                     b.HasIndex("QuizId");
 
                     b.HasIndex("WikipediaPageId");
 
                     b.ToTable("AIResponses");
+                });
+
+            modelBuilder.Entity("WikiQuizGenerator.Core.Models.ModelConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ContextWindow")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("CostPer1KOutputTokens")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("CostPer1MCachedInputTokens")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("CostPer1MInputTokens")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("MaxOutputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("modelId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ModelConfigs");
                 });
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.Question", b =>
@@ -358,12 +396,21 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
+                    b.Property<double>("TotalCost")
+                        .HasColumnType("double precision");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<double>("WeeklyCost")
+                        .HasColumnType("double precision");
+
+                    b.Property<bool>("isPremium")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -504,6 +551,12 @@ namespace WikiQuizGenerator.Data.Migrations
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIResponse", b =>
                 {
+                    b.HasOne("WikiQuizGenerator.Core.Models.ModelConfig", "ModelConfig")
+                        .WithMany()
+                        .HasForeignKey("ModelConfigId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("WikiQuizGenerator.Core.Models.Quiz", "Quiz")
                         .WithMany("AIResponses")
                         .HasForeignKey("QuizId")
@@ -515,6 +568,8 @@ namespace WikiQuizGenerator.Data.Migrations
                         .HasForeignKey("WikipediaPageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ModelConfig");
 
                     b.Navigation("Quiz");
 

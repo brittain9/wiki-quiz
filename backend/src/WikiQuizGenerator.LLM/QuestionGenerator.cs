@@ -18,18 +18,19 @@ public class QuestionGenerator : IQuestionGenerator
     private readonly PromptManager _promptManager;
     private readonly ILogger<QuestionGenerator> _logger;
     private readonly Kernel _kernel;
+    private readonly AiServiceManager _aiServiceManager;
 
     public QuestionGenerator(PromptManager promptManager, AiServiceManager aiServiceManager, ILogger<QuestionGenerator> logger)
     {
         // created by our factory so this will run each request
         _promptManager = promptManager;
         _logger = logger;
-        
+        _aiServiceManager = aiServiceManager;
         // create the kernel with the specified ai service
         var kernelBuilder = Kernel.CreateBuilder();
 
         // TODO: change this horrible code
-        if (aiServiceManager.SelectedService == "OpenAi" && AiServiceManager.IsOpenAiAvailable)
+        if (_aiServiceManager.SelectedService == "OpenAi" && AiServiceManager.IsOpenAiAvailable)
         {
             kernelBuilder.AddOpenAIChatCompletion(aiServiceManager.SelectedModelId!, AiServiceManager.OpenAiApiKey!);
         }
@@ -41,7 +42,7 @@ public class QuestionGenerator : IQuestionGenerator
         _kernel = kernelBuilder.Build();
     }
 
-    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions)
+    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions, CancellationToken cancellationToken)
     {
         _logger.LogTrace($"Generating {numQuestions} questions on page '{page.Title}' in '{language.GetWikipediaLanguageCode()}' with {numOptions} options and {content.Length} content length");
         
@@ -85,12 +86,21 @@ public class QuestionGenerator : IQuestionGenerator
             return null;
         }
 
+        var modelInfo = _aiServiceManager.AiServices
+            .SelectMany(kvp => kvp.Value)
+            .FirstOrDefault(m => m.modelId == _aiServiceManager.SelectedModelId);
+
+        if (modelInfo == null)
+        {
+            throw new InvalidOperationException("Selected model information could not be found.");
+        }
+
         AIResponse aiResponse = new()
         {
             Questions = questions,
             WikipediaPageId = page.Id,
             WikipediaPage = page,
-            ModelName = _kernel.GetRequiredService<IChatCompletionService>().GetModelId() ?? "NA",
+            ModelConfigId = modelInfo.Id,
             ResponseTime = sw.ElapsedMilliseconds,
         };
 

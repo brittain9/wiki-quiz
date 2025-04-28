@@ -79,4 +79,20 @@ export const quizApi = {
       );
     }
   },
+
+  /**
+   * Retrieves the current user's AI usage cost for a given time period (in days).
+   */
+  getUserCost: async (timePeriod: number = 7): Promise<{ TotalCost: number }> => {
+    try {
+      const response = await apiClient.get<{ TotalCost: number }>(
+        '/ai/user-cost',
+        { params: { timePeriod } }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user cost:', error);
+      throw new Error(`Failed to fetch user cost: ${parseApiError(error)}`);
+    }
+  },
 };

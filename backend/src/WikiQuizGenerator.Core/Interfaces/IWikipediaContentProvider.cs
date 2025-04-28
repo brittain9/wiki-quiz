@@ -9,6 +9,6 @@ namespace WikiQuizGenerator.Core.Interfaces;
 
 public interface IWikipediaContentProvider
 {
-    Task<WikipediaPage> GetWikipediaPage(string topic, Languages language);
+    Task<WikipediaPage> GetWikipediaPage(string topic, Languages language, CancellationToken cancellationToken);
     Task<string> GetWikipediaExactTitle(string query);
 }

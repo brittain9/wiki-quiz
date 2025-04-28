@@ -35,7 +35,7 @@ const QuizOptionsComponent: React.FC = () => {
       // If a service is selected but no model, select the first available model
       const firstModelId = Object.keys(quizOptions.availableModels)[0];
       if (firstModelId) {
-        setSelectedModel(parseInt(firstModelId));
+        setSelectedModel(firstModelId);
       }
     }
   }, [
@@ -47,7 +47,7 @@ const QuizOptionsComponent: React.FC = () => {
 
   const handleServiceChange = useCallback(
     (event: SelectChangeEvent) => {
-      const serviceId = Number(event.target.value);
+      const serviceId = event.target.value;
       setSelectedService(serviceId);
     },
     [setSelectedService],
@@ -55,7 +55,7 @@ const QuizOptionsComponent: React.FC = () => {
 
   const handleModelChange = useCallback(
     (event: SelectChangeEvent) => {
-      const modelId = Number(event.target.value);
+      const modelId = event.target.value;
       setSelectedModel(modelId);
     },
     [setSelectedModel],

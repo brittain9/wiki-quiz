@@ -37,7 +37,7 @@ public class WikipediaContentProvider : IWikipediaContentProvider
     /// </summary>
     /// <param name="topic">The topic to search for on Wikipedia.</param>
     /// <returns>A WikipediaArticle object containing the article information.</returns>
-    public async Task<WikipediaPage> GetWikipediaPage(string topic, Languages language)
+    public async Task<WikipediaPage> GetWikipediaPage(string topic, Languages language, CancellationToken cancellationToken)
     {
         _logger.LogTrace($"Getting wikipedia page content on topic '{topic}' in '{language.GetWikipediaLanguageCode()}'.");
 

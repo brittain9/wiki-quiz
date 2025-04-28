@@ -13,6 +13,10 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<WikiQuizDbContext>();
     dbContext.Database.Migrate();
+
+    // Seed ModelConfig data
+    var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "aiservices.json");
+    await dbContext.SeedModelConfigsAsync(configPath);
 }
 
 ConfigurePipeline(app);

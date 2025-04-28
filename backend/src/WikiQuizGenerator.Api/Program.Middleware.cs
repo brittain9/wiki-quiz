@@ -13,10 +13,13 @@ public partial class Program
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
         });
 
-        app.UseCors("AllowReactApp"); // Use CORS policy (BEFORE Authentication/Authorization)
+        app.UseCors("AllowReactApp");
 
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ErrorHandlerMiddleware>();
+
+        app.UseRequestTimeouts();
+        app.UseRateLimiter();
 
         // Only use HTTPS redirection in Production
         if (!app.Environment.IsDevelopment())
