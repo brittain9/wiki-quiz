@@ -8,8 +8,8 @@ import { parseApiError } from './utils';
 // Interface for parameters needed to create a basic quiz
 export interface CreateBasicQuizRequest {
   topic: string;
-  aiService: number | null;
-  model: number | null;
+  aiService: string | null;
+  model: string | null;
   language?: string;
   numQuestions?: number;
   numOptions?: number;
