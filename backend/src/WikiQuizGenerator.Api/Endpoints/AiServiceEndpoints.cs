@@ -22,6 +22,7 @@ public static class AiServiceEndpoints
         });
 
         // Endpoint for getting models based on AI service ID
+        // open ai has an endpoint for this /v1/models
         group.MapGet("/models", (IAiServiceManager aiServiceManager, string aiServiceId)
             => Results.Ok(aiServiceManager.GetModels(aiServiceId)))
         .WithName("GetAiModels")

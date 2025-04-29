@@ -1,8 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel;
-using Microsoft.VisualBasic;
 
 namespace WikiQuizGenerator.Data.Repositories;
 

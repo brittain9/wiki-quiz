@@ -13,10 +13,10 @@ public class AiServiceManager : IAiServiceManager
     public string? SelectedService { get; private set; }
     public string? SelectedModelId { get; private set; }
 
-    public AiServiceManager()
+    public AiServiceManager(string openAIApiKey)
     {
-        OpenAiApiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-        IsOpenAiAvailable = !string.IsNullOrEmpty(OpenAiApiKey) && !OpenAiApiKey.Equals("YOUR_OPENAI_KEY_HERE");
+        OpenAiApiKey = openAIApiKey;
+        IsOpenAiAvailable = !string.IsNullOrEmpty(OpenAiApiKey);
         AiServices = LoadAiServices();
     }
 

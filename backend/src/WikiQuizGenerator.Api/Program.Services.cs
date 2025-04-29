@@ -1,19 +1,14 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.Identity;
+using Npgsql;
+using System.Threading.RateLimiting;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
+using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.Services;
 using WikiQuizGenerator.Data;
 using WikiQuizGenerator.LLM;
-using WikiQuizGenerator.Data.Options;
-using WikiQuizGenerator.Data.Repositories;
-using WikiQuizGenerator.Core.Services;
-using WikiQuizGenerator.Core.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http.Timeouts;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
 
 
 public partial class Program
@@ -26,6 +21,7 @@ public partial class Program
 
         services.AddCors(options =>
         {
+            // TODO: get the origin from config
             options.AddPolicy("AllowReactApp",
                 builder => builder
                     .WithOrigins("http://localhost:5173")
@@ -53,7 +49,7 @@ public partial class Program
             options.SlidingExpiration = true;
             options.Cookie.HttpOnly = true;
             options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Use Always in production
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             options.LoginPath = "/login";
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/access-denied";
@@ -89,14 +85,14 @@ public partial class Program
             {
                 context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.HttpContext.Response.ContentType = "application/json";
-                
-                var retryAfterSeconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter) 
-                    ? (int)retryAfter.TotalSeconds 
+
+                var retryAfterSeconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter)
+                    ? (int)retryAfter.TotalSeconds
                     : 60; // Default to 60 seconds if not specified
-                
+
                 context.HttpContext.Response.Headers.Append("Retry-After", retryAfterSeconds.ToString());
-                
-                await context.HttpContext.Response.WriteAsJsonAsync(new 
+
+                await context.HttpContext.Response.WriteAsJsonAsync(new
                 {
                     title = "Too Many Requests",
                     detail = $"Rate limit exceeded. Please try again after {retryAfterSeconds} seconds.",
@@ -115,15 +111,21 @@ public partial class Program
             };
         });
 
-        services.AddDataServices();
+        string connectionString = BuildConnectionString(configuration);
+        services.AddDataServices(connectionString);
 
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAccountService, AccountService>();
 
         // TODO: These lifetimes could use work
-        services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
-        services.AddSingleton<PromptManager>();
-        services.AddScoped<IAiServiceManager, AiServiceManager>();
+        services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>(); // This also probably doesn't need DE
+        services.AddSingleton<PromptManager>(); // This probably doesn't need depedency injection
+
+        string openAiApiKey = configuration["wikiquizapp:OpenAIApiKey"];
+        if (string.IsNullOrWhiteSpace(openAiApiKey))
+            throw new ArgumentNullException(nameof(openAiApiKey), "OpenAIAPiKey is not configured.");
+        services.AddScoped<IAiServiceManager>(serviceProvider =>
+            new AiServiceManager(openAiApiKey)
+        );
 
         services.AddSingleton<IQuestionGeneratorFactory, QuestionGeneratorFactory>();
         services.AddTransient<IQuizGenerator, QuizGenerator>();
@@ -138,8 +140,8 @@ public partial class Program
         // Add Google Authentication
         .AddGoogle(options =>
         {
-            var clientId = configuration["Authentication:Google:ClientId"];
-            var clientSecret = configuration["Authentication:Google:ClientSecret"];
+            var clientId = configuration["wikiquizapp:AuthGoogleClientID"];
+            var clientSecret = configuration["wikiquizapp:AuthGoogleClientSecret"];
 
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
             {
@@ -156,11 +158,39 @@ public partial class Program
         {
             options.MinimumSameSitePolicy = SameSiteMode.Lax;
             options.HttpOnly = HttpOnlyPolicy.Always;
-            options.Secure = CookieSecurePolicy.SameAsRequest; // Use Always in production
+            options.Secure = CookieSecurePolicy.SameAsRequest;
         });
 
         services.AddAuthorization();
         services.AddHttpContextAccessor();
+    }
+
+    private static string BuildConnectionString(IConfiguration configuration)
+    {
+        string host = configuration["wikiquizapp:Host"] ?? "db"; // TODO: Maybe add this to config
+        string database = configuration["wikiquizapp:PostgresDb"];
+        string username = configuration["wikiquizapp:PostgresUser"];
+        string password = configuration["wikiquizapp:PostgresPassword"];
+
+        // Validate required values
+        if (string.IsNullOrWhiteSpace(host))
+            throw new ArgumentNullException(nameof(host), "Postgres host is not configured.");
+        if (string.IsNullOrWhiteSpace(database))
+            throw new ArgumentNullException(nameof(database), "Postgres database is not configured.");
+        if (string.IsNullOrWhiteSpace(username))
+            throw new ArgumentNullException(nameof(username), "Postgres username is not configured.");
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentNullException(nameof(password), "Postgres password is not configured.");
+
+        var sb = new NpgsqlConnectionStringBuilder
+        {
+            Host = host,
+            Database = database,
+            Username = username,
+            Password = password
+        };
+
+        return sb.ConnectionString;
     }
 
     private static string GetPartitionKeyFromUser(HttpContext httpContext)
@@ -177,7 +207,7 @@ public partial class Program
 
         // For anonymous users, combine IP and basic browser fingerprinting
         var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "0.0.0.0";
-        
+
         // Get basic browser fingerprint from User-Agent (first 2 segments only for stability)
         var userAgent = httpContext.Request.Headers.UserAgent.ToString();
         if (!string.IsNullOrEmpty(userAgent))
@@ -185,10 +215,10 @@ public partial class Program
             // Parse just the browser name/version for better stability
             var segments = userAgent.Split(' ');
             var browserInfo = segments.Length > 0 ? segments[0] : "";
-            
+
             return $"i:{ipAddress}:{browserInfo.GetHashCode() & 0x7FFFFFFF}"; // Positive hash only
         }
-        
+
         return $"i:{ipAddress}";
     }
 }

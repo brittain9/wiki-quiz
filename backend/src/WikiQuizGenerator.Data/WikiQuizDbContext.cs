@@ -1,7 +1,7 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Data;
@@ -61,7 +61,7 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
             .WithMany(q => q.QuizSubmissions)
             .HasForeignKey(qs => qs.QuizId)
             .OnDelete(DeleteBehavior.Restrict);
-            
+
         // User - Submission relationship
         modelBuilder.Entity<Submission>()
             .HasOne(s => s.User)
@@ -82,6 +82,7 @@ public class WikiQuizDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
                 j => j.HasKey("WikipediaCategoryId", "WikipediaPageId"));
     }
 
+    // TODO: Check if there a better way overall to do this
     public async Task SeedModelConfigsAsync(string configPath, CancellationToken cancellationToken = default)
     {
         if (!File.Exists(configPath))
