@@ -10,8 +10,6 @@ services:
       - "5543:80"
     env_file:
       - .env
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       db:
         condition: service_healthy

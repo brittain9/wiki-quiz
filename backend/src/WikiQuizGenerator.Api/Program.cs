@@ -5,9 +5,8 @@ using WikiQuizGenerator.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string endpoint = builder.Configuration.GetValue<string>("Endpoints:AppConfiguration")
-    ?? throw new InvalidOperationException("The setting `Endpoints:AppConfiguration` was not found.");
-
+string endpoint = Environment.GetEnvironmentVariable("AZURE_APP_CONFIG_ENDPOINT")
+    ?? throw new InvalidOperationException("The environment variable `AZURE_APP_CONFIG_ENDPOINT` was not found.");
 
 builder.Configuration.AddAzureAppConfiguration(options =>
 {
@@ -20,14 +19,13 @@ builder.Configuration.AddAzureAppConfiguration(options =>
         });
 });
 
-// Configure services (calls your partial method)
-ConfigureServices(builder.Services, builder.Configuration);
+ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
-// Database migration
 using (var scope = app.Services.CreateScope())
 {
+    // Database migration
     var dbContext = scope.ServiceProvider.GetRequiredService<WikiQuizDbContext>();
     dbContext.Database.Migrate();
 

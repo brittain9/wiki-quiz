@@ -48,7 +48,7 @@ public static class AuthEndpoints
                 // Handle error: Callback route not found
                 return Results.Problem("Could not generate Google callback URL.", statusCode: StatusCodes.Status500InternalServerError);
             }
-            
+
             var properties = signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, callbackUrl);
             properties.AllowRefresh = true; // Optional: Allow refresh tokens if needed
             return Results.Challenge(properties, [GoogleDefaults.AuthenticationScheme]);
@@ -59,10 +59,11 @@ public static class AuthEndpoints
             HttpContext context, SignInManager<User> signInManager, IAccountService accountService, ILogger<Program> logger) =>
         {
             logger.LogInformation("Google callback endpoint hit with returnUrl: {ReturnUrl}", returnUrl ?? "null");
-            
+
             // Basic validation for returnUrl
             returnUrl ??= "/"; // Default redirect location if none provided
-            if (!Uri.IsWellFormedUriString(returnUrl, UriKind.RelativeOrAbsolute)) {
+            if (!Uri.IsWellFormedUriString(returnUrl, UriKind.RelativeOrAbsolute))
+            {
                 returnUrl = "/"; // Fallback to safe default on invalid URL
             }
 
@@ -74,8 +75,8 @@ public static class AuthEndpoints
                 // Log error details if possible
                 return Results.Redirect($"{returnUrl}?error=external_login_failed");
             }
-            
-            logger.LogInformation("Retrieved external login info for provider: {Provider}, with claims count: {ClaimsCount}", 
+
+            logger.LogInformation("Retrieved external login info for provider: {Provider}, with claims count: {ClaimsCount}",
                 info.LoginProvider, info.Principal?.Claims?.Count() ?? 0);
 
             try
@@ -104,7 +105,6 @@ public static class AuthEndpoints
         }).WithName("GoogleLoginCallback")
           .AllowAnonymous(); // Explicitly allow anonymous access
 
-        // --- Optimized /me Endpoint ---
         group.MapGet("/me", async (ClaimsPrincipal claimsPrincipal, UserManager<User> userManager, HttpContext httpContext, ILogger<Program> logger) =>
         {
             if (!claimsPrincipal.Identity?.IsAuthenticated ?? true)
@@ -116,18 +116,18 @@ public static class AuthEndpoints
             try
             {
                 // Use FindByEmailAsync instead of GetUserAsync to work around claim format issues
-                var emailClaim = claimsPrincipal.FindFirst(ClaimTypes.Email) ?? 
+                var emailClaim = claimsPrincipal.FindFirst(ClaimTypes.Email) ??
                                 claimsPrincipal.FindFirst("email");
-                
+
                 if (emailClaim == null)
                 {
                     logger.LogWarning("No email claim found");
                     return Results.Unauthorized();
                 }
-                
+
                 var email = emailClaim.Value;
                 logger.LogInformation("Found email claim: {Email}", email);
-                
+
                 var user = await userManager.FindByEmailAsync(email);
 
                 if (user == null)
@@ -156,7 +156,7 @@ public static class AuthEndpoints
         .RequireAuthorization(); // Ensures only authenticated users can access
 
         // --- Logout Endpoint ---
-        group.MapPost("/logout", async (IAccountService accountService, ClaimsPrincipal claimsPrincipal, ILogger<Program> logger) => 
+        group.MapPost("/logout", async (IAccountService accountService, ClaimsPrincipal claimsPrincipal, ILogger<Program> logger) =>
         {
             if (!claimsPrincipal.Identity?.IsAuthenticated ?? true)
             {
@@ -174,99 +174,5 @@ public static class AuthEndpoints
             return Results.Ok();
         })
         .RequireAuthorization(); // User must be logged in to log out
-
-        // Debug endpoints
-        group.MapGet("/debug/auth-status", (ClaimsPrincipal user, HttpContext context, ILogger<Program> logger) =>
-        {
-            // Log request details
-            logger.LogInformation("Auth status check - IsAuthenticated: {IsAuthenticated}", 
-                user.Identity?.IsAuthenticated ?? false);
-            
-            // Log all headers
-            foreach (var header in context.Request.Headers)
-            {
-                logger.LogDebug("Header: {Key} = {Value}", header.Key, header.Value);
-            }
-            
-            // Log all cookies
-            logger.LogDebug("Cookies: {Count}", context.Request.Cookies.Count);
-            foreach (var cookie in context.Request.Cookies)
-            {
-                // Don't log the full value of sensitive cookies
-                var isSensitive = cookie.Key.Contains("token", StringComparison.OrdinalIgnoreCase) ||
-                                 cookie.Key.Contains("auth", StringComparison.OrdinalIgnoreCase);
-                
-                var displayValue = isSensitive 
-                    ? $"[Redacted - Length: {cookie.Value.Length}]" 
-                    : cookie.Value;
-                    
-                logger.LogDebug("Cookie: {Key} = {Value}", cookie.Key, displayValue);
-            }
-            
-            // Log all claims
-            var claims = user.Claims.Select(c => new { c.Type, c.Value }).ToList();
-            logger.LogDebug("Claims: {Count}", claims.Count);
-            foreach (var claim in claims)
-            {
-                logger.LogDebug("Claim: {Type} = {Value}", claim.Type, claim.Value);
-            }
-            
-            return Results.Ok(new 
-            { 
-                isAuthenticated = user.Identity?.IsAuthenticated ?? false,
-                authType = user.Identity?.AuthenticationType,
-                claimsCount = claims.Count,
-                hasClaims = new
-                {
-                    email = user.HasClaim(c => c.Type == ClaimTypes.Email || c.Type == "email"),
-                    nameIdentifier = user.HasClaim(c => c.Type == ClaimTypes.NameIdentifier),
-                    name = user.HasClaim(c => c.Type == ClaimTypes.Name)
-                },
-                cookies = context.Request.Cookies.Keys.ToList()
-            });
-        })
-        .AllowAnonymous();
-
-        group.MapGet("/debug/create-test-user", async (UserManager<User> userManager, SignInManager<User> signInManager, HttpContext context, ILogger<Program> logger) =>
-        {
-            try {
-                // Check if test user exists
-                string email = "test@example.com";
-                var existingUser = await userManager.FindByEmailAsync(email);
-                
-                if (existingUser != null) {
-                    // Sign in existing user
-                    await signInManager.SignInAsync(existingUser, isPersistent: true);
-                    return Results.Ok(new { message = "Existing test user logged in", userId = existingUser.Id });
-                }
-                
-                // Create new test user
-                var user = new User
-                {
-                    UserName = email,
-                    Email = email,
-                    FirstName = "Test",
-                    LastName = "User",
-                    EmailConfirmed = true
-                };
-                
-                var result = await userManager.CreateAsync(user);
-                if (!result.Succeeded)
-                {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    return Results.BadRequest(new { message = "Failed to create test user", errors });
-                }
-                
-                // Sign in the new user
-                await signInManager.SignInAsync(user, isPersistent: true);
-                
-                return Results.Ok(new { message = "Test user created and logged in", userId = user.Id });
-            }
-            catch (Exception ex) {
-                logger.LogError(ex, "Error creating test user");
-                return Results.Problem("Error creating test user: " + ex.Message);
-            }
-        })
-        .AllowAnonymous();
     }
 }

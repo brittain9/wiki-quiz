@@ -13,18 +13,25 @@ using WikiQuizGenerator.LLM;
 
 public partial class Program
 {
-    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        services.AddOpenApi();
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        // Only add Swagger in development environment
+        if (environment.IsDevelopment())
+        {
+            services.AddOpenApi();
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
+        }
 
+        string frontendUri = configuration["wikiquizapp:FrontendUri"];
+        if (string.IsNullOrWhiteSpace(frontendUri))
+            throw new ArgumentNullException(nameof(frontendUri), "frontendUri is not configured.");
         services.AddCors(options =>
         {
             // TODO: get the origin from config
             options.AddPolicy("AllowReactApp",
                 builder => builder
-                    .WithOrigins("http://localhost:5173")
+                    .WithOrigins(frontendUri)
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .AllowCredentials()
@@ -49,7 +56,12 @@ public partial class Program
             options.SlidingExpiration = true;
             options.Cookie.HttpOnly = true;
             options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            
+            // Use HTTPS for cookies in production
+            options.Cookie.SecurePolicy = !environment.IsDevelopment()
+                ? CookieSecurePolicy.Always 
+                : CookieSecurePolicy.SameAsRequest;
+                
             options.LoginPath = "/login";
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/access-denied";
@@ -158,7 +170,9 @@ public partial class Program
         {
             options.MinimumSameSitePolicy = SameSiteMode.Lax;
             options.HttpOnly = HttpOnlyPolicy.Always;
-            options.Secure = CookieSecurePolicy.SameAsRequest;
+            options.Secure = !environment.IsDevelopment()
+                ? CookieSecurePolicy.Always
+                : CookieSecurePolicy.SameAsRequest;
         });
 
         services.AddAuthorization();

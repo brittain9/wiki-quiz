@@ -25,7 +25,6 @@ public partial class Program
             app.UseHsts();
         }
 
-        // Use cookie policy before authentication
         app.UseCookiePolicy();
 
         app.UseRouting();
@@ -36,7 +35,6 @@ public partial class Program
         app.UseRequestTimeouts();
         app.UseRateLimiter();
 
-        // Map Endpoints AFTER Auth
         app.MapAuthEndpoints();
         app.MapQuizEndpoints();
         app.MapAiServiceEndpoints();
