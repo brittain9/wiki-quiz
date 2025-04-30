@@ -1,48 +1,47 @@
-/**
- * Authentication API service
- * Handles all auth-related API calls
- */
+import { apiGet, apiPost, parseApiError } from '../apiService';
+import axios, { AxiosError } from 'axios';
 
-import { AxiosError } from 'axios';
+// Environment variables with fallback values for safety
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
-import { UserInfo } from '../../context/AuthContext/AuthContext.types';
-import { apiGet, apiPost } from '../apiClient';
-
-// API base URLs - should match the backend
-const API_BASE_URL = 'http://localhost:5543';
-const APP_BASE_URL = 'http://localhost:5173';
-
-// Auth API endpoints - without /api prefix since apiClient already includes it
 const AUTH_ENDPOINTS = {
   LOGIN_GOOGLE: '/auth/login/google',
   LOGOUT: '/auth/logout',
   PROFILE: '/auth/me',
-  REFRESH_TOKEN: '/auth/refresh',
+  // REFRESH_TOKEN: '/auth/refresh'
 } as const;
 
-/**
- * Authentication service for handling all auth-related API requests
- */
+export interface UserInfo {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+}
+
 export const authApi = {
   /**
    * Initiates Google OAuth login flow
-   * This typically redirects to Google's authentication page
+   * This redirects to Google's authentication page
    */
   async initiateGoogleLogin(): Promise<void> {
     try {
       console.log('Initiating Google login flow');
 
-      // Add timestamp for CSRF mitigation and use return URL parameter
-      const timestamp = new Date().getTime();
+      // Add timestamp as state parameter for CSRF mitigation and use return URL parameter
+      const state = new Date().getTime().toString();
       const returnUrl = encodeURIComponent(APP_BASE_URL);
-      const loginUrl = `${API_BASE_URL}/api${AUTH_ENDPOINTS.LOGIN_GOOGLE}?returnUrl=${returnUrl}&t=${timestamp}`;
-
-      // Directly redirect to Google's authentication page
-      // This matches how the backend is set up with the challenge response
+      
+      // Use full backend URL without redundant API prefix
+      const loginUrl = `${API_BASE_URL}${AUTH_ENDPOINTS.LOGIN_GOOGLE}?returnUrl=${returnUrl}&state=${state}`;
+      
+      console.log('Redirecting to:', loginUrl); // Debug log
+      
+      // Redirect to backend's auth endpoint
       window.location.href = loginUrl;
     } catch (error) {
-      console.error('Failed to initiate Google login', error);
-      throw new Error('Unable to start Google authentication');
+      console.error(`Failed to initiate Google login: ${parseApiError(error)}`);
+      throw error;
     }
   },
 
@@ -53,19 +52,21 @@ export const authApi = {
   async getCurrentUser(): Promise<UserInfo> {
     try {
       // Use no-cache headers to ensure we get the latest user state
-      const response = await apiGet<UserInfo>(AUTH_ENDPOINTS.PROFILE, {
+      return await apiGet<UserInfo>(AUTH_ENDPOINTS.PROFILE, {
         headers: {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',
         },
       });
-
-      return response;
     } catch (error) {
-      const axiosError = error as AxiosError;
       // Don't log 401 errors as they're expected when not logged in
-      if (axiosError.response?.status !== 401) {
-        console.error('Failed to get current user', error);
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (!axiosError.response || axiosError.response.status !== 401) {
+          console.error(`Failed to get current user: ${parseApiError(error)}`);
+        }
+      } else {
+        console.error(`Failed to get current user: ${parseApiError(error)}`);
       }
       throw error;
     }
@@ -79,23 +80,25 @@ export const authApi = {
       await apiPost<void>(AUTH_ENDPOINTS.LOGOUT);
       console.log('User successfully logged out');
     } catch (error) {
-      console.error('Failed to logout', error);
+      console.error(`Failed to logout: ${parseApiError(error)}`);
       throw error;
     }
   },
-
+  
   /**
    * Refreshes the authentication token
    * Used to extend the session without requiring re-login
-   */
-  async refreshToken(): Promise<void> {
-    try {
-      await apiPost<void>(AUTH_ENDPOINTS.REFRESH_TOKEN);
-    } catch (error) {
-      console.error('Failed to refresh token', error);
-      throw error;
-    }
-  },
+  */
+  // async refreshToken(): Promise<void> {
+  //   try {
+  //     console.log('Refreshing authentication token');
+  //     await apiPost<void>(AUTH_ENDPOINTS.REFRESH_TOKEN);
+  //     console.log('Token successfully refreshed');
+  //   } catch (error) {
+  //     console.error(`Failed to refresh token: ${parseApiError(error)}`);
+  //     throw error;
+  //   }
+  // }
 };
 
-export default authApi;
+export default authApi; 

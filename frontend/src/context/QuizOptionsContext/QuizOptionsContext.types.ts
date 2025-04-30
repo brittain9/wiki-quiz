@@ -6,8 +6,8 @@ export interface QuizOptions {
   language: string;
   selectedService: string | null;
   selectedModel: string | null;
-  availableServices: Record<string, string>;
-  availableModels: Record<string, string>;
+  availableServices: string[];
+  availableModels: string[];
 }
 
 export interface QuizOptionsContextType {

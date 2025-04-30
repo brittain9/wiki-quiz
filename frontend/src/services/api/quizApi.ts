@@ -1,98 +1,75 @@
-// quizApi.ts
-import axios from 'axios';
+import { apiPost, parseApiError } from '../apiService';
+import type {
+  Quiz,
+  QuizSubmission,
+  SubmissionResponse,
+} from '../../types';
 
-import { Quiz } from '../../types/quiz.types';
-import apiClient from '../apiClient';
-import { parseApiError } from './utils';
+// Quiz API endpoints
+const QUIZ_ENDPOINTS = {
+  BASIC_QUIZ: '/quiz/basicquiz',
+  SUBMIT_QUIZ: '/quiz/submitquiz',
+} as const;
 
-// Interface for parameters needed to create a basic quiz
-export interface CreateBasicQuizRequest {
-  topic: string;
-  aiService: string | null;
-  model: string | null;
-  language?: string;
-  numQuestions?: number;
-  numOptions?: number;
-  extractLength?: number;
-}
-
+/**
+ * Quiz service for handling all quiz-related API requests
+ */
 export const quizApi = {
   /**
-   * Creates a new basic quiz based on the provided options.
-   * Uses POST with query parameters, not body
+   * Generate a basic quiz from topic/language
+   * @param params - Query parameters for quiz generation
    */
-  createBasicQuiz: async (
-    quizOptions: CreateBasicQuizRequest,
-  ): Promise<Quiz> => {
+  async generateBasicQuiz(params: {
+    topic: string;
+    aiService?: string;
+    model?: string;
+    language?: string;
+    numQuestions?: number;
+    numOptions?: number;
+    extractLength?: number;
+  }): Promise<Quiz> {
     try {
-      // Use POST with query parameters, not body
-      const response = await apiClient.post<Quiz>(
-        '/quiz/basicquiz',
-        {}, // Empty body
-        {
-          params: quizOptions, // Send as query parameters
-        },
-      );
-      return response.data;
+      // Default values for optional params
+      const {
+        topic,
+        aiService,
+        model,
+        language = 'en',
+        numQuestions = 5,
+        numOptions = 4,
+        extractLength = 1000,
+      } = params;
+      // TODO: better
+      const query =
+        `?topic=${encodeURIComponent(topic)}` +
+        (aiService ? `&aiService=${encodeURIComponent(aiService)}` : '') +
+        (model ? `&model=${encodeURIComponent(model)}` : '') +
+        `&language=${encodeURIComponent(language)}` +
+        `&numQuestions=${numQuestions}` +
+        `&numOptions=${numOptions}` +
+        `&extractLength=${extractLength}`;
+      return await apiPost<Quiz>(`${QUIZ_ENDPOINTS.BASIC_QUIZ}${query}`);
     } catch (error) {
-      // Specific handling for 404 from this endpoint based on original code's intent
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        throw new Error(`Please enter a valid Wikipedia topic.`);
-      }
-      console.error('Error creating basic quiz:', error);
-      throw new Error(`${parseApiError(error)}`);
+      console.error(`Failed to generate basic quiz: ${parseApiError(error)}`);
+      throw error;
     }
   },
 
   /**
-   * Retrieves the available AI service options.
+   * Submit quiz answers
+   * @param submission - The quiz submission data
    */
-  getAiServices: async (): Promise<string[]> => {
+  async submitQuiz(submission: QuizSubmission): Promise<SubmissionResponse> {
     try {
-      const response = await apiClient.get<string[]>('/ai/services');
-      return response.data;
+      return await apiPost<SubmissionResponse, QuizSubmission>(
+        QUIZ_ENDPOINTS.SUBMIT_QUIZ,
+        submission
+      );
     } catch (error) {
-      console.error('Error fetching AI services:', error);
-      throw new Error(`Failed to fetch AI services: ${parseApiError(error)}`);
-    }
-  },
-
-  /**
-   * Retrieves the available AI models for a specific service ID.
-   */
-  getAiModels: async (serviceId: string): Promise<string[]> => {
-    try {
-      const response = await apiClient.get<string[]>(
-        '/ai/models',
-        {
-          params: { aiServiceId: serviceId },
-        },
-      );
-      return response.data;
-    } catch (error) {
-      console.error(
-        `Error fetching AI models for service ${serviceId}:`,
-        error,
-      );
-      throw new Error(
-        `Failed to fetch AI models for service ${serviceId}: ${parseApiError(error)}`,
-      );
-    }
-  },
-
-  /**
-   * Retrieves the current user's AI usage cost for a given time period (in days).
-   */
-  getUserCost: async (timePeriod: number = 7): Promise<{ TotalCost: number }> => {
-    try {
-      const response = await apiClient.get<{ TotalCost: number }>(
-        '/ai/user-cost',
-        { params: { timePeriod } }
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user cost:', error);
-      throw new Error(`Failed to fetch user cost: ${parseApiError(error)}`);
+      console.error(`Failed to submit quiz: ${parseApiError(error)}`);
+      throw error;
     }
   },
 };
+
+export default quizApi; 

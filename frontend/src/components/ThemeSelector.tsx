@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import React, { useRef, useEffect, useState } from 'react';
 
-import * as ThemeController from '../services/theme-controller';
+import * as ThemeController from '../services/themeService';
 
 interface Theme {
   id: string;

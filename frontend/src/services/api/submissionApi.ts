@@ -1,65 +1,62 @@
-// submissionApi.ts
-import axios from 'axios';
-
-import { QuizResult } from '../../types/quizResult.types';
-import {
-  QuizSubmission,
+import { apiGet, parseApiError } from '../apiService';
+import type {
   SubmissionResponse,
-} from '../../types/quizSubmission.types';
-import apiClient from '../apiClient';
-import { parseApiError } from './utils';
+  SubmissionDetail,
+} from '../../types';
 
+// Submission API endpoints
+const SUBMISSION_ENDPOINTS = {
+  QUIZ_SUBMISSION: (id: number) => `/submission/quizsubmission/${id}`,
+  RECENT: '/submission/quizsubmission/recent',
+  MY_SUBMISSIONS: '/submission/my-submissions',
+} as const;
+
+/**
+ * Submission service for handling all submission-related API requests
+ */
 export const submissionApi = {
   /**
-   * Submits the answers for a specific quiz.
+   * Get a user's quiz submission by ID
    */
-  submitQuiz: async (
-    submission: QuizSubmission,
-  ): Promise<SubmissionResponse> => {
+  async getQuizSubmissionById(id: number): Promise<SubmissionDetail> {
     try {
-      const response = await apiClient.post<SubmissionResponse>(
-        '/quiz/submitquiz',
-        submission, // Send submission data in body
-      );
-      return response.data;
+      return await apiGet<SubmissionDetail>(SUBMISSION_ENDPOINTS.QUIZ_SUBMISSION(id));
     } catch (error) {
-      throw new Error(`Failed to submit quiz: ${parseApiError(error)}`);
+      console.error(`Failed to get quiz submission by ID: ${parseApiError(error)}`);
+      throw error;
     }
   },
 
   /**
-   * Retrieves a list of recent quiz submissions for the current user.
+   * Get the 10 most recent submissions for the current user
+   * Always returns an array, even if the API returns null or undefined
    */
-  getRecentSubmissions: async (): Promise<SubmissionResponse[]> => {
+  async getRecentSubmissions(): Promise<SubmissionResponse[]> {
     try {
-      const response = await apiClient.get<SubmissionResponse[]>(
-        '/submission/quizsubmission/recent',
-      );
-      return response.data;
+      const response = await apiGet<SubmissionResponse[]>(SUBMISSION_ENDPOINTS.RECENT);
+      // Ensure we always return an array
+      return Array.isArray(response) ? response : [];
     } catch (error) {
-      throw new Error(
-        `Failed to fetch recent submissions: ${parseApiError(error)}`,
-      );
+      console.error(`Failed to get recent submissions: ${parseApiError(error)}`);
+      // Return empty array on error instead of throwing
+      return [];
     }
   },
 
   /**
-   * Retrieves the details of a specific quiz submission by its ID.
+   * Get all submissions for the current user
    */
-  getSubmissionById: async (id: number): Promise<QuizResult> => {
+  async getMySubmissions(): Promise<SubmissionResponse[]> {
     try {
-      const response = await apiClient.get<QuizResult>(
-        `/submission/quizsubmission/${id}`,
-      );
-      return response.data;
+      const response = await apiGet<SubmissionResponse[]>(SUBMISSION_ENDPOINTS.MY_SUBMISSIONS);
+      // Ensure we always return an array
+      return Array.isArray(response) ? response : [];
     } catch (error) {
-      // Keep specific 404 handling here if desired
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        throw new Error(`Submission with ID ${id} not found.`);
-      }
-      throw new Error(
-        `Failed to fetch submission ${id}: ${parseApiError(error)}`,
-      );
+      console.error(`Failed to get user submissions: ${parseApiError(error)}`);
+      // Return empty array on error instead of throwing
+      return [];
     }
   },
 };
+
+export default submissionApi; 

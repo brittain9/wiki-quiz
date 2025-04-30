@@ -68,15 +68,15 @@ const Hero = React.memo(() => {
         // Convert from QuizOptions to CreateBasicQuizRequest
         const requestData = {
           topic: quizOptions.topic,
-          aiService: quizOptions.selectedService,
-          model: quizOptions.selectedModel,
+          aiService: quizOptions.selectedService || undefined,
+          model: quizOptions.selectedModel || undefined,
           language: quizOptions.language,
           numQuestions: quizOptions.numQuestions,
           numOptions: quizOptions.numOptions,
           extractLength: quizOptions.extractLength,
         };
 
-        const quiz = await quizApi.createBasicQuiz(requestData);
+        const quiz = await quizApi.generateBasicQuiz(requestData);
 
         setCurrentQuiz(quiz);
         setIsQuizReady(true);

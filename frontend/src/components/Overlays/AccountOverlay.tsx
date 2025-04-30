@@ -13,7 +13,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import { useAuth } from '../../context/AuthContext/AuthContext';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
-import { quizApi } from '../../services/api';
+import { aiApi } from '../../services';
 
 const AccountOverlay: React.FC = () => {
   const { userInfo } = useAuth();
@@ -30,15 +30,8 @@ const AccountOverlay: React.FC = () => {
     if (isOpen) {
       setLoadingCost(true);
       setCostError(null);
-      quizApi.getUserCost()
-        .then((data) => {
-          // Cast to any to handle both property names
-          const apiData = data as any;
-          const cost = typeof apiData.totalCost === 'number' && !isNaN(apiData.totalCost)
-            ? apiData.totalCost
-            : typeof apiData.TotalCost === 'number' && !isNaN(apiData.TotalCost)
-              ? apiData.TotalCost
-              : 0;
+      aiApi.getUserCost()
+        .then((cost) => {
           setUserCost(cost);
           setLoadingCost(false);
         })

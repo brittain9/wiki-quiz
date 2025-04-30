@@ -21,23 +21,6 @@ public static class AuthEndpoints
         var group = app.MapGroup("/api/auth")
                        .WithTags("Authentication");
 
-        // --- Registration, Login ---
-        group.MapPost("register", async (RegisterRequest registerRequest, IAccountService accountService) =>
-        {
-            // Consider adding error handling/returning specific results (e.g., BadRequest on failure)
-            await accountService.RegisterAsync(registerRequest);
-            return Results.Ok();
-        })
-        .AllowAnonymous(); // Explicitly allow anonymous access
-
-        group.MapPost("login", async (LoginRequest loginRequest, IAccountService accountService, HttpContext context) =>
-        {
-            await accountService.LoginAsync(loginRequest);
-            return Results.Ok();
-        })
-        .AllowAnonymous(); // Explicitly allow anonymous access
-
-        // --- Google Login ---
         group.MapGet("login/google", ([FromQuery] string? returnUrl, LinkGenerator linkGenerator,
             SignInManager<User> signInManager, HttpContext context) =>
         {
@@ -50,10 +33,10 @@ public static class AuthEndpoints
             }
 
             var properties = signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, callbackUrl);
-            properties.AllowRefresh = true; // Optional: Allow refresh tokens if needed
+            properties.AllowRefresh = true;
             return Results.Challenge(properties, [GoogleDefaults.AuthenticationScheme]);
         })
-        .AllowAnonymous(); // Explicitly allow anonymous access
+        .AllowAnonymous();
 
         group.MapGet("login/google/callback", async ([FromQuery] string? returnUrl,
             HttpContext context, SignInManager<User> signInManager, IAccountService accountService, ILogger<Program> logger) =>

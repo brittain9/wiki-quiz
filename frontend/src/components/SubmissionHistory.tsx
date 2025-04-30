@@ -103,7 +103,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
       setIsResultLoading(true);
       setResultError(null);
       try {
-        const result = await submissionApi.getSubmissionById(id);
+        const result = await submissionApi.getQuizSubmissionById(id);
         setSelectedQuizResult(result);
         setIsOverlayOpen(true);
       } catch {

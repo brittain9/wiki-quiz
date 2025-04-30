@@ -20,7 +20,7 @@ import {
   QuizStateProvider,
 } from './context';
 import i18n from './i18n/i18n';
-import { initTheme } from './services/theme-controller';
+import { initTheme } from './services/themeService';
 import { createAppTheme } from './theme/mui-theme';
 
 // First load the base theme style element

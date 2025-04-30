@@ -21,7 +21,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '../context/AuthContext/AuthContext';
 import { useOverlay } from '../context/OverlayContext/OverlayContext';
+import { authApi } from '../services/api/authApi';
 
+// TODO: Separate login button from account menu
 const LoginButton = memo(() => {
   const {
     isLoggedIn,
@@ -46,8 +48,8 @@ const LoginButton = memo(() => {
 
   // Login handler
   const handleLoginWithGoogle = useCallback(() => {
-    loginWithGoogle();
-  }, [loginWithGoogle]);
+    authApi.initiateGoogleLogin();
+  }, []);
 
   // Show account overlay
   const handleAccountClick = useCallback(() => {
@@ -97,26 +99,22 @@ const LoginButton = memo(() => {
             aria-expanded={open ? 'true' : undefined}
             sx={{ ml: 1 }}
           >
-            {userInfo?.profilePicture ? (
-              <Avatar
-                src={userInfo.profilePicture}
-                alt={userInfo.firstName}
-                sx={{
-                  width: 32,
-                  height: 32,
-                }}
-              />
-            ) : (
-              <Avatar
-                sx={{
-                  width: 32,
-                  height: 32,
-                  bgcolor: 'primary.main',
-                }}
-              >
-                {userInfo?.firstName?.charAt(0) || 'U'}
-              </Avatar>
-            )}
+            <Avatar
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: 'var(--main-color-light)',
+                color: 'var(--bg-color)',
+                fontWeight: 600,
+                fontSize: '1.1rem',
+              }}
+            >
+              {userInfo?.firstName && userInfo?.lastName
+                ? `${userInfo.firstName.charAt(0)}${userInfo.lastName.charAt(0)}`.toUpperCase()
+                : userInfo?.firstName
+                ? userInfo.firstName.charAt(0).toUpperCase()
+                : 'U'}
+            </Avatar>
           </IconButton>
         </Tooltip>
         <Menu

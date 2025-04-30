@@ -65,7 +65,7 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
     setInternalIsLoading(true);
     setInternalError(null);
     try {
-      const result = await submissionApi.getSubmissionById(submissionId);
+      const result = await submissionApi.getQuizSubmissionById(submissionId);
       setInternalQuizResult(result);
     } catch {
       setInternalError('Failed to fetch quiz result');

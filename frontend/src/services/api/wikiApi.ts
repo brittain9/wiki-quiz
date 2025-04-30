@@ -1,7 +1,7 @@
 // wikiApi.ts
 import axios from 'axios';
 
-import { parseApiError } from './utils';
+import { parseApiError } from '../apiService';
 import i18n from '../../i18n/i18n';
 
 // Helper function to map complex language codes to simple ones

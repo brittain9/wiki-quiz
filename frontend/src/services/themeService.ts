@@ -82,7 +82,6 @@ export async function loadStyle(name: string): Promise<void> {
 
 // Clear custom theme
 function clearCustomTheme(): void {
-  console.debug('Clearing custom theme');
   for (const e of colorVars) {
     document.documentElement.style.setProperty(e, '');
   }
@@ -177,7 +176,7 @@ function isColorDark(color: string): boolean {
   }
 
   console.warn('Could not determine darkness for color:', color, '- defaulting to dark.');
-  return true; // Default to dark if format is unrecognized
+  return true;
 }
 
 // Update any theme-dependent UI elements

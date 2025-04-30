@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import QuizQuestion from './QuizQuestion';
 import QuizResult from './QuizResult';
 import { useQuizState } from '../../context';
-import { submissionApi } from '../../services';
+import { submissionApi, quizApi } from '../../services';
 import { QuizSubmission, QuestionAnswer } from '../../types';
 
 const QuizContainer: React.FC = React.memo(() => {
@@ -79,7 +79,7 @@ const QuizContainer: React.FC = React.memo(() => {
         quizId: currentQuiz.id,
         questionAnswers: userAnswers,
       };
-      const result = await submissionApi.submitQuiz(quizSubmission);
+      const result = await quizApi.submitQuiz(quizSubmission);
       setCurrentSubmission(result);
       addSubmissionToHistory(result);
       setQuizSubmitted(true);

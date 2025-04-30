@@ -141,14 +141,12 @@ const QuizOptionsComponent: React.FC = () => {
               label="AI Service"
               onChange={handleServiceChange}
             >
-              {Object.entries(quizOptions.availableServices).length > 0 ? (
-                Object.entries(quizOptions.availableServices).map(
-                  ([id, name]) => (
-                    <MenuItem key={id} value={id}>
-                      {typeof name === 'string' ? name : `Service ${id}`}
-                    </MenuItem>
-                  ),
-                )
+              {quizOptions.availableServices.length > 0 ? (
+                quizOptions.availableServices.map((service) => (
+                  <MenuItem key={service} value={service}>
+                    {service}
+                  </MenuItem>
+                ))
               ) : (
                 <MenuItem value="" disabled>
                   No services available
@@ -166,13 +164,11 @@ const QuizOptionsComponent: React.FC = () => {
                 label="AI Model"
                 onChange={handleModelChange}
               >
-                {Object.entries(quizOptions.availableModels).map(
-                  ([id, name]) => (
-                    <MenuItem key={id} value={id}>
-                      {typeof name === 'string' ? name : `Model ${id}`}
-                    </MenuItem>
-                  ),
-                )}
+                {quizOptions.availableModels.map((model) => (
+                  <MenuItem key={model} value={model}>
+                    {model}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           )}
