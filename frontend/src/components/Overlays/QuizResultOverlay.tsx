@@ -22,12 +22,35 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 import { submissionApi } from '../../services';
 import { Question, QuizResult, ResultOption } from '../../types';
+import { SubmissionDetail, QuestionAnswer } from '../../types/quizSubmission.types';
 
 interface QuizResultOverlayProps {
   quizResult?: QuizResult | null;
   isLoading?: boolean;
   error?: string | null;
   standalone?: boolean; // New prop to determine if this is a standalone component
+}
+
+// Helper to map SubmissionDetail to QuizResult
+function mapSubmissionDetailToQuizResult(detail: SubmissionDetail): QuizResult {
+  // Build a map of correct answers from quiz object
+  const correctAnswers: Record<number, number> = {};
+  detail.quiz.aiResponses.forEach((aiResp) => {
+    aiResp.questions.forEach((q) => {
+      // Assume correct answer is always the first option (index 0) unless you have a better way
+      correctAnswers[q.id] = 0;
+    });
+  });
+  return {
+    quiz: detail.quiz,
+    answers: detail.questionAnswers.map((qa: QuestionAnswer) => ({
+      questionId: qa.questionId,
+      correctAnswerChoice: correctAnswers[qa.questionId] ?? 0,
+      selectedAnswerChoice: qa.selectedOptionNumber,
+    })),
+    submissionTime: detail.submissionTime,
+    score: detail.score,
+  };
 }
 
 const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
@@ -66,7 +89,7 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
     setInternalError(null);
     try {
       const result = await submissionApi.getQuizSubmissionById(submissionId);
-      setInternalQuizResult(result);
+      setInternalQuizResult(mapSubmissionDetailToQuizResult(result));
     } catch {
       setInternalError('Failed to fetch quiz result');
     } finally {

@@ -23,7 +23,29 @@ import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../hooks/useAuthCheck';
 import { submissionApi } from '../services';
 import { QuizResult } from '../types/quizResult.types';
-import { SubmissionResponse } from '../types/quizSubmission.types';
+import { SubmissionResponse, SubmissionDetail, QuestionAnswer } from '../types/quizSubmission.types';
+
+// Helper to map SubmissionDetail to QuizResult
+function mapSubmissionDetailToQuizResult(detail: SubmissionDetail): QuizResult {
+  // Build a map of correct answers from quiz object
+  const correctAnswers: Record<number, number> = {};
+  detail.quiz.aiResponses.forEach((aiResp) => {
+    aiResp.questions.forEach((q) => {
+      // Assume correct answer is always the first option (index 0) unless you have a better way
+      correctAnswers[q.id] = 0;
+    });
+  });
+  return {
+    quiz: detail.quiz,
+    answers: detail.questionAnswers.map((qa: QuestionAnswer) => ({
+      questionId: qa.questionId,
+      correctAnswerChoice: correctAnswers[qa.questionId] ?? 0,
+      selectedAnswerChoice: qa.selectedOptionNumber,
+    })),
+    submissionTime: detail.submissionTime,
+    score: detail.score,
+  };
+}
 
 const SubmissionHistory: React.FC = React.memo(() => {
   const { submissionHistory: newSubmissions } = useQuizState();
@@ -104,7 +126,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
       setResultError(null);
       try {
         const result = await submissionApi.getQuizSubmissionById(id);
-        setSelectedQuizResult(result);
+        setSelectedQuizResult(mapSubmissionDetailToQuizResult(result));
         setIsOverlayOpen(true);
       } catch {
         setResultError('Failed to load quiz result. Please try again.');

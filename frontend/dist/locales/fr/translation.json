@@ -1,0 +1,59 @@
+{
+  "button": {
+    "close": "Fermer"
+  },
+  "appBar": {
+    "title": "Wiki Quiz App",
+    "highlights": "Points forts"
+  },
+  "footer": {
+    "title": "Application Quiz Wikipédia"
+  },
+  "hero": {
+    "topics": ["Sujet 1", "Sujet 2", "Sujet 3"],
+    "generateQuiz": "Générer un quiz sur",
+    "topicInfo": "Entrez n'importe quel sujet qui vous intéresse, et nous générerons un quiz personnalisé juste pour vous.",
+    "placeholder": "Votre sujet de quiz",
+    "generatingButtonText": "Génération en cours",
+    "startButtonText": "Commencer maintenant"
+  },
+  "recentSubmissions": {
+    "title": "Soumissions récentes",
+    "noHistory": "Répondez à un quiz pour voir votre histoire !"
+  },
+  "quizresultoverlay": {
+    "title": "Résultats du quiz",
+    "score": "Score",
+    "question": "Question"
+  },
+  "highlights": {
+    "title": "Points forts",
+    "info": "Découvrez pourquoi notre produit se démarque : adaptabilité, durabilité, conception conviviale et innovation. Profitez d'un support client fiable et d'une précision dans chaque détail.",
+    "items": {
+      "dynamic_quiz": {
+        "title": "Génération de Quiz Dynamique",
+        "desc": "Exploitez l'IA et Wikipédia pour générer des quiz captivants et spécifiques aux sujets, qui s'adaptent à vos besoins, améliorant l'engagement des utilisateurs et l'apprentissage."
+      },
+      "inclusive_design": {
+        "title": "Conception Inclusive pour Tous les Utilisateurs",
+        "desc": "Notre application est conçue pour répondre à un large éventail d'utilisateurs, permettant à chacun d'explorer et de s'intéresser à une variété de sujets."
+      },
+      "multilingual_support": {
+        "title": "Support pour 9 Langues",
+        "desc": "Proposez des quiz dans neuf langues, notamment l'anglais, l'espagnol, le français, le japonais, le chinois, et bien plus, garantissant l'accessibilité à une audience mondiale."
+      },
+      "intelligent_search": {
+        "title": "Recherche Intelligente",
+        "desc": "Utilisez une recherche intelligente pour cibler précisément les sujets, en fournissant aux utilisateurs un contenu de quiz pertinent et précis à partir de millions d'articles Wikipédia."
+      },
+      "ai_integration": {
+        "title": "Intégration Transparente de l'IA",
+        "desc": "Intégrez-vous facilement aux principales API d'IA, comme OpenAI et Perplexity, pour garantir des performances et des capacités de pointe."
+      },
+      "meticulous_design": {
+        "title": "Précision dans Chaque Détail",
+        "desc": "Du frontend développé avec React et TypeScript au backend propulsé par .NET 8 et PostgreSQL, chaque composant est méticuleusement conçu pour des performances optimales."
+      }
+    }
+  }
+}

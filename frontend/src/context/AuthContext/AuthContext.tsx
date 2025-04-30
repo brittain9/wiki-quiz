@@ -11,6 +11,7 @@ import React, {
 
 import { AuthContext as AuthContextType, UserInfo } from './AuthContext.types';
 import { authApi } from '../../services';
+import type { UserInfo as ApiUserInfo } from '../../services/api/authApi';
 
 // Create context with undefined initial value
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,9 +31,15 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
     console.log('Checking login status');
     try {
       // Use the authApi to get the current user
-      const userData = await authApi.getCurrentUser();
-
-      setUserInfo(userData);
+      const userData: ApiUserInfo = await authApi.getCurrentUser();
+      // Map API user info to context user info
+      const mappedUserInfo: UserInfo = {
+        id: userData.id,
+        email: userData.email ?? '',
+        firstName: userData.firstName ?? '',
+        lastName: userData.lastName ?? '',
+      };
+      setUserInfo(mappedUserInfo);
       setIsLoggedIn(true);
       setError(null);
     } catch (err) {

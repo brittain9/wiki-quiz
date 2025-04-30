@@ -145,9 +145,10 @@ const AccountOverlay: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              {userInfo.profilePicture ? (
+              {/* Only show profilePicture if it exists on userInfo (for future compatibility) */}
+              {'profilePicture' in userInfo && (userInfo as any).profilePicture ? (
                 <Avatar
-                  src={userInfo.profilePicture}
+                  src={(userInfo as any).profilePicture}
                   alt={userInfo.firstName}
                   sx={{ width: 120, height: 120, mb: 3, boxShadow: 2 }}
                 />

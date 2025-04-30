@@ -1,0 +1,26 @@
+/* High Contrast theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #000000;
+  --bg-color-secondary: #121212;
+  --bg-color-tertiary: #1c1c1c;
+  --main-color: #ffcc00;
+  --caret-color: #ffcc00;
+  --sub-color: #b3b3b3;
+  --sub-alt-color: #444444;
+  --text-color: #ffffff;
+  --error-color: #ff4444;
+  --error-extra-color: #cc0000;
+  --success-color: #00cc44;
+  --warning-color: #ff8800;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(255, 204, 0, 0.1); /* 10% opacity */
+  --main-color-20: rgba(255, 204, 0, 0.2); /* 20% opacity */
+  --success-color-10: rgba(0, 204, 68, 0.1); /* 10% opacity */
+  --error-color-10: rgba(255, 68, 68, 0.1); /* 10% opacity */
+}
