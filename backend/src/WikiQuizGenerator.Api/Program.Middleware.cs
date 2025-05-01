@@ -15,7 +15,6 @@ public partial class Program
 
         app.UseCors("AllowReactApp");
 
-        app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ErrorHandlerMiddleware>();
 
         // Only use HTTPS redirection in Production
