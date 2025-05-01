@@ -5,19 +5,24 @@ using WikiQuizGenerator.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-string endpoint = Environment.GetEnvironmentVariable("AZURE_APP_CONFIG_ENDPOINT")
-    ?? throw new InvalidOperationException("The environment variable `AZURE_APP_CONFIG_ENDPOINT` was not found.");
-
-builder.Configuration.AddAzureAppConfiguration(options =>
+// Only use Azure App Configuration in non-development environments
+// In development, the default configuration includes appsettings.Development.json
+if (!builder.Environment.IsDevelopment())
 {
-    options.Connect(new Uri(endpoint), new DefaultAzureCredential())
-        .Select(KeyFilter.Any, LabelFilter.Null)
-        .Select(KeyFilter.Any, builder.Environment.EnvironmentName.ToUpper()) // I configured in azure all uppercase
-        .ConfigureKeyVault(kv =>
-        {
-            kv.SetCredential(new DefaultAzureCredential());
-        });
-});
+    string endpoint = Environment.GetEnvironmentVariable("AZURE_APP_CONFIG_ENDPOINT")
+        ?? throw new InvalidOperationException("The environment variable `AZURE_APP_CONFIG_ENDPOINT` was not found.");
+
+    builder.Configuration.AddAzureAppConfiguration(options =>
+    {
+        options.Connect(new Uri(endpoint), new DefaultAzureCredential())
+            .Select(KeyFilter.Any, LabelFilter.Null)
+            .Select(KeyFilter.Any, builder.Environment.EnvironmentName.ToUpper()) // I configured in azure all uppercase
+            .ConfigureKeyVault(kv =>
+            {
+                kv.SetCredential(new DefaultAzureCredential());
+            });
+    });
+}
 
 ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 

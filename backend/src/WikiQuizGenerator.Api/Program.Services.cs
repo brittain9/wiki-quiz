@@ -181,7 +181,7 @@ public partial class Program
 
     private static string BuildConnectionString(IConfiguration configuration)
     {
-        string host = configuration["wikiquizapp:Host"] ?? "db"; // TODO: Maybe add this to config
+        string host = configuration["wikiquizapp:PostgresHost"];
         string database = configuration["wikiquizapp:PostgresDb"];
         string username = configuration["wikiquizapp:PostgresUser"];
         string password = configuration["wikiquizapp:PostgresPassword"];
