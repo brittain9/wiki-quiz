@@ -15,8 +15,11 @@ public partial class Program
 {
     private static void ConfigureServices(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        // Only add Swagger in development environment
-        if (environment.IsDevelopment())
+        // Check if Swagger should be enabled (either in Development or explicitly via env var)
+        bool enableSwagger = environment.IsDevelopment() || 
+                             string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENABLESWAGGER"), "true", StringComparison.OrdinalIgnoreCase);
+        
+        if (enableSwagger)
         {
             services.AddOpenApi();
             services.AddEndpointsApiExplorer();
@@ -26,16 +29,32 @@ public partial class Program
         string frontendUri = configuration["wikiquizapp:FrontendUri"];
         if (string.IsNullOrWhiteSpace(frontendUri))
             throw new ArgumentNullException(nameof(frontendUri), "frontendUri is not configured.");
+        
+        // Check if CORS should allow all origins (for testing)
+        bool allowAllCors = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_CORS_ALLOWALL"), "true", StringComparison.OrdinalIgnoreCase);
+        
         services.AddCors(options =>
         {
-            // TODO: get the origin from config
-            options.AddPolicy("AllowReactApp",
-                builder => builder
-                    .WithOrigins(frontendUri)
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials()
-                    .SetIsOriginAllowed(_ => true));
+            if (allowAllCors)
+            {
+                // Allow any origin for testing
+                options.AddPolicy("AllowReactApp",
+                    builder => builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+            }
+            else
+            {
+                // Use configured frontend URI
+                options.AddPolicy("AllowReactApp",
+                    builder => builder
+                        .WithOrigins(frontendUri)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .SetIsOriginAllowed(_ => true));
+            }
         });
 
         // Configure Identity
@@ -77,8 +96,8 @@ public partial class Program
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = 50,        // 100 requests
-                        Window = TimeSpan.FromMinutes(2) // per 2 minutes
+                        PermitLimit = 100,        // 100 requests
+                        Window = TimeSpan.FromMinutes(10) // per 10 minutes
                     }));
 
             options.AddPolicy("QuizLimit", httpContext =>
@@ -87,8 +106,8 @@ public partial class Program
                     factory: _ => new FixedWindowRateLimiterOptions
                     {
                         AutoReplenishment = true,
-                        PermitLimit = 2,         // 2 quiz generations
-                        Window = TimeSpan.FromMinutes(1),
+                        PermitLimit = 10,         // 10 quiz generations
+                        Window = TimeSpan.FromMinutes(10),
                         QueueLimit = 0
                     }));
 
