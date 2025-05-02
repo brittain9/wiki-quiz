@@ -26,6 +26,7 @@ public static class AuthEndpoints
         {
             // Ensure returnUrl is validated to prevent open redirect vulnerabilities
             var callbackUrl = linkGenerator.GetUriByName(context, "GoogleLoginCallback", values: new { returnUrl });
+
             if (string.IsNullOrEmpty(callbackUrl))
             {
                 // Handle error: Callback route not found

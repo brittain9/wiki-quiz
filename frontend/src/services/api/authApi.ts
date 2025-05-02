@@ -1,5 +1,6 @@
-import { apiGet, apiPost, parseApiError } from '../apiService';
 import axios, { AxiosError } from 'axios';
+
+import { apiGet, apiPost, parseApiError } from '../apiService';
 
 // Environment variables with fallback values for safety
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -31,12 +32,12 @@ export const authApi = {
       // Add timestamp as state parameter for CSRF mitigation and use return URL parameter
       const state = new Date().getTime().toString();
       const returnUrl = encodeURIComponent(APP_BASE_URL);
-      
+
       // Use full backend URL without redundant API prefix
       const loginUrl = `${API_BASE_URL}${AUTH_ENDPOINTS.LOGIN_GOOGLE}?returnUrl=${returnUrl}&state=${state}`;
-      
+
       console.log('Redirecting to:', loginUrl); // Debug log
-      
+
       // Redirect to backend's auth endpoint
       window.location.href = loginUrl;
     } catch (error) {
@@ -84,11 +85,11 @@ export const authApi = {
       throw error;
     }
   },
-  
+
   /**
    * Refreshes the authentication token
    * Used to extend the session without requiring re-login
-  */
+   */
   // async refreshToken(): Promise<void> {
   //   try {
   //     console.log('Refreshing authentication token');
@@ -101,4 +102,4 @@ export const authApi = {
   // }
 };
 
-export default authApi; 
+export default authApi;

@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  wikiquizgenerator.api:
+    ports:
+      - "4026:4026" # Map debugger port
+    build:
+      args:
+        BUILD_CONFIGURATION: Debug # Build in Debug mode
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_USE_POLLING_FILE_WATCHER=1 # Enable file watcher
+      # Debug environment variables
+      - VSTEST_HOST_DEBUG=1
+      - DOTNET_ENVIRONMENT=Development
+      # Add other development-specific environment variables if needed
+    # Optionally add volumes for faster development loop, e.g., mapping source code
+    # volumes:
+    #   - ./src/WikiQuizGenerator.Api:/src/src/WikiQuizGenerator.Api:ro
+    #   - ~/.nuget/packages:/root/.nuget/packages:ro # Map nuget cache
+    # Note: Volume mapping requires careful consideration of paths and works best
+    # if the container user has appropriate permissions or you run as root (not recommended for production).
+    # Also ensure the base SDK image has build tools if you map source directly.

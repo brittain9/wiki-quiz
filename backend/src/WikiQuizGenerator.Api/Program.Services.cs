@@ -9,7 +9,9 @@ using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.Services;
 using WikiQuizGenerator.Data;
 using WikiQuizGenerator.LLM;
-
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.HttpOverrides;
 
 public partial class Program
 {
@@ -52,8 +54,7 @@ public partial class Program
                         .WithOrigins(frontendUri)
                         .AllowAnyMethod()
                         .AllowAnyHeader()
-                        .AllowCredentials()
-                        .SetIsOriginAllowed(_ => true));
+                        .AllowCredentials());
             }
         });
 
@@ -84,6 +85,22 @@ public partial class Program
             options.LoginPath = "/login";
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/access-denied";
+
+            // Handle redirects for OPTIONS requests
+            options.Events = new CookieAuthenticationEvents
+            {
+                OnRedirectToLogin = ctx =>
+                {
+                    if (ctx.Request.Method == "OPTIONS")
+                    {
+                        ctx.Response.StatusCode = 200;
+                        return Task.CompletedTask;
+                    }
+                    
+                    ctx.Response.Redirect(ctx.RedirectUri);
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         // Add rate limiting services
@@ -182,6 +199,14 @@ public partial class Program
             options.ClientId = clientId;
             options.ClientSecret = clientSecret;
             options.SignInScheme = IdentityConstants.ExternalScheme;
+
+            // Explicitly set the callback path
+            options.CallbackPath = "/api/auth/login/google/callback"; // Force your custom path
+            
+            // For production, ensure cookies are secure
+            options.CorrelationCookie.SecurePolicy = !environment.IsDevelopment()
+                ? CookieSecurePolicy.Always
+                : CookieSecurePolicy.SameAsRequest;
         });
 
         // Configure cookie policy
