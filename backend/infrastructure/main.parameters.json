@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "projectName": {
+      "value": "wikiquizapi"
+    },
+    "environmentName": {
+      "value": "Production"
+    },
+    "containerImage": {
+      "value": "acrwikiquizapiprodkp6ixsqfe23re.azurecr.io/wikiquizapi:v0.1"
+    },
+    "containerPort": {
+      "value": 8080
+    },
+    "postgresAdminLogin": {
+      "value": "pgadmin"
+    },
+    "postgresAdminPassword": {
+      "value": null
+    },
+    "postgresDatabaseName": {
+      "value": "WikiQuizGenerator"
+    },
+    "openAiApiKey": {
+      "value": null
+    },
+    "googleClientId": {
+      "value": null
+    },
+    "googleClientSecret": {
+      "value": null
+    },
+    "frontendUri": {
+      "value": "http://localhost:5173"
+    }
+  }
+}

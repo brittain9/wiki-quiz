@@ -10,7 +10,6 @@ import axios, {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 console.log('API Base URL:', API_BASE_URL);
 
-
 // Interfaces for error handling
 interface ApiErrorResponse {
   title?: string;
@@ -50,7 +49,9 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true
+  // withCredentials must be false when the server uses Access-Control-Allow-Origin: *
+  // If credentials are needed, the server must specify an exact origin instead of wildcard
+  withCredentials: false,
 });
 
 // Request interceptor for logging and token handling

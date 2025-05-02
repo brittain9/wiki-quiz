@@ -2,11 +2,14 @@
 using WikiQuizGenerator.Api.Endpoints;
 using WikiQuizGenerator.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
+using Serilog;
 
 public partial class Program
 {
     private static void ConfigurePipeline(WebApplication app)
     {
+        app.UseSerilogRequestLogging();
+
         // Configure forwarded headers if behind a proxy
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
@@ -39,8 +42,11 @@ public partial class Program
         app.MapAiServiceEndpoints();
         app.MapSubmissionEndpoints();
 
-        // Development configuration
-        if (app.Environment.IsDevelopment())
+        // Check if Swagger should be enabled (either in Development or explicitly via env var)
+        bool enableSwagger = app.Environment.IsDevelopment() || 
+                             string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENABLESWAGGER"), "true", StringComparison.OrdinalIgnoreCase);
+        
+        if (enableSwagger)
         {
             app.UseSwagger();
             app.UseSwaggerUI();
