@@ -40,30 +40,16 @@ public partial class Program
         if (string.IsNullOrWhiteSpace(frontendUri))
             throw new ArgumentNullException(nameof(frontendUri), "frontendUri is not configured.");
         
-        // Check if CORS should allow all origins (for testing)
-        bool allowAllCors = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_CORS_ALLOWALL"), "true", StringComparison.OrdinalIgnoreCase);
         
         services.AddCors(options =>
         {
-            if (allowAllCors)
-            {
-                // Allow any origin for testing
-                options.AddPolicy("AllowReactApp",
-                    builder => builder
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
-            }
-            else
-            {
-                // Use configured frontend URI
-                options.AddPolicy("AllowReactApp",
-                    builder => builder
-                        .WithOrigins(frontendUri)
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials());
-            }
+            // Use configured frontend URI
+            options.AddPolicy("AllowReactApp",
+                builder => builder
+                    .WithOrigins(frontendUri)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
         });
 
         // Configure Identity

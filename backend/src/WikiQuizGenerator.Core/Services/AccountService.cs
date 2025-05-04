@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Exceptions;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
@@ -133,22 +134,33 @@ public class AccountService : IAccountService
                         result.Errors.Select(x => x.Description))}");
             }
 
-            
-
             user = newUser;
         }
         
-        var info = new UserLoginInfo("Google",
-            claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
-            "Google");
-
-        var loginResult = await _userManager.AddLoginAsync(user, info);
-            
-        if (!loginResult.Succeeded)
+        var externalId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(externalId))
         {
-            throw new ExternalLoginProviderException("Google",
-                $"Unable to login user: {string.Join(", ",
-                    loginResult.Errors.Select(x => x.Description))}");
+            throw new ExternalLoginProviderException("Google", "External ID is null or empty");
+        }
+        
+        // Check if this Google login is already associated with the user
+        var existingLogins = await _userManager.GetLoginsAsync(user);
+        var googleLogin = existingLogins.FirstOrDefault(l => 
+            l.LoginProvider == "Google" && l.ProviderKey == externalId);
+            
+        // TODO: Check if this is correct
+        // Only add the login if it doesn't already exist
+        if (googleLogin == null)
+        {
+            var info = new UserLoginInfo("Google", externalId, "Google");
+            var loginResult = await _userManager.AddLoginAsync(user, info);
+                
+            if (!loginResult.Succeeded)
+            {
+                throw new ExternalLoginProviderException("Google",
+                    $"Unable to login user: {string.Join(", ",
+                        loginResult.Errors.Select(x => x.Description))}");
+            }
         }
         
         var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
@@ -163,5 +175,43 @@ public class AccountService : IAccountService
         
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
         _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+    }
+    
+    public async Task LogoutAsync(Guid userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User with ID {userId} not found");
+        }
+
+        // Clear the refresh token in the database
+        user.RefreshToken = null;
+        user.RefreshTokenExpiresAtUtc = null;
+
+        // Update the security stamp to invalidate existing tokens
+        await _userManager.UpdateSecurityStampAsync(user);
+        await _userManager.UpdateAsync(user);
+
+        // Clear the auth cookies
+        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", "", DateTime.UtcNow.AddDays(-1));
+        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", "", DateTime.UtcNow.AddDays(-1));
+    }
+
+    public async Task<UserInfoDto> GetUserInfoAsync(Guid userId)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User with ID {userId} not found");
+        }
+
+        return new UserInfoDto
+        (
+            user.Id,
+            user.Email,
+            user.FirstName,
+            user.LastName
+        );
     }
 }

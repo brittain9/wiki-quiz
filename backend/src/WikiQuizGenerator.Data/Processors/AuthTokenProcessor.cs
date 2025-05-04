@@ -64,14 +64,39 @@ public class AuthTokenProcessor : IAuthTokenProcessor
     public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token,
         DateTime expiration)
     {
-        _httpContextAccessor.HttpContext.Response.Cookies.Append(cookieName,
-            token, new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = expiration,
-                IsEssential = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict
-            });
+        // Get the current HTTP context - required for cookie operations
+        var context = _httpContextAccessor.HttpContext;
+        if (context == null)
+        {
+            throw new InvalidOperationException("HttpContext is not available");
+        }
+
+        // Configure cookie options for better cross-domain compatibility
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,       // Prevent JavaScript access for security
+            Expires = expiration,  // Set cookie expiration time
+            IsEssential = true,    // Mark as essential for GDPR compliance
+            
+            // In development, we might not use HTTPS, but in production it should be secure
+            Secure = context.Request.IsHttps, 
+            
+            // For cross-origin requests, SameSite=None is needed, but requires Secure=true
+            // SameSite=Lax is a reasonable fallback for non-HTTPS development environments
+            SameSite = context.Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
+            
+            // Ensure cookie is sent to all paths
+            Path = "/",
+        };
+
+        // If the token is empty, it means we're clearing the cookie (logout)
+        if (string.IsNullOrEmpty(token))
+        {
+            // For cookie deletion, we need to expire it in the past
+            cookieOptions.Expires = DateTime.UtcNow.AddDays(-1);
+        }
+
+        // Set the cookie in the response
+        context.Response.Cookies.Append(cookieName, token, cookieOptions);
     }
 }
