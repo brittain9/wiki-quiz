@@ -25,15 +25,8 @@ import { authApi } from '../services/api/authApi';
 
 // TODO: Separate login button from account menu
 const LoginButton = memo(() => {
-  const {
-    isLoggedIn,
-    isChecking,
-    userInfo,
-    loginWithGoogle,
-    logout,
-    error,
-    clearError,
-  } = useAuth();
+  const { isLoggedIn, isChecking, userInfo, logout, error, clearError } =
+    useAuth();
   const { showOverlay } = useOverlay();
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -83,7 +76,7 @@ const LoginButton = memo(() => {
         <CircularProgress size={24} sx={{ mr: 1 }} />
         <Typography variant="body2">Logging in...</Typography>
       </Box>
-      );
+    );
   }
 
   // Display user avatar button if logged in
@@ -112,8 +105,8 @@ const LoginButton = memo(() => {
               {userInfo?.firstName && userInfo?.lastName
                 ? `${userInfo.firstName.charAt(0)}${userInfo.lastName.charAt(0)}`.toUpperCase()
                 : userInfo?.firstName
-                ? userInfo.firstName.charAt(0).toUpperCase()
-                : 'U'}
+                  ? userInfo.firstName.charAt(0).toUpperCase()
+                  : 'U'}
             </Avatar>
           </IconButton>
         </Tooltip>

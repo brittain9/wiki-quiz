@@ -18,7 +18,9 @@ import LoginButton from '../LoginButton';
 
 const QuizAppBar: React.FC = () => {
   const [open, setOpen] = React.useState(false);
-  const [appBarState, setAppBarState] = React.useState<'docked' | 'visible'>('docked');
+  const [appBarState, setAppBarState] = React.useState<'docked' | 'visible'>(
+    'docked',
+  );
   const { t } = useTranslation();
 
   const timerRef = React.useRef<number | null>(null);

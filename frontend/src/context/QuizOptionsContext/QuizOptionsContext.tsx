@@ -78,7 +78,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
           availableServices: servicesArr,
           selectedService: firstServiceId,
         }));
-        
+
         if (firstServiceId) {
           const modelsArr = await aiApi.getAiModels(firstServiceId);
           const firstModel = modelsArr.length > 0 ? modelsArr[0] : null;

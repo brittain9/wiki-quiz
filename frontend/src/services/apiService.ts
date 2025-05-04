@@ -106,12 +106,8 @@ export const apiPost = async <T, D = unknown>(
   data?: D,
   config?: AxiosRequestConfig,
 ): Promise<T> => {
-  try {
-    const response = await apiClient.post<T>(url, data, config);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await apiClient.post<T>(url, data, config);
+  return response.data;
 };
 
 export default apiClient;

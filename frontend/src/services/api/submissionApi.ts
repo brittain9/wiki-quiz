@@ -1,8 +1,6 @@
 import { apiGet, parseApiError } from '../apiService';
-import type {
-  SubmissionResponse,
-  SubmissionDetail,
-} from '../../types';
+
+import type { SubmissionResponse, SubmissionDetail } from '../../types';
 
 // Submission API endpoints
 const SUBMISSION_ENDPOINTS = {
@@ -20,9 +18,13 @@ export const submissionApi = {
    */
   async getQuizSubmissionById(id: number): Promise<SubmissionDetail> {
     try {
-      return await apiGet<SubmissionDetail>(SUBMISSION_ENDPOINTS.QUIZ_SUBMISSION(id));
+      return await apiGet<SubmissionDetail>(
+        SUBMISSION_ENDPOINTS.QUIZ_SUBMISSION(id),
+      );
     } catch (error) {
-      console.error(`Failed to get quiz submission by ID: ${parseApiError(error)}`);
+      console.error(
+        `Failed to get quiz submission by ID: ${parseApiError(error)}`,
+      );
       throw error;
     }
   },
@@ -33,11 +35,15 @@ export const submissionApi = {
    */
   async getRecentSubmissions(): Promise<SubmissionResponse[]> {
     try {
-      const response = await apiGet<SubmissionResponse[]>(SUBMISSION_ENDPOINTS.RECENT);
+      const response = await apiGet<SubmissionResponse[]>(
+        SUBMISSION_ENDPOINTS.RECENT,
+      );
       // Ensure we always return an array
       return Array.isArray(response) ? response : [];
     } catch (error) {
-      console.error(`Failed to get recent submissions: ${parseApiError(error)}`);
+      console.error(
+        `Failed to get recent submissions: ${parseApiError(error)}`,
+      );
       // Return empty array on error instead of throwing
       return [];
     }
@@ -48,7 +54,9 @@ export const submissionApi = {
    */
   async getMySubmissions(): Promise<SubmissionResponse[]> {
     try {
-      const response = await apiGet<SubmissionResponse[]>(SUBMISSION_ENDPOINTS.MY_SUBMISSIONS);
+      const response = await apiGet<SubmissionResponse[]>(
+        SUBMISSION_ENDPOINTS.MY_SUBMISSIONS,
+      );
       // Ensure we always return an array
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -59,4 +67,4 @@ export const submissionApi = {
   },
 };
 
-export default submissionApi; 
+export default submissionApi;

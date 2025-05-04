@@ -1,7 +1,7 @@
 import Typography from '@mui/material/Typography';
+import { motion } from 'framer-motion';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 
 const TYPING_SPEED = 500;
 const BACKSPACE_SPEED = 50;
@@ -19,7 +19,6 @@ const AnimatedTopics: React.FC = () => {
   const [displayText, setDisplayText] = React.useState('');
   const [isDeleting, setIsDeleting] = React.useState(false);
   const wordRef = React.useRef<HTMLSpanElement>(null);
-  const [underlineWidth, setUnderlineWidth] = React.useState<number | undefined>(undefined);
 
   React.useEffect(() => {
     if (topics.length === 0) return;
@@ -61,12 +60,6 @@ const AnimatedTopics: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [topics, currentTopicIndex, displayText, isDeleting]);
 
-  React.useEffect(() => {
-    if (wordRef.current) {
-      setUnderlineWidth(wordRef.current.offsetWidth);
-    }
-  }, [displayText]);
-
   if (topics.length === 0) {
     return null;
   }
@@ -105,9 +98,24 @@ const AnimatedTopics: React.FC = () => {
           letterSpacing: 0,
         }}
       >
-        <span ref={wordRef} style={{ padding: 0, margin: 0, letterSpacing: 0, display: 'inline' }}>{displayText}</span>
+        <span
+          ref={wordRef}
+          style={{ padding: 0, margin: 0, letterSpacing: 0, display: 'inline' }}
+        >
+          {displayText}
+        </span>
         <motion.span
-          style={{ position: 'relative', zIndex: 2, padding: 0, margin: 0, left: 0, display: 'inline', font: 'inherit', letterSpacing: 0, marginLeft: '-0.08em' }}
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            padding: 0,
+            margin: 0,
+            left: 0,
+            display: 'inline',
+            font: 'inherit',
+            letterSpacing: 0,
+            marginLeft: '-0.08em',
+          }}
           initial={{ opacity: 1 }}
           animate={{ opacity: [1, 0, 1] }}
           transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
@@ -117,6 +125,6 @@ const AnimatedTopics: React.FC = () => {
       </Typography>
     </span>
   );
-}
+};
 
 export default AnimatedTopics;

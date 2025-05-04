@@ -1,9 +1,6 @@
 import { apiPost, parseApiError } from '../apiService';
-import type {
-  Quiz,
-  QuizSubmission,
-  SubmissionResponse,
-} from '../../types';
+
+import type { Quiz, QuizSubmission, SubmissionResponse } from '../../types';
 
 // Quiz API endpoints
 const QUIZ_ENDPOINTS = {
@@ -63,7 +60,7 @@ export const quizApi = {
     try {
       return await apiPost<SubmissionResponse, QuizSubmission>(
         QUIZ_ENDPOINTS.SUBMIT_QUIZ,
-        submission
+        submission,
       );
     } catch (error) {
       console.error(`Failed to submit quiz: ${parseApiError(error)}`);
@@ -72,4 +69,4 @@ export const quizApi = {
   },
 };
 
-export default quizApi; 
+export default quizApi;

@@ -33,7 +33,10 @@ export async function loadStyle(name: string): Promise<void> {
     const themeUrl = `/themes/${name}.css`;
     const currentThemeElement = document.getElementById('currentTheme');
     // If the current theme is already applied, do nothing
-    if (currentThemeElement && currentThemeElement.getAttribute('href') === themeUrl) {
+    if (
+      currentThemeElement &&
+      currentThemeElement.getAttribute('href') === themeUrl
+    ) {
       resolve();
       return;
     }
@@ -175,7 +178,11 @@ function isColorDark(color: string): boolean {
     }
   }
 
-  console.warn('Could not determine darkness for color:', color, '- defaulting to dark.');
+  console.warn(
+    'Could not determine darkness for color:',
+    color,
+    '- defaulting to dark.',
+  );
   return true;
 }
 
@@ -240,7 +247,9 @@ export async function setTheme(themeName: string): Promise<void> {
 // Initialize theme based on saved preferences on app load
 export async function initTheme(): Promise<void> {
   const savedTheme = localStorage.getItem('theme') || 'dark';
-  const customThemeColors = JSON.parse(localStorage.getItem('customTheme') || 'null');
+  const customThemeColors = JSON.parse(
+    localStorage.getItem('customTheme') || 'null',
+  );
   // Apply the saved theme or custom theme colors
   await apply(savedTheme, customThemeColors);
 }

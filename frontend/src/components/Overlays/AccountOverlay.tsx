@@ -4,12 +4,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Fade from '@mui/material/Fade';
 import IconButton from '@mui/material/IconButton';
+import LinearProgress from '@mui/material/LinearProgress';
 import Modal from '@mui/material/Modal';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import LinearProgress from '@mui/material/LinearProgress';
 
 import { useAuth } from '../../context/AuthContext/AuthContext';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
@@ -30,7 +30,8 @@ const AccountOverlay: React.FC = () => {
     if (isOpen) {
       setLoadingCost(true);
       setCostError(null);
-      aiApi.getUserCost()
+      aiApi
+        .getUserCost()
         .then((cost) => {
           setUserCost(cost);
           setLoadingCost(false);
@@ -59,22 +60,24 @@ const AccountOverlay: React.FC = () => {
   // Format cost display
   const getFormattedCost = () => {
     if (userCost === null) return '0.00';
-    return typeof userCost === 'number' && !isNaN(userCost) 
-      ? userCost.toFixed(2) 
+    return typeof userCost === 'number' && !isNaN(userCost)
+      ? userCost.toFixed(2)
       : '0.00';
   };
 
   // Calculate progress percentage
   const getProgressPercentage = () => {
     if (userCost === null) return 0;
-    return typeof userCost === 'number' && !isNaN(userCost) 
-      ? Math.min((userCost / COST_LIMIT) * 100, 100) 
+    return typeof userCost === 'number' && !isNaN(userCost)
+      ? Math.min((userCost / COST_LIMIT) * 100, 100)
       : 0;
   };
 
   // Determine if cost exceeds limit
   const isCostExceeded = () => {
-    return typeof userCost === 'number' && !isNaN(userCost) && userCost >= COST_LIMIT;
+    return (
+      typeof userCost === 'number' && !isNaN(userCost) && userCost >= COST_LIMIT
+    );
   };
 
   if (!userInfo) {
@@ -145,28 +148,19 @@ const AccountOverlay: React.FC = () => {
                 alignItems: 'center',
               }}
             >
-              {/* Only show profilePicture if it exists on userInfo (for future compatibility) */}
-              {'profilePicture' in userInfo && (userInfo as any).profilePicture ? (
-                <Avatar
-                  src={(userInfo as any).profilePicture}
-                  alt={userInfo.firstName}
-                  sx={{ width: 120, height: 120, mb: 3, boxShadow: 2 }}
-                />
-              ) : (
-                <Avatar
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    mb: 3,
-                    fontSize: '3rem',
-                    bgcolor: 'var(--main-color-light)',
-                    color: 'var(--bg-color)',
-                    boxShadow: 2,
-                  }}
-                >
-                  {getInitials()}
-                </Avatar>
-              )}
+              <Avatar
+                sx={{
+                  width: 120,
+                  height: 120,
+                  mb: 3,
+                  fontSize: '3rem',
+                  bgcolor: 'var(--main-color-light)',
+                  color: 'var(--bg-color)',
+                  boxShadow: 2,
+                }}
+              >
+                {getInitials()}
+              </Avatar>
               <Typography variant="h4" component="h2" gutterBottom>
                 {userInfo.firstName} {userInfo.lastName}
               </Typography>
@@ -178,14 +172,25 @@ const AccountOverlay: React.FC = () => {
                 {loadingCost ? (
                   <LinearProgress color="error" />
                 ) : costError ? (
-                  <Typography color="error" variant="body2">{costError}</Typography>
+                  <Typography color="error" variant="body2">
+                    {costError}
+                  </Typography>
                 ) : userCost !== null ? (
                   <>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 0.5,
+                      }}
+                    >
                       <Typography variant="body2" color="inherit">
                         {t('account.usage') || 'Usage'}
                       </Typography>
-                      <Typography variant="body2" color={isCostExceeded() ? 'error' : 'inherit'}>
+                      <Typography
+                        variant="body2"
+                        color={isCostExceeded() ? 'error' : 'inherit'}
+                      >
                         ${getFormattedCost()} / ${COST_LIMIT.toFixed(2)}
                       </Typography>
                     </Box>
@@ -193,7 +198,11 @@ const AccountOverlay: React.FC = () => {
                       variant="determinate"
                       value={getProgressPercentage()}
                       color="error"
-                      sx={{ height: 10, borderRadius: 5, backgroundColor: 'rgba(255,0,0,0.1)' }}
+                      sx={{
+                        height: 10,
+                        borderRadius: 5,
+                        backgroundColor: 'rgba(255,0,0,0.1)',
+                      }}
                     />
                   </>
                 ) : null}

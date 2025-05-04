@@ -1,7 +1,7 @@
 // App.tsx
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import React, { useMemo, lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 
 import { QuizAppBar, Footer, Hero, OverlayManager } from './components';
 import ThemeSelector from './components/ThemeSelector';
