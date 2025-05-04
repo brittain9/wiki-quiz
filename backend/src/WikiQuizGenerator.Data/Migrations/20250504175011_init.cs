@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace WikiQuizGenerator.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,6 +33,8 @@ namespace WikiQuizGenerator.Data.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     FirstName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     LastName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
+                    RefreshTokenExpiresAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     isPremium = table.Column<bool>(type: "boolean", nullable: false),
                     TotalCost = table.Column<double>(type: "double precision", nullable: false),
                     WeeklyCost = table.Column<double>(type: "double precision", nullable: false),
@@ -62,13 +64,13 @@ namespace WikiQuizGenerator.Data.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    modelId = table.Column<string>(type: "text", nullable: false),
+                    ModelId = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    MaxOutputTokens = table.Column<int>(type: "integer", nullable: false),
+                    MaxTokens = table.Column<int>(type: "integer", nullable: false),
                     ContextWindow = table.Column<int>(type: "integer", nullable: false),
                     CostPer1MInputTokens = table.Column<double>(type: "double precision", nullable: false),
                     CostPer1MCachedInputTokens = table.Column<double>(type: "double precision", nullable: false),
-                    CostPer1KOutputTokens = table.Column<double>(type: "double precision", nullable: false)
+                    CostPer1MOutputTokens = table.Column<double>(type: "double precision", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -82,7 +84,8 @@ namespace WikiQuizGenerator.Data.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedBy = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -273,12 +276,6 @@ namespace WikiQuizGenerator.Data.Migrations
                 {
                     table.PrimaryKey("PK_AIResponses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AIResponses_ModelConfigs_ModelConfigId",
-                        column: x => x.ModelConfigId,
-                        principalTable: "ModelConfigs",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_AIResponses_Quizzes_QuizId",
                         column: x => x.QuizId,
                         principalTable: "Quizzes",
@@ -361,11 +358,6 @@ namespace WikiQuizGenerator.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AIResponses_ModelConfigId",
-                table: "AIResponses",
-                column: "ModelConfigId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AIResponses_QuizId",
@@ -459,6 +451,9 @@ namespace WikiQuizGenerator.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ModelConfigs");
+
+            migrationBuilder.DropTable(
                 name: "QuestionAnswer");
 
             migrationBuilder.DropTable(
@@ -481,9 +476,6 @@ namespace WikiQuizGenerator.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "ModelConfigs");
 
             migrationBuilder.DropTable(
                 name: "Quizzes");

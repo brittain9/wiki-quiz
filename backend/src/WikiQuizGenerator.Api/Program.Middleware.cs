@@ -10,12 +10,6 @@ public partial class Program
     {
         app.UseSerilogRequestLogging();
 
-        // Configure forwarded headers if behind a proxy
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
-        {
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-        });
-
         app.UseCors("AllowReactApp");
 
         app.UseMiddleware<ErrorHandlerMiddleware>();
@@ -26,9 +20,6 @@ public partial class Program
             app.UseHttpsRedirection();
             app.UseHsts();
         }
-
-        app.UseCookiePolicy();
-
         app.UseRouting();
 
         app.UseAuthentication();
@@ -36,6 +27,7 @@ public partial class Program
 
         app.UseRequestTimeouts();
         app.UseRateLimiter();
+        
 
         app.MapAuthEndpoints();
         app.MapQuizEndpoints();

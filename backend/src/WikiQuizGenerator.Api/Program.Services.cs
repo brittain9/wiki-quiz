@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Identity;
@@ -10,8 +11,12 @@ using WikiQuizGenerator.Core.Services;
 using WikiQuizGenerator.Data;
 using WikiQuizGenerator.LLM;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.IdentityModel.Tokens;
+using WikiQuizGenerator.Data.Options;
+using WikiQuizGenerator.Data.Processors;
 
 public partial class Program
 {
@@ -27,6 +32,9 @@ public partial class Program
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
         }
+        
+        services.Configure<JwtOptions>(
+            configuration.GetSection(JwtOptions.JwtOptionsKey));
 
         string frontendUri = configuration["wikiquizapp:FrontendUri"];
         if (string.IsNullOrWhiteSpace(frontendUri))
@@ -68,41 +76,7 @@ public partial class Program
             opt.Password.RequiredLength = 8;
             opt.User.RequireUniqueEmail = true;
         }).AddEntityFrameworkStores<WikiQuizDbContext>();
-
-        // Configure Identity cookie settings
-        services.ConfigureApplicationCookie(options =>
-        {
-            options.ExpireTimeSpan = TimeSpan.FromDays(14);
-            options.SlidingExpiration = true;
-            options.Cookie.HttpOnly = true;
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            
-            // Use HTTPS for cookies in production
-            options.Cookie.SecurePolicy = !environment.IsDevelopment()
-                ? CookieSecurePolicy.Always 
-                : CookieSecurePolicy.SameAsRequest;
-                
-            options.LoginPath = "/login";
-            options.LogoutPath = "/logout";
-            options.AccessDeniedPath = "/access-denied";
-
-            // Handle redirects for OPTIONS requests
-            options.Events = new CookieAuthenticationEvents
-            {
-                OnRedirectToLogin = ctx =>
-                {
-                    if (ctx.Request.Method == "OPTIONS")
-                    {
-                        ctx.Response.StatusCode = 200;
-                        return Task.CompletedTask;
-                    }
-                    
-                    ctx.Response.Redirect(ctx.RedirectUri);
-                    return Task.CompletedTask;
-                }
-            };
-        });
-
+        
         // Add rate limiting services
         services.AddRateLimiter(options =>
         {
@@ -161,7 +135,8 @@ public partial class Program
 
         string connectionString = BuildConnectionString(configuration);
         services.AddDataServices(connectionString);
-
+        
+        services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
         services.AddScoped<IAccountService, AccountService>();
 
         // TODO: These lifetimes could use work
@@ -178,47 +153,57 @@ public partial class Program
         services.AddSingleton<IQuestionGeneratorFactory, QuestionGeneratorFactory>();
         services.AddTransient<IQuizGenerator, QuizGenerator>();
 
-        // Configure Authentication with cookie scheme
-        services.AddAuthentication(options =>
+        services.AddAuthentication(opt =>
         {
-            options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-            options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-            options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-        })
-        // Add Google Authentication
-        .AddGoogle(options =>
+            opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddCookie().AddGoogle(options =>
         {
             var clientId = configuration["wikiquizapp:AuthGoogleClientID"];
-            var clientSecret = configuration["wikiquizapp:AuthGoogleClientSecret"];
 
-            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+            if (clientId == null)
             {
-                throw new ArgumentException("Google OAuth credentials are missing");
+                throw new ArgumentNullException(nameof(clientId));
+            }
+    
+            var clientSecret = configuration["wikiquizapp:AuthGoogleClientSecret"];
+    
+            if (clientSecret == null)
+            {
+                throw new ArgumentNullException(nameof(clientSecret));
             }
 
             options.ClientId = clientId;
             options.ClientSecret = clientSecret;
-            options.SignInScheme = IdentityConstants.ExternalScheme;
+            options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
-            // Explicitly set the callback path
-            options.CallbackPath = "/api/auth/login/google/callback"; // Force your custom path
-            
-            // For production, ensure cookies are secure
-            options.CorrelationCookie.SecurePolicy = !environment.IsDevelopment()
-                ? CookieSecurePolicy.Always
-                : CookieSecurePolicy.SameAsRequest;
-        });
-
-        // Configure cookie policy
-        services.Configure<CookiePolicyOptions>(options =>
+        }).AddJwtBearer(options =>
         {
-            options.MinimumSameSitePolicy = SameSiteMode.Lax;
-            options.HttpOnly = HttpOnlyPolicy.Always;
-            options.Secure = !environment.IsDevelopment()
-                ? CookieSecurePolicy.Always
-                : CookieSecurePolicy.SameAsRequest;
-        });
+            var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey)
+                .Get<JwtOptions>() ?? throw new ArgumentException(nameof(JwtOptions));
 
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtOptions.Issuer,
+                ValidAudience = jwtOptions.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret))
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    context.Token = context.Request.Cookies["ACCESS_TOKEN"];
+                    return Task.CompletedTask;
+                }
+            };
+        });
+        
         services.AddAuthorization();
         services.AddHttpContextAccessor();
     }

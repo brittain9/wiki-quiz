@@ -12,8 +12,8 @@ using WikiQuizGenerator.Data;
 namespace WikiQuizGenerator.Data.Migrations
 {
     [DbContext(typeof(WikiQuizDbContext))]
-    [Migration("20250428024407_wikiquiz")]
-    partial class wikiquiz
+    [Migration("20250504175011_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -183,8 +183,6 @@ namespace WikiQuizGenerator.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModelConfigId");
-
                     b.HasIndex("QuizId");
 
                     b.HasIndex("WikipediaPageId");
@@ -305,6 +303,9 @@ namespace WikiQuizGenerator.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -395,6 +396,12 @@ namespace WikiQuizGenerator.Data.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RefreshTokenExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -554,12 +561,6 @@ namespace WikiQuizGenerator.Data.Migrations
 
             modelBuilder.Entity("WikiQuizGenerator.Core.Models.AIResponse", b =>
                 {
-                    b.HasOne("WikiQuizGenerator.Core.Models.ModelConfig", "ModelConfig")
-                        .WithMany()
-                        .HasForeignKey("ModelConfigId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("WikiQuizGenerator.Core.Models.Quiz", "Quiz")
                         .WithMany("AIResponses")
                         .HasForeignKey("QuizId")
@@ -571,8 +572,6 @@ namespace WikiQuizGenerator.Data.Migrations
                         .HasForeignKey("WikipediaPageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ModelConfig");
 
                     b.Navigation("Quiz");
 

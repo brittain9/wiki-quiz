@@ -10,6 +10,8 @@ services:
       - "5543:80"
     env_file:
       - .env
+    networks:
+      - app-network
     depends_on:
       db:
         condition: service_healthy
@@ -22,6 +24,8 @@ services:
       - "5542:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -31,3 +35,6 @@ services:
 
 volumes:
   db-data:
+networks:
+  app-network:
+    driver: bridge

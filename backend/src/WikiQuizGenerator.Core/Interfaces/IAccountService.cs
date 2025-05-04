@@ -8,6 +8,6 @@ public interface IAccountService
 {
     Task RegisterAsync(RegisterRequest registerRequest);
     Task LoginAsync(LoginRequest loginRequest);
-    Task LoginWithGoogleAsync(ExternalLoginInfo info);
-    Task LogoutAsync(Guid userId);
+    Task RefreshTokenAsync(string? refreshToken);
+    Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
 }

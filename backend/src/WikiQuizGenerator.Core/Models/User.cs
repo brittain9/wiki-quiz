@@ -6,6 +6,8 @@ public class User : IdentityUser<Guid>
 {
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
+    public string? RefreshToken { get; set; }
+    public DateTime? RefreshTokenExpiresAtUtc { get; set; }
     public bool isPremium { get; set; } // dont limit cost of premium users
     public double TotalCost { get; set; }
     public double WeeklyCost { get; set; } // For rate limiting based on weekly usage.

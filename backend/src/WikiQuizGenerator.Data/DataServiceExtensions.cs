@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WikiQuizGenerator.Core.Interfaces;
@@ -17,7 +18,7 @@ public static class DataServiceExtensions
         services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddScoped<IWikipediaPageRepository, WikipediaPageRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-
+        
         return services;
     }
 }
