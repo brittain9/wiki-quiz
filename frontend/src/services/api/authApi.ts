@@ -9,8 +9,8 @@ const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 const AUTH_ENDPOINTS = {
   LOGIN_GOOGLE: '/auth/login/google',
   LOGOUT: '/auth/logout',
-  PROFILE: '/auth/me',
-  // REFRESH_TOKEN: '/auth/refresh'
+  USER_INFO: '/auth/user',
+  REFRESH_TOKEN: '/auth/refresh',
 } as const;
 
 export interface UserInfo {
@@ -29,14 +29,14 @@ export const authApi = {
     try {
       console.log('Initiating Google login flow');
 
-      // Add timestamp as state parameter for CSRF mitigation and use return URL parameter
-      const state = new Date().getTime().toString();
+      // Make sure APP_BASE_URL is properly defined
+      if (!APP_BASE_URL) {
+        console.error('APP_BASE_URL environment variable is not defined');
+        throw new Error('Application configuration error');
+      }
+
       const returnUrl = encodeURIComponent(APP_BASE_URL);
-
-      // Use full backend URL without redundant API prefix
-      const loginUrl = `${API_BASE_URL}${AUTH_ENDPOINTS.LOGIN_GOOGLE}?returnUrl=${returnUrl}&state=${state}`;
-
-      console.log('Redirecting to:', loginUrl); // Debug log
+      const loginUrl = `${API_BASE_URL}${AUTH_ENDPOINTS.LOGIN_GOOGLE}?returnUrl=${returnUrl}`;
 
       // Redirect to backend's auth endpoint
       window.location.href = loginUrl;
@@ -53,7 +53,7 @@ export const authApi = {
   async getCurrentUser(): Promise<UserInfo> {
     try {
       // Use no-cache headers to ensure we get the latest user state
-      return await apiGet<UserInfo>(AUTH_ENDPOINTS.PROFILE, {
+      return await apiGet<UserInfo>(AUTH_ENDPOINTS.USER_INFO, {
         headers: {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',
@@ -90,16 +90,16 @@ export const authApi = {
    * Refreshes the authentication token
    * Used to extend the session without requiring re-login
    */
-  // async refreshToken(): Promise<void> {
-  //   try {
-  //     console.log('Refreshing authentication token');
-  //     await apiPost<void>(AUTH_ENDPOINTS.REFRESH_TOKEN);
-  //     console.log('Token successfully refreshed');
-  //   } catch (error) {
-  //     console.error(`Failed to refresh token: ${parseApiError(error)}`);
-  //     throw error;
-  //   }
-  // }
+  async refreshToken(): Promise<void> {
+    try {
+      console.log('Refreshing authentication token');
+      await apiPost<void>(AUTH_ENDPOINTS.REFRESH_TOKEN);
+      console.log('Token successfully refreshed');
+    } catch (error) {
+      console.error(`Failed to refresh token: ${parseApiError(error)}`);
+      throw error;
+    }
+  },
 };
 
 export default authApi;

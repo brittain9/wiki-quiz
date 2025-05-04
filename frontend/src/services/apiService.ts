@@ -49,9 +49,9 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // withCredentials must be false when the server uses Access-Control-Allow-Origin: *
-  // If credentials are needed, the server must specify an exact origin instead of wildcard
-  withCredentials: false,
+  // Enable withCredentials to allow cookies to be sent/received in cross-origin requests
+  // This is required for JWT authentication via HTTP-only cookies
+  withCredentials: true,
 });
 
 // Request interceptor for logging and token handling
@@ -71,12 +71,12 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error: AxiosError) => {
-    // Don't log 401s as errors for the /auth/me endpoint since that's expected when not logged in
+    // Don't log 401s as errors for the /auth/user endpoint since that's expected when not logged in
     if (
-      error.config?.url?.includes('/auth/me') &&
+      error.config?.url?.includes('/auth/user') &&
       error.response?.status === 401
     ) {
-      // User not authenticated - expected for /auth/me
+      // User not authenticated - expected for /auth/user
     } else {
       // Special handling for auth errors
       if (error.response && error.response.status === 401) {
