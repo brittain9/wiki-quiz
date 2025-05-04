@@ -17,6 +17,9 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    env:
+      VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+      VITE_APP_BASE_URL: ${{ secrets.VITE_APP_BASE_URL }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -44,10 +47,6 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "dist" # Built app content directory - optional
           github_id_token: ${{ steps.idtoken.outputs.result }}
-          env: |
-            VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
-            VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL }}
-          ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
