@@ -17,18 +17,19 @@ if (-not (Test-Path -Path $SECRETS_FILE -PathType Leaf)) {
 $secrets = Get-Content -Path $SECRETS_FILE
 
 # Validate that the file has enough lines
-if ($secrets.Count -lt 4) {
-    Write-Error "Error: Secrets file '$SECRETS_FILE' must contain at least 4 lines."
-    Write-Error "Please ensure it has your PostgreSQL password, OpenAI API Key, Google Client ID, and Google Client Secret on separate lines."
+if ($secrets.Count -lt 5) {
+    Write-Error "Error: Secrets file '$SECRETS_FILE' must contain at least 5 lines."
+    Write-Error "Please ensure it has your PostgreSQL password, OpenAI API Key, Google Client ID, Google Client Secret, and JWT Secret on separate lines."
     exit 1
 }
 
 # Assign array elements to variables
-# Ensure the file has at least 4 lines for this to work correctly
+# Ensure the file has at least 5 lines for this to work correctly
 $POSTGRES_PASSWORD = $secrets[0]
 $OPENAI_API_KEY = $secrets[1]
 $GOOGLE_CLIENT_ID = $secrets[2]
 $GOOGLE_CLIENT_SECRET = $secrets[3]
+$JWT_SECRET = $secrets[4]
 
 # --- End: Reading secrets from secrets.txt ---
 
@@ -46,6 +47,7 @@ $DeploymentParameters = @{
     openAiApiKey          = @{ value = $OPENAI_API_KEY }
     googleClientId        = @{ value = $GOOGLE_CLIENT_ID }
     googleClientSecret    = @{ value = $GOOGLE_CLIENT_SECRET }
+    jwtSecret             = @{ value = $JWT_SECRET }
   }
 }
 

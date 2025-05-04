@@ -26,6 +26,8 @@ const QuizResult: React.FC<QuizResultProps> = ({
   const handleViewDetailedSubmission = useCallback(() => {
     if (currentSubmission) {
       showOverlay('quiz_result', { resultId: currentSubmission.id });
+    } else {
+      console.error('Cannot show quiz result: submission is null');
     }
   }, [currentSubmission, showOverlay]);
 

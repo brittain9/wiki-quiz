@@ -48,6 +48,22 @@ param googleClientSecret string
 @description('The publicly accessible URI of the frontend application. Will be stored in App Config. For CORS.')
 param frontendUri string
 
+@description('The JWT Issuer URI. Will be stored in App Config.')
+param jwtIssuer string
+
+@description('The JWT Audience URI. Will be stored in App Config.')
+param jwtAudience string
+
+@description('The JWT token expiration time in minutes. Will be stored in App Config.')
+param jwtExpirationTimeInMinutes int
+
+@description('The JWT Secret key. Will be stored in Key Vault.')
+@secure()
+param jwtSecret string
+
+@description('Whether to skip using Azure App Configuration and use environment variables directly instead. Defaults to false.')
+param skipAppConfig bool = false
+
 
 // --- Variables ---
 var uniqueSuffix = uniqueString(resourceGroup().id, projectName, location) // Ensures uniqueness for globally unique resources
@@ -96,11 +112,18 @@ var configKeyOpenAIApiKey = '${configKeyPrefix}OpenAIApiKey' // Secret - will be
 var configKeyGoogleClientId = '${configKeyPrefix}AuthGoogleClientID' // Secret - will be KV reference
 var configKeyGoogleClientSecret = '${configKeyPrefix}AuthGoogleClientSecret' // Secret - will be KV reference
 
+// JWT Configuration Keys
+var configKeyJwtIssuer = 'JwtOptions:Issuer'
+var configKeyJwtAudience = 'JwtOptions:Audience'
+var configKeyJwtExpirationTimeInMinutes = 'JwtOptions:ExpirationTimeInMinutes'
+var configKeyJwtSecret = 'JwtOptions:Secret' // Secret - will be KV reference
+
 // Names for secrets stored in Key Vault
 var secretNamePostgresPassword = 'PostgresAdminPassword'
 var secretNameOpenAIApiKey = 'OpenAIApiKey'
 var secretNameGoogleClientId = 'GoogleClientId'
 var secretNameGoogleClientSecret = 'GoogleClientSecret'
+var secretNameJwtSecret = 'JwtSecret'
 
 
 // --- Resource Definitions ---
@@ -193,8 +216,18 @@ resource googleClientSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01'
   }
 }
 
+// 3.5 Store JWT Secret in Key Vault
+@description('Stores the JWT Secret as a secret in Key Vault.')
+resource jwtSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: secretNameJwtSecret // Use variable
+  properties: {
+    value: jwtSecret
+  }
+}
 
-// 4. Azure App Configuration (Free Tier)
+
+// 4. Azure App Configuration
 @description('Creates the Azure App Configuration store.')
 resource appConfigStore 'Microsoft.AppConfiguration/configurationStores@2023-03-01' = {
   name: appConfigStoreName
@@ -251,9 +284,39 @@ resource appConfigFrontendUri 'Microsoft.AppConfiguration/configurationStores/ke
   parent: appConfigStore
   name: configKeyFrontendUri
   properties: {
-    value: frontendUri // Use the frontend URI parameter
-    // Apply to specific environment label
+    value: frontendUri // Use the parameter
     label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
+  }
+}
+
+// JWT Configuration - Non-Secret Values
+@description('Adds JWT Issuer to App Configuration.')
+resource appConfigJwtIssuer 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
+  parent: appConfigStore
+  name: configKeyJwtIssuer
+  properties: {
+    value: jwtIssuer
+    label: aspNetCoreEnvironmentName
+  }
+}
+
+@description('Adds JWT Audience to App Configuration.')
+resource appConfigJwtAudience 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
+  parent: appConfigStore
+  name: configKeyJwtAudience
+  properties: {
+    value: jwtAudience
+    label: aspNetCoreEnvironmentName
+  }
+}
+
+@description('Adds JWT Expiration Time to App Configuration.')
+resource appConfigJwtExpirationTime 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
+  parent: appConfigStore
+  name: configKeyJwtExpirationTimeInMinutes
+  properties: {
+    value: string(jwtExpirationTimeInMinutes) // Convert int to string
+    label: aspNetCoreEnvironmentName
   }
 }
 
@@ -306,6 +369,20 @@ resource appConfigGoogleClientSecret 'Microsoft.AppConfiguration/configurationSt
     label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
   }
   dependsOn: [ keyVault, googleClientSecretSecret ]
+}
+
+@description('Adds JWT Secret as a Key Vault reference to App Configuration.')
+resource appConfigJwtSecretRef 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
+  parent: appConfigStore
+  name: configKeyJwtSecret
+  properties: {
+    contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
+    value: string({
+      uri: '${keyVault.properties.vaultUri}secrets/${secretNameJwtSecret}'
+    })
+    label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
+  }
+  dependsOn: [ jwtSecretSecret, keyVault ]
 }
 
 
@@ -450,22 +527,12 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
               name: 'AZURE_CLIENT_ID'
               value: managedIdentity.properties.clientId
             }
-            // Enable Swagger in Production temporarily for testing
-            {
-              name: 'ASPNETCORE_ENABLESWAGGER'
-              value: 'true'
-            }
-            // Set CORS to allow all origins temporarily for testing
-            {
-              name: 'ASPNETCORE_CORS_ALLOWALL'
-              value: 'true'
-            }
-            // Optional: Add this if you want to debug App Config issues
+            // Set whether to skip App Configuration and use environment variables instead
             {
               name: 'SKIP_APP_CONFIG'
-              value: 'true'
+              value: string(skipAppConfig)
             }
-            // Provide direct database connection (temporary)
+            // Provide direct database connection
             {
               name: 'WIKIQUIZAPP__POSTGRESHOST'
               value: postgresServer.properties.fullyQualifiedDomainName
@@ -480,7 +547,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
             {
               name: 'WIKIQUIZAPP__POSTGRESPASSWORD'
-              value: postgresAdminPassword // Note: This is temporary. In production, you'd use Key Vault reference.
+              value: postgresAdminPassword
             }
             {
               name: 'WIKIQUIZAPP__FRONTENDURI'

@@ -1,4 +1,3 @@
-import CloseIcon from '@mui/icons-material/Close';
 import {
   Typography,
   List,
@@ -9,43 +8,18 @@ import {
   CircularProgress,
   Box,
   Chip,
-  Modal,
   Button,
-  IconButton,
 } from '@mui/material';
 import { format } from 'date-fns';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import QuizResultOverlay from './Overlays/QuizResultOverlay';
 import { useAuth } from '../context/AuthContext/AuthContext';
+import { useOverlay } from '../context/OverlayContext/OverlayContext';
 import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../hooks/useAuthCheck';
 import { submissionApi } from '../services';
-import { QuizResult } from '../types/quizResult.types';
-import { SubmissionResponse, SubmissionDetail, QuestionAnswer } from '../types/quizSubmission.types';
-
-// Helper to map SubmissionDetail to QuizResult
-function mapSubmissionDetailToQuizResult(detail: SubmissionDetail): QuizResult {
-  // Build a map of correct answers from quiz object
-  const correctAnswers: Record<number, number> = {};
-  detail.quiz.aiResponses.forEach((aiResp) => {
-    aiResp.questions.forEach((q) => {
-      // Assume correct answer is always the first option (index 0) unless you have a better way
-      correctAnswers[q.id] = 0;
-    });
-  });
-  return {
-    quiz: detail.quiz,
-    answers: detail.questionAnswers.map((qa: QuestionAnswer) => ({
-      questionId: qa.questionId,
-      correctAnswerChoice: correctAnswers[qa.questionId] ?? 0,
-      selectedAnswerChoice: qa.selectedOptionNumber,
-    })),
-    submissionTime: detail.submissionTime,
-    score: detail.score,
-  };
-}
+import { SubmissionResponse } from '../types/quizSubmission.types';
 
 const SubmissionHistory: React.FC = React.memo(() => {
   const { submissionHistory: newSubmissions } = useQuizState();
@@ -56,12 +30,7 @@ const SubmissionHistory: React.FC = React.memo(() => {
   const [error, setError] = useState<string | null>(null);
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
-
-  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
-  const [selectedQuizResult, setSelectedQuizResult] =
-    useState<QuizResult | null>(null);
-  const [isResultLoading, setIsResultLoading] = useState(false);
-  const [resultError, setResultError] = useState<string | null>(null);
+  const { showOverlay } = useOverlay();
 
   const { checkAuth } = useAuthCheck({
     message: t('login.viewSubmissionsMessage'),
@@ -122,26 +91,15 @@ const SubmissionHistory: React.FC = React.memo(() => {
         return;
       }
 
-      setIsResultLoading(true);
-      setResultError(null);
       try {
-        const result = await submissionApi.getQuizSubmissionById(id);
-        setSelectedQuizResult(mapSubmissionDetailToQuizResult(result));
-        setIsOverlayOpen(true);
-      } catch {
-        setResultError('Failed to load quiz result. Please try again.');
-      } finally {
-        setIsResultLoading(false);
+        // Instead of managing our own state and modal, just pass the ID to the overlay system
+        showOverlay('quiz_result', { resultId: id });
+      } catch (error) {
+        console.error('Failed to handle submission click:', error);
       }
     },
-    [checkAuth],
+    [checkAuth, showOverlay],
   );
-
-  // Close the overlay
-  const closeOverlay = useCallback(() => {
-    setIsOverlayOpen(false);
-    setSelectedQuizResult(null);
-  }, []);
 
   // Get chip color based on score
   const getScoreColor = useCallback((score: number) => {
@@ -360,54 +318,6 @@ const SubmissionHistory: React.FC = React.memo(() => {
           )}
         </Paper>
       </Box>
-
-      <Modal
-        open={isOverlayOpen}
-        onClose={closeOverlay}
-        aria-labelledby="quiz-result-modal"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: { xs: '95%', sm: '80%', md: '70%' },
-            maxWidth: 800,
-            maxHeight: '90vh',
-            overflow: 'auto',
-            bgcolor: 'var(--bg-color)',
-            color: 'var(--text-color)',
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
-            outline: 'none',
-          }}
-        >
-          <IconButton
-            aria-label="close"
-            onClick={closeOverlay}
-            sx={{
-              position: 'absolute',
-              right: 12,
-              top: 12,
-              color: 'var(--sub-color)',
-              '&:hover': {
-                color: 'var(--main-color)',
-                backgroundColor: 'var(--bg-color-secondary)',
-              },
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-          <QuizResultOverlay
-            quizResult={selectedQuizResult}
-            isLoading={isResultLoading}
-            error={resultError}
-            standalone={true}
-          />
-        </Box>
-      </Modal>
     </>
   );
 });

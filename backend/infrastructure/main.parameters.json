@@ -33,7 +33,22 @@
       "value": null
     },
     "frontendUri": {
-      "value": "http://localhost:5173"
+      "value": "https://quiz.alexanderbrittain.com/"
+    },
+    "jwtIssuer": {
+      "value": "https://quiz.alexanderbrittain.com/"
+    },
+    "jwtAudience": {
+      "value": "https://wikiquiz.azurestaticapps.net"
+    },
+    "jwtExpirationTimeInMinutes": {
+      "value": 15
+    },
+    "jwtSecret": {
+      "value": null
+    },
+    "skipAppConfig": {
+      "value": false
     }
   }
 }

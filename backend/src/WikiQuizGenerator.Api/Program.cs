@@ -19,11 +19,16 @@ try
     builder.Host.UseSerilog((context, services, configuration) => 
         configuration.ReadFrom.Configuration(context.Configuration));
 
-    // Only use Azure App Configuration in non-development environments
-    // In development, the default configuration includes appsettings.Development.json
-    if (!builder.Environment.IsDevelopment())
+    // Check if we should skip App Configuration based on environment variable
+    // This allows testing with App Config in any environment
+    bool skipAppConfig = string.Equals(
+        Environment.GetEnvironmentVariable("SKIP_APP_CONFIG"), 
+        "true", 
+        StringComparison.OrdinalIgnoreCase);
+
+    if (!skipAppConfig)
     {
-        Log.Information("Configuring Azure App Configuration in non-development environment");
+        Log.Information("Configuring Azure App Configuration");
         try
         {
             string endpoint = Environment.GetEnvironmentVariable("AZURE_APP_CONFIG_ENDPOINT");
@@ -63,6 +68,10 @@ try
             // Log the error but continue - we'll use local configuration
             Log.Error(ex, "Failed to connect to Azure App Configuration. Using local configuration instead.");
         }
+    }
+    else
+    {
+        Log.Information("Skipping Azure App Configuration based on SKIP_APP_CONFIG environment variable");
     }
 
     Log.Information("Configuring services");

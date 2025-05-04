@@ -22,7 +22,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 import { submissionApi } from '../../services';
 import { Question, QuizResult, ResultOption } from '../../types';
-import { SubmissionDetail, QuestionAnswer } from '../../types/quizSubmission.types';
+import {
+  SubmissionDetail,
+  QuestionAnswer,
+} from '../../types/quizSubmission.types';
 
 interface QuizResultOverlayProps {
   quizResult?: QuizResult | null;
@@ -33,6 +36,11 @@ interface QuizResultOverlayProps {
 
 // Helper to map SubmissionDetail to QuizResult
 function mapSubmissionDetailToQuizResult(detail: SubmissionDetail): QuizResult {
+  // The API response might already be in the QuizResult format with 'answers' property
+  if ('answers' in detail) {
+    return detail as unknown as QuizResult;
+  }
+
   // Build a map of correct answers from quiz object
   const correctAnswers: Record<number, number> = {};
   detail.quiz.aiResponses.forEach((aiResp) => {
@@ -41,9 +49,10 @@ function mapSubmissionDetailToQuizResult(detail: SubmissionDetail): QuizResult {
       correctAnswers[q.id] = 0;
     });
   });
+
   return {
     quiz: detail.quiz,
-    answers: detail.questionAnswers.map((qa: QuestionAnswer) => ({
+    answers: detail.questionAnswers.map((qa) => ({
       questionId: qa.questionId,
       correctAnswerChoice: correctAnswers[qa.questionId] ?? 0,
       selectedAnswerChoice: qa.selectedOptionNumber,
@@ -89,9 +98,21 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
     setInternalError(null);
     try {
       const result = await submissionApi.getQuizSubmissionById(submissionId);
-      setInternalQuizResult(mapSubmissionDetailToQuizResult(result));
-    } catch {
-      setInternalError('Failed to fetch quiz result');
+
+      if (!result || !result.quiz) {
+        throw new Error('Quiz data is missing or invalid');
+      }
+
+      try {
+        const mappedResult = mapSubmissionDetailToQuizResult(result);
+        setInternalQuizResult(mappedResult);
+      } catch (mappingError) {
+        throw new Error('Could not process quiz result data');
+      }
+    } catch (error) {
+      setInternalError(
+        error instanceof Error ? error.message : 'Failed to load quiz details',
+      );
     } finally {
       setInternalIsLoading(false);
     }

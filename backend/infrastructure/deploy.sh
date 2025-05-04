@@ -20,11 +20,12 @@ fi
 mapfile -t SECRETS < "$SECRETS_FILE"
 
 # Assign array elements to variables
-# Ensure the file has at least 4 lines for this to work correctly
+# Ensure the file has at least 5 lines for this to work correctly
 POSTGRES_PASSWORD="${SECRETS[0]}"
 OPENAI_API_KEY="${SECRETS[1]}"
 GOOGLE_CLIENT_ID="${SECRETS[2]}"
 GOOGLE_CLIENT_SECRET="${SECRETS[3]}"
+JWT_SECRET="${SECRETS[4]}"
 
 # --- End: Reading secrets from secrets.txt ---
 
@@ -41,6 +42,7 @@ az deployment group create \
     postgresAdminPassword="$POSTGRES_PASSWORD" \
     openAiApiKey="$OPENAI_API_KEY" \
     googleClientId="$GOOGLE_CLIENT_ID" \
-    googleClientSecret="$GOOGLE_CLIENT_SECRET"
+    googleClientSecret="$GOOGLE_CLIENT_SECRET" \
+    jwtSecret="$JWT_SECRET"
 
 echo "Deployment script finished."
