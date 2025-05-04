@@ -3,7 +3,9 @@
 # Use different resource groups for production and testing
 PROD_RESOURCE_GROUP="rg-wikiquiz-production"
 TEST_RESOURCE_GROUP="rg-wikiquiz-test"
-RESOURCE_GROUP="$PROD_RESOURCE_GROUP"  # Change to $TEST_RESOURCE_GROUP for testing
+DEV_RESOURCE_GROUP="rg-wikiquiz-dev"
+
+RESOURCE_GROUP="$DEV_RESOURCE_GROUP"  # Change to $TEST_RESOURCE_GROUP for testing
 LOCATION="centralus"
 
 # --- Start: Reading secrets from secrets.txt ---
@@ -16,16 +18,26 @@ if [ ! -f "$SECRETS_FILE" ]; then
   exit 1
 fi
 
-# Read secrets into an array
-mapfile -t SECRETS < "$SECRETS_FILE"
+# Read secrets using a more compatible approach
+# Read first line (PostgreSQL password)
+POSTGRES_PASSWORD=$(sed -n '1p' "$SECRETS_FILE")
+# Read second line (OpenAI API key)
+OPENAI_API_KEY=$(sed -n '2p' "$SECRETS_FILE")
+# Read third line (Google Client ID)
+GOOGLE_CLIENT_ID=$(sed -n '3p' "$SECRETS_FILE")
+# Read fourth line (Google Client Secret)
+GOOGLE_CLIENT_SECRET=$(sed -n '4p' "$SECRETS_FILE")
+# Read fifth line (JWT Secret)
+JWT_SECRET=$(sed -n '5p' "$SECRETS_FILE")
 
-# Assign array elements to variables
-# Ensure the file has at least 5 lines for this to work correctly
-POSTGRES_PASSWORD="${SECRETS[0]}"
-OPENAI_API_KEY="${SECRETS[1]}"
-GOOGLE_CLIENT_ID="${SECRETS[2]}"
-GOOGLE_CLIENT_SECRET="${SECRETS[3]}"
-JWT_SECRET="${SECRETS[4]}"
+# Debug - check if password is empty or contains problematic characters
+if [ -z "$POSTGRES_PASSWORD" ]; then
+  echo "Error: PostgreSQL password is empty! Check your secrets.txt file."
+  exit 1
+fi
+
+echo "Postgres password length: ${#POSTGRES_PASSWORD} characters"
+echo "First character: ${POSTGRES_PASSWORD:0:1}"
 
 # --- End: Reading secrets from secrets.txt ---
 
@@ -38,6 +50,7 @@ echo "Starting Bicep deployment..."
 az deployment group create \
   --resource-group "$RESOURCE_GROUP" \
   --template-file main.bicep \
+  --parameters @main.parameters.json \
   --parameters \
     postgresAdminPassword="$POSTGRES_PASSWORD" \
     openAiApiKey="$OPENAI_API_KEY" \

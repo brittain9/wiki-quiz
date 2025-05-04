@@ -6,10 +6,10 @@
       "value": "wikiquizapi"
     },
     "environmentName": {
-      "value": "Production"
+      "value": "Development"
     },
     "containerImage": {
-      "value": "acrwikiquizapiprodkp6ixsqfe23re.azurecr.io/wikiquizapi:v0.1"
+      "value": "acrwikiquizapi5d6mqkb4y44j2.azurecr.io/wikiquizapi:v0.3"
     },
     "containerPort": {
       "value": 8080

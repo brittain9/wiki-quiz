@@ -75,17 +75,17 @@ var managedIdentityRaw = 'id-${projectName}-${environmentShort}'
 var managedIdentityName = toLower(substring(managedIdentityRaw, 0, min(24, length(managedIdentityRaw))))
 
 // Resource name variables with prefix at the beginning and length limits (safe substring)
-// Key Vault: 3-24 chars, alphanumeric, start/end with letter/digit
+// Key Vault: 3-24 chars, alphanumeric, start/end with letter/digit - Restoring environmentShort
 var keyVaultRaw = 'kv${projectName}${environmentShort}${uniqueSuffix}'
 var keyVaultName = toLower(substring(keyVaultRaw, 0, min(24, length(keyVaultRaw))))
-// Container Registry: 5-50 chars, alphanumeric, no hyphens, must be unique
-var containerRegistryRaw = 'acr${projectName}${environmentShort}${uniqueSuffix}'
+// Container Registry: 5-50 chars, alphanumeric, no hyphens, must be unique - REMOVED environmentShort
+var containerRegistryRaw = 'acr${projectName}${uniqueSuffix}'
 var containerRegistryName = toLower(substring(containerRegistryRaw, 0, min(50, length(containerRegistryRaw))))
 // App Config: 5-50 chars, alphanumeric and hyphens, start/end with alphanumeric
 var appConfigStoreRaw = 'acfg-${projectName}-${environmentShort}-${uniqueSuffix}'
 var appConfigStoreName = toLower(substring(appConfigStoreRaw, 0, min(50, length(appConfigStoreRaw))))
 // Log Analytics: 4-63 chars, letters, numbers, and hyphens, start/end with letter/number
-var logAnalyticsWorkspaceRaw = 'log-${projectName}-${environmentShort}-${uniqueSuffix}'
+var logAnalyticsWorkspaceRaw = 'log-${projectName}-${uniqueSuffix}'
 var logAnalyticsWorkspaceName = toLower(substring(logAnalyticsWorkspaceRaw, 0, min(63, length(logAnalyticsWorkspaceRaw))))
 // Postgres Server: 3-63 chars, lowercase letters, numbers, and hyphens, start/end with letter/number
 var postgresServerRaw = 'pg-${projectName}-${environmentShort}-${uniqueSuffix}'
@@ -463,6 +463,40 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
   ]
 }
 
+// --- Role Assignments for Managed Identity ---
+@description('Grants the Container App Managed Identity permission to get secrets from Key Vault.')
+resource keyVaultSecretUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(keyVault.id, managedIdentity.id, 'kvSecretUser')
+  scope: keyVault
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
+    principalId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+@description('Grants the Container App Managed Identity permission to read data from App Configuration.')
+resource appConfigDataReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(appConfigStore.id, managedIdentity.id, 'appConfigReader')
+  scope: appConfigStore
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071') // App Configuration Data Reader
+    principalId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+@description('Grants the Container App Managed Identity permission to pull images from ACR.')
+resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(containerRegistry.id, managedIdentity.id, 'acrPull')
+  scope: containerRegistry
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
+    principalId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // 7. Container App (Web API) - Now using the user-assigned managed identity
 @description('Creates the Azure Container App for the Web API.')
 resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
@@ -484,7 +518,7 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
       registries: [
         {
           server: containerRegistry.properties.loginServer
-          identity: managedIdentity.id // Use the user-assigned identity for ACR pull
+          identity: managedIdentity.id
         }
       ]
       // --- Ingress Configuration ---
@@ -572,45 +606,10 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
     appConfigGoogleClientId
     appConfigGoogleClientSecret
     postgresFirewallRuleAllowAzure
-    acrPullRoleAssignment // Wait for role assignments to be created first
+    acrPullRoleAssignment // Ensure role assignment is explicitly referenced
     keyVaultSecretUserRoleAssignment
     appConfigDataReaderRoleAssignment
   ]
-}
-
-
-// --- Role Assignments for Managed Identity ---
-@description('Grants the Container App Managed Identity permission to get secrets from Key Vault.')
-resource keyVaultSecretUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, managedIdentity.id, 'kvSecretUser')
-  scope: keyVault
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6') // Key Vault Secrets User
-    principalId: managedIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Grants the Container App Managed Identity permission to read data from App Configuration.')
-resource appConfigDataReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(appConfigStore.id, managedIdentity.id, 'appConfigReader')
-  scope: appConfigStore
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071') // App Configuration Data Reader
-    principalId: managedIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Grants the Container App Managed Identity permission to pull images from ACR.')
-resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(containerRegistry.id, managedIdentity.id, 'acrPull')
-  scope: containerRegistry
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d') // AcrPull
-    principalId: managedIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
 }
 
 
