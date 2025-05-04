@@ -54,11 +54,29 @@ public static class AuthEndpoints
 
         // --- Google Login Initiation Endpoint ---
         group.MapGet("/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator,
-                SignInManager<User> signInManager, HttpContext context) =>
+                SignInManager<User> signInManager, HttpContext context, ILogger<Program> logger) =>
             {
-                var properties = signInManager.ConfigureExternalAuthenticationProperties("Google",
-                    linkGenerator.GetPathByName(context, "GoogleLoginCallback")
-                    + $"?returnUrl={returnUrl}");
+                logger.LogInformation("Initiating Google login with return URL: {ReturnUrl}", returnUrl);
+                
+                // Get the callback path
+                var callbackPath = linkGenerator.GetPathByName(context, "GoogleLoginCallback") + $"?returnUrl={returnUrl}";
+                
+                // Get the host from the request
+                var host = context.Request.Host.Value;
+                
+                // Use current scheme for localhost, always force HTTPS otherwise
+                var scheme = host.Contains("localhost") || host.Equals("127.0.0.1") 
+                    ? context.Request.Scheme  // Use whatever scheme is used locally
+                    : "https";                // Always force HTTPS in production
+                
+                // Build the full callback URL with the appropriate scheme
+                var callbackUrl = $"{scheme}://{host}{callbackPath}";
+                
+                logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
+                
+                var properties = signInManager.ConfigureExternalAuthenticationProperties(
+                    "Google", 
+                    callbackUrl);
 
                 return Results.Challenge(properties, ["Google"]);
             })
