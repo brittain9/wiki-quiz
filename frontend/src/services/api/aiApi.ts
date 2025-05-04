@@ -1,9 +1,9 @@
 import { apiGet, parseApiError } from '../apiService';
 
 const AI_ENDPOINTS = {
-  SERVICES: '/api/ai/services',
-  MODELS: '/api/ai/models',
-  USER_COST: '/api/ai/user-cost',
+  SERVICES: '/ai/services',
+  MODELS: '/ai/models',
+  USER_COST: '/ai/user-cost',
 } as const;
 
 export const aiApi = {
