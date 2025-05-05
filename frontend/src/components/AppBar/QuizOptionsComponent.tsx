@@ -121,7 +121,7 @@ const QuizOptionsComponent: React.FC = () => {
             <InputLabel id="variety-label">Variety</InputLabel>
             <Select
               labelId="variety-label"
-              value={quizOptions.extractLength || 5000} // Default to 5000 (High) if no value is set
+              value={quizOptions.extractLength || 10000}
               label="Variety"
               onChange={(e) => setExtractLength(Number(e.target.value))}
             >
