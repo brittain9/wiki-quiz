@@ -18,7 +18,7 @@ export const QuizOptionsProvider: React.FC<React.PropsWithChildren> = ({
     topic: '',
     numQuestions: 5,
     numOptions: 4,
-    extractLength: 5000,
+    extractLength: 10000,
     language: i18n.language,
     selectedService: null,
     selectedModel: null,

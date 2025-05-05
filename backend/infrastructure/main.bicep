@@ -55,6 +55,9 @@ param jwtAudience string
 @secure()
 param jwtSecret string
 
+@description('The Frontend URL for CORS configuration.')
+param FrontendUrl string
+
 // --- Variables ---
 var uniqueSuffix = uniqueString(resourceGroup().id, projectName, location) // Ensures uniqueness for globally unique resources
 
@@ -131,6 +134,7 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10
 }
 
 // 2. Azure Container Registry (Basic Tier)
+// TODO: In the future, find somewhere else to store the container images. This is costing $0.16 per day
 @description('Creates the Azure Container Registry.')
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: containerRegistryName
@@ -454,7 +458,17 @@ resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
         external: true
         targetPort: containerPort
         transport: 'auto'
-        allowInsecure: false // Enforce HTTPS
+        allowInsecure: false
+        corsPolicy: {
+          allowedOrigins: [
+            FrontendUrl
+          ]
+          allowedHeaders: [
+            '*'
+          ]
+          allowCredentials: true
+          maxAge: 86400
+        }
       }
     }
     // --- Template for the Container(s) ---
