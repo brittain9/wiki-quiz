@@ -1,8 +1,8 @@
 // wikiApi.ts
 import axios from 'axios';
 
-import { parseApiError } from '../apiService';
 import i18n from '../../i18n/i18n';
+import { parseApiError } from '../apiService';
 
 // Helper function to map complex language codes to simple ones
 const getSimpleLanguageCode = (languageCode: string) => {

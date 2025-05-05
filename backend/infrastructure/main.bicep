@@ -12,12 +12,12 @@ param location string = resourceGroup().location
   'Production'
   'Test'
 ])
-param environmentName string = 'Production' // Default to Production
+param environmentName string = 'Development'
 
 // Add a short environment name for resource naming
 var environmentShort = environmentName == 'Production' ? 'prod' : environmentName == 'Development' ? 'dev' :  environmentName == 'Test' ? 'test' : toLower(environmentName)
 
-@description('The Docker image for the Web API (e.g., "myrepo/myapi:latest").')
+@description('The image for the Web API (e.g., "myrepo/myapi:latest").')
 param containerImage string
 
 @description('The port your container listens on.')
@@ -45,47 +45,35 @@ param googleClientId string
 @secure()
 param googleClientSecret string
 
-@description('The publicly accessible URI of the frontend application. Will be stored in App Config. For CORS.')
-param frontendUri string
-
 @description('The JWT Issuer URI. Will be stored in App Config.')
 param jwtIssuer string
 
 @description('The JWT Audience URI. Will be stored in App Config.')
 param jwtAudience string
 
-@description('The JWT token expiration time in minutes. Will be stored in App Config.')
-param jwtExpirationTimeInMinutes int
-
 @description('The JWT Secret key. Will be stored in Key Vault.')
 @secure()
 param jwtSecret string
 
-@description('Whether to skip using Azure App Configuration and use environment variables directly instead. Defaults to false.')
-param skipAppConfig bool = false
-
-
 // --- Variables ---
 var uniqueSuffix = uniqueString(resourceGroup().id, projectName, location) // Ensures uniqueness for globally unique resources
-// Use the short environment name for resource naming
-var resourceNamePrefix = '${projectName}-${environmentShort}'
 
 // Add managed identity name
 var managedIdentityRaw = 'id-${projectName}-${environmentShort}'
 var managedIdentityName = toLower(substring(managedIdentityRaw, 0, min(24, length(managedIdentityRaw))))
 
 // Resource name variables with prefix at the beginning and length limits (safe substring)
-// Key Vault: 3-24 chars, alphanumeric, start/end with letter/digit
+// Key Vault: 3-24 chars, alphanumeric, start/end with letter/digit - Restoring environmentShort
 var keyVaultRaw = 'kv${projectName}${environmentShort}${uniqueSuffix}'
 var keyVaultName = toLower(substring(keyVaultRaw, 0, min(24, length(keyVaultRaw))))
-// Container Registry: 5-50 chars, alphanumeric, no hyphens, must be unique
-var containerRegistryRaw = 'acr${projectName}${environmentShort}${uniqueSuffix}'
+// Container Registry: 5-50 chars, alphanumeric, no hyphens, must be unique - REMOVED environmentShort
+var containerRegistryRaw = 'acr${projectName}${uniqueSuffix}'
 var containerRegistryName = toLower(substring(containerRegistryRaw, 0, min(50, length(containerRegistryRaw))))
 // App Config: 5-50 chars, alphanumeric and hyphens, start/end with alphanumeric
 var appConfigStoreRaw = 'acfg-${projectName}-${environmentShort}-${uniqueSuffix}'
 var appConfigStoreName = toLower(substring(appConfigStoreRaw, 0, min(50, length(appConfigStoreRaw))))
 // Log Analytics: 4-63 chars, letters, numbers, and hyphens, start/end with letter/number
-var logAnalyticsWorkspaceRaw = 'log-${projectName}-${environmentShort}-${uniqueSuffix}'
+var logAnalyticsWorkspaceRaw = 'log-${projectName}-${uniqueSuffix}'
 var logAnalyticsWorkspaceName = toLower(substring(logAnalyticsWorkspaceRaw, 0, min(63, length(logAnalyticsWorkspaceRaw))))
 // Postgres Server: 3-63 chars, lowercase letters, numbers, and hyphens, start/end with letter/number
 var postgresServerRaw = 'pg-${projectName}-${environmentShort}-${uniqueSuffix}'
@@ -103,28 +91,22 @@ var aspNetCoreEnvironmentName = environmentName
 
 // Key names expected by the C# application via IConfiguration
 var configKeyPrefix = 'wikiquizapp:'
-var configKeyPostgresHost = '${configKeyPrefix}PostgresHost'
-var configKeyPostgresDb = '${configKeyPrefix}PostgresDb'
-var configKeyPostgresUser = '${configKeyPrefix}PostgresUser'
-var configKeyPostgresPassword = '${configKeyPrefix}PostgresPassword' // Secret - will be KV reference
-var configKeyFrontendUri = '${configKeyPrefix}FrontendUri'
 var configKeyOpenAIApiKey = '${configKeyPrefix}OpenAIApiKey' // Secret - will be KV reference
 var configKeyGoogleClientId = '${configKeyPrefix}AuthGoogleClientID' // Secret - will be KV reference
 var configKeyGoogleClientSecret = '${configKeyPrefix}AuthGoogleClientSecret' // Secret - will be KV reference
+var configKeyPostgresConnectionString = '${configKeyPrefix}ConnectionString'
 
 // JWT Configuration Keys
 var configKeyJwtIssuer = 'JwtOptions:Issuer'
 var configKeyJwtAudience = 'JwtOptions:Audience'
-var configKeyJwtExpirationTimeInMinutes = 'JwtOptions:ExpirationTimeInMinutes'
-var configKeyJwtSecret = 'JwtOptions:Secret' // Secret - will be KV reference
+var configKeyJwtSecret = 'JwtOptions:Secret'
 
 // Names for secrets stored in Key Vault
-var secretNamePostgresPassword = 'PostgresAdminPassword'
 var secretNameOpenAIApiKey = 'OpenAIApiKey'
 var secretNameGoogleClientId = 'GoogleClientId'
 var secretNameGoogleClientSecret = 'GoogleClientSecret'
 var secretNameJwtSecret = 'JwtSecret'
-
+var secretNamePostgresConnectionString = 'PostgresConnectionString'
 
 // --- Resource Definitions ---
 
@@ -176,16 +158,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   }
 }
 
-// 3.1. Store Postgres Password in Key Vault
-@description('Stores the PostgreSQL admin password as a secret in Key Vault.')
-resource postgresPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  parent: keyVault
-  name: secretNamePostgresPassword // Use variable for consistency
-  properties: {
-    value: postgresAdminPassword
-  }
-}
-
 // 3.2 Store OpenAI API Key in Key Vault
 @description('Stores the OpenAI API Key as a secret in Key Vault.')
 resource openAiApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
@@ -226,14 +198,25 @@ resource jwtSecretSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   }
 }
 
+// 3.6 Store PostgreSQL Connection String in Key Vault
+@description('Stores the PostgreSQL connection string as a secret in Key Vault.')
+resource postgresConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: secretNamePostgresConnectionString
+  properties: {
+    value: 'Host=${postgresServer.properties.fullyQualifiedDomainName};Database=${postgresDatabase.name};Username=${postgresAdminLogin};Password=${postgresAdminPassword}'
+  }
+  dependsOn: [postgresServer, postgresDatabase]
+}
+
 
 // 4. Azure App Configuration
-@description('Creates the Azure App Configuration store.')
+@description('Creates the Azure App Configuration store using free tier for development.')
 resource appConfigStore 'Microsoft.AppConfiguration/configurationStores@2023-03-01' = {
   name: appConfigStoreName
   location: location
   sku: {
-    name: 'standard'
+    name: 'free'
   }
   identity: {
     type: 'SystemAssigned'
@@ -244,50 +227,6 @@ resource appConfigStore 'Microsoft.AppConfiguration/configurationStores@2023-03-
 // These values will be loaded by the C# application via IConfiguration
 
 // --- Non-Secret Values ---
-@description('Adds Postgres Host to App Configuration.')
-resource appConfigPostgresHost 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfigStore
-  // Key matches what C# code expects via IConfiguration
-  name: configKeyPostgresHost
-  properties: {
-    // Value is the FQDN of the created Postgres server
-    value: postgresServer.properties.fullyQualifiedDomainName
-    // Label matches the ASP.NET Core environment name (e.g., 'Production' or 'Development')
-    label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
-  }
-  dependsOn: [ postgresServer ] // Ensure server exists before getting its FQDN
-}
-
-@description('Adds Postgres Database Name to App Configuration.')
-resource appConfigPostgresDb 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfigStore
-  name: configKeyPostgresDb
-  properties: {
-    value: postgresDatabase.name // Use the name of the created database
-    label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
-  }
-  dependsOn: [ postgresDatabase ] // Ensure database exists
-}
-
-@description('Adds Postgres User to App Configuration.')
-resource appConfigPostgresUser 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfigStore
-  name: configKeyPostgresUser
-  properties: {
-    value: postgresAdminLogin // Use the admin login parameter
-    label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
-  }
-}
-
-@description('Adds Frontend URI to App Configuration.')
-resource appConfigFrontendUri 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfigStore
-  name: configKeyFrontendUri
-  properties: {
-    value: frontendUri // Use the parameter
-    label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
-  }
-}
 
 // JWT Configuration - Non-Secret Values
 @description('Adds JWT Issuer to App Configuration.')
@@ -310,31 +249,7 @@ resource appConfigJwtAudience 'Microsoft.AppConfiguration/configurationStores/ke
   }
 }
 
-@description('Adds JWT Expiration Time to App Configuration.')
-resource appConfigJwtExpirationTime 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfigStore
-  name: configKeyJwtExpirationTimeInMinutes
-  properties: {
-    value: string(jwtExpirationTimeInMinutes) // Convert int to string
-    label: aspNetCoreEnvironmentName
-  }
-}
-
 // --- Secret Values (Key Vault References) ---
-@description('Adds Postgres Password (as Key Vault Reference) to App Configuration.')
-resource appConfigPostgresPassword 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
-  parent: appConfigStore
-  name: configKeyPostgresPassword // Key matches C# expectation
-  properties: {
-    // Value is the URI of the secret in Key Vault
-    value: '{"uri":"${keyVault.properties.vaultUri}secrets/${postgresPasswordSecret.name}"}'
-    // ContentType identifies this as a Key Vault reference
-    contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
-    label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
-  }
-  dependsOn: [ keyVault, postgresPasswordSecret ] // Ensure KV and secret exist
-}
-
 @description('Adds OpenAI API Key (as Key Vault Reference) to App Configuration.')
 resource appConfigOpenAIApiKey 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
   parent: appConfigStore
@@ -383,6 +298,19 @@ resource appConfigJwtSecretRef 'Microsoft.AppConfiguration/configurationStores/k
     label: aspNetCoreEnvironmentName // Uses the environmentName parameter directly now
   }
   dependsOn: [ jwtSecretSecret, keyVault ]
+}
+
+// Add connection string reference to App Configuration
+@description('Adds PostgreSQL Connection String to App Configuration as Key Vault reference.')
+resource appConfigPostgresConnectionString 'Microsoft.AppConfiguration/configurationStores/keyValues@2023-03-01' = {
+  parent: appConfigStore
+  name: configKeyPostgresConnectionString // Uses the wikiquizapp:ConnectionString format
+  properties: {
+    value: '{"uri":"${keyVault.properties.vaultUri}secrets/${postgresConnectionStringSecret.name}"}'
+    contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
+    label: aspNetCoreEnvironmentName
+  }
+  dependsOn: [keyVault, postgresConnectionStringSecret]
 }
 
 
@@ -463,122 +391,6 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
   ]
 }
 
-// 7. Container App (Web API) - Now using the user-assigned managed identity
-@description('Creates the Azure Container App for the Web API.')
-resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
-  name: containerAppName
-  location: location
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${managedIdentity.id}': {}
-    }
-  }
-  properties: {
-    managedEnvironmentId: containerAppEnv.id
-    configuration: {
-      // --- Secrets Configuration ---
-      // secrets: [] // Empty unless needed for other purposes
-
-      // --- Container Registry Configuration ---
-      registries: [
-        {
-          server: containerRegistry.properties.loginServer
-          identity: managedIdentity.id // Use the user-assigned identity for ACR pull
-        }
-      ]
-      // --- Ingress Configuration ---
-      ingress: {
-        external: true
-        targetPort: containerPort
-        transport: 'auto'
-        allowInsecure: false // Enforce HTTPS
-      }
-    }
-    // --- Template for the Container(s) ---
-    template: {
-      scale: {
-        minReplicas: 0
-        maxReplicas: 1
-      }
-      containers: [
-        {
-          image: containerImage
-          name: 'webapi'
-          resources: {
-            cpu: json('0.25')
-            memory: '0.5Gi'
-          }
-          // --- Environment Variables ---
-          env: [
-            // App Configuration Endpoint - Name matches original C# code expectation
-            {
-              name: 'AZURE_APP_CONFIG_ENDPOINT'
-              value: appConfigStore.properties.endpoint
-            }
-            // ASP.NET Core Environment Name - Used by C# code to select App Config label
-            {
-              name: 'ASPNETCORE_ENVIRONMENT'
-              // Directly use the parameter which is now 'Development' or 'Production'
-              value: environmentName
-            }
-            // Add managed identity client ID for authentication
-            {
-              name: 'AZURE_CLIENT_ID'
-              value: managedIdentity.properties.clientId
-            }
-            // Set whether to skip App Configuration and use environment variables instead
-            {
-              name: 'SKIP_APP_CONFIG'
-              value: string(skipAppConfig)
-            }
-            // Provide direct database connection
-            {
-              name: 'WIKIQUIZAPP__POSTGRESHOST'
-              value: postgresServer.properties.fullyQualifiedDomainName
-            }
-            {
-              name: 'WIKIQUIZAPP__POSTGRESDB'
-              value: postgresDatabase.name
-            }
-            {
-              name: 'WIKIQUIZAPP__POSTGRESUSER'
-              value: postgresAdminLogin
-            }
-            {
-              name: 'WIKIQUIZAPP__POSTGRESPASSWORD'
-              value: postgresAdminPassword
-            }
-            {
-              name: 'WIKIQUIZAPP__FRONTENDURI'
-              value: frontendUri
-            }
-          ]
-        }
-      ]
-    }
-  }
-  dependsOn: [
-    containerAppEnv
-    containerRegistry
-    keyVault
-    appConfigStore
-    appConfigPostgresHost
-    appConfigPostgresDb
-    appConfigPostgresUser
-    appConfigFrontendUri
-    appConfigPostgresPassword
-    appConfigOpenAIApiKey
-    appConfigGoogleClientId
-    appConfigGoogleClientSecret
-    postgresFirewallRuleAllowAzure
-    acrPullRoleAssignment // Wait for role assignments to be created first
-    keyVaultSecretUserRoleAssignment
-    appConfigDataReaderRoleAssignment
-  ]
-}
-
-
 // --- Role Assignments for Managed Identity ---
 @description('Grants the Container App Managed Identity permission to get secrets from Key Vault.')
 resource keyVaultSecretUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
@@ -611,6 +423,93 @@ resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-
     principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
+}
+
+// 7. Container App (Web API) - Now using the user-assigned managed identity
+@description('Creates the Azure Container App for the Web API.')
+resource containerApp 'Microsoft.App/containerApps@2023-05-01' = {
+  name: containerAppName
+  location: location
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
+  }
+  properties: {
+    managedEnvironmentId: containerAppEnv.id
+    configuration: {
+      // --- Secrets Configuration ---
+      // secrets: [] // Empty unless needed for other purposes
+
+      // --- Container Registry Configuration ---
+      registries: [
+        {
+          server: containerRegistry.properties.loginServer
+          identity: managedIdentity.id
+        }
+      ]
+      // --- Ingress Configuration ---
+      ingress: {
+        external: true
+        targetPort: containerPort
+        transport: 'auto'
+        allowInsecure: false // Enforce HTTPS
+      }
+    }
+    // --- Template for the Container(s) ---
+    template: {
+      scale: {
+        minReplicas: 0
+        maxReplicas: 1
+      }
+      containers: [
+        {
+          image: containerImage
+          name: 'webapi'
+          resources: {
+            cpu: json('0.25')
+            memory: '0.5Gi'
+          }
+          // --- Environment Variables ---
+          env: [
+            // App Configuration Endpoint for connecting to App Config
+            {
+              name: 'AZURE_APP_CONFIG_ENDPOINT'
+              value: appConfigStore.properties.endpoint
+            }
+            // ASP.NET Core Environment Name
+            {
+              name: 'ASPNETCORE_ENVIRONMENT'
+              value: environmentName
+            }
+            // Managed identity client ID for authentication with Azure services
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: managedIdentity.properties.clientId
+            }
+          ]
+        }
+      ]
+    }
+  }
+  dependsOn: [
+    containerAppEnv
+    containerRegistry
+    keyVault
+    appConfigStore
+    appConfigPostgresConnectionString
+    appConfigOpenAIApiKey
+    appConfigGoogleClientId
+    appConfigGoogleClientSecret
+    appConfigJwtIssuer
+    appConfigJwtAudience
+    appConfigJwtSecretRef
+    postgresFirewallRuleAllowAzure
+    acrPullRoleAssignment
+    keyVaultSecretUserRoleAssignment
+    appConfigDataReaderRoleAssignment
+  ]
 }
 
 

@@ -10,16 +10,26 @@ public partial class Program
     {
         app.UseSerilogRequestLogging();
 
-        app.UseCors("AllowReactApp");
+        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        {
+            // Trust the X-Forwarded-Proto header to determine the request scheme (http/https)
+            // Trust X-Forwarded-For to determine client IP
+            // Trust X-Forwarded-Host to determine the original host requested by the client
+            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost,
+            KnownNetworks = { },
+            KnownProxies = { }
+        });
 
-        app.UseMiddleware<ErrorHandlerMiddleware>();
-
-        // Only use HTTPS redirection in Production
-        if (!app.Environment.IsDevelopment())
+        if (!string.Equals(Environment.GetEnvironmentVariable("SKIP_APP_CONFIG"), "true", StringComparison.OrdinalIgnoreCase))
         {
             app.UseHttpsRedirection();
             app.UseHsts();
         }
+
+        app.UseCors("AllowReactApp");
+
+        app.UseMiddleware<ErrorHandlerMiddleware>();
+
         app.UseRouting();
 
         app.UseAuthentication();

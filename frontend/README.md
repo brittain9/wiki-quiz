@@ -37,7 +37,7 @@ frontend/
 
 ## Technologies
 
-- React 
+- React
 - TypeScript
 - Material UI v6
 - React Router v7
@@ -45,4 +45,4 @@ frontend/
 - Axios for API requests
 - JWT for authentication
 - Recharts for data visualization
-- Vite for fast development and building 
+- Vite for fast development and building

@@ -32,9 +32,7 @@ const ThemeSelector: React.FC = () => {
     localStorage.getItem('theme') || 'dark',
   );
   const [open, setOpen] = useState(false);
-  const [previewingTheme, setPreviewingTheme] = useState<string | null>(
-    null,
-  );
+  const [previewingTheme, setPreviewingTheme] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const previewTimerRef = useRef<number | null>(null);
@@ -210,7 +208,7 @@ const ThemeSelector: React.FC = () => {
                           },
                         }}
                       >
-                        <Box 
+                        <Box
                           sx={{
                             display: 'flex',
                             mr: 2,
@@ -233,16 +231,17 @@ const ThemeSelector: React.FC = () => {
                                 justifyContent: 'center',
                               }}
                             >
-                              {currentTheme === theme.id && colorIndex === 0 && (
-                                <CheckIcon
-                                  sx={{
-                                    fontSize: 14,
-                                    color: isContrastingWithBackground(color)
-                                      ? '#fff'
-                                      : '#000',
-                                  }}
-                                />
-                              )}
+                              {currentTheme === theme.id &&
+                                colorIndex === 0 && (
+                                  <CheckIcon
+                                    sx={{
+                                      fontSize: 14,
+                                      color: isContrastingWithBackground(color)
+                                        ? '#fff'
+                                        : '#000',
+                                    }}
+                                  />
+                                )}
                             </Box>
                           ))}
                         </Box>

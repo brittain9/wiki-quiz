@@ -25,10 +25,14 @@ export const aiApi = {
    */
   async getAiModels(aiServiceId: string): Promise<string[]> {
     try {
-      const response = await apiGet<string[]>(`${AI_ENDPOINTS.MODELS}?aiServiceId=${aiServiceId}`);
+      const response = await apiGet<string[]>(
+        `${AI_ENDPOINTS.MODELS}?aiServiceId=${aiServiceId}`,
+      );
       return response;
     } catch (error) {
-      console.error(`Failed to get AI models for service ${aiServiceId}: ${parseApiError(error)}`);
+      console.error(
+        `Failed to get AI models for service ${aiServiceId}: ${parseApiError(error)}`,
+      );
       return [];
     }
   },
@@ -40,13 +44,13 @@ export const aiApi = {
   async getUserCost(timePeriod: number = 7): Promise<number> {
     try {
       return await apiGet<number>(
-        `${AI_ENDPOINTS.USER_COST}?timePeriod=${timePeriod}`
+        `${AI_ENDPOINTS.USER_COST}?timePeriod=${timePeriod}`,
       );
     } catch (error) {
       console.error(`Failed to get user cost: ${parseApiError(error)}`);
       throw error;
     }
-  }
+  },
 };
 
-export default aiApi; 
+export default aiApi;

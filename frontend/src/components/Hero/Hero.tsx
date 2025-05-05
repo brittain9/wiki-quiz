@@ -5,6 +5,7 @@ import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { motion } from 'framer-motion';
 import React, {
   useEffect,
   useState,
@@ -13,7 +14,6 @@ import React, {
   useMemo,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, HTMLMotionProps } from 'framer-motion';
 
 import AnimatedTopics from './AnimatedTopics';
 import { useQuizOptions } from '../../context/QuizOptionsContext/QuizOptionsContext';
@@ -229,7 +229,8 @@ const Hero = React.memo(() => {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        background: 'radial-gradient(ellipse 80% 50% at 50% -20%, hsla(var(--main-color-rgb), 0.15), transparent)',
+        background:
+          'radial-gradient(ellipse 80% 50% at 50% -20%, hsla(var(--main-color-rgb), 0.15), transparent)',
         backgroundColor: 'var(--bg-color)',
         color: 'var(--text-color)',
       }}
@@ -246,7 +247,8 @@ const Hero = React.memo(() => {
           width: { xs: 420, sm: 700 },
           height: { xs: 320, sm: 500 },
           borderRadius: '50%',
-          background: 'radial-gradient(circle at 60% 40%, var(--main-color-10) 0%, var(--main-color) 60%, transparent 100%)',
+          background:
+            'radial-gradient(circle at 60% 40%, var(--main-color-10) 0%, var(--main-color) 60%, transparent 100%)',
           filter: 'blur(60px)',
           opacity: 0.25,
           zIndex: 0,
@@ -261,32 +263,32 @@ const Hero = React.memo(() => {
           pt: { xs: 10, sm: 16 },
           pb: { xs: 6, sm: 10 },
           zIndex: 1,
-          width: '100%'
+          width: '100%',
         }}
       >
         <Box
           component={motion.div}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ 
-            duration: 0.8, 
-            ease: "easeOut",
-            delay: 0.2
+          transition={{
+            duration: 0.8,
+            ease: 'easeOut',
+            delay: 0.2,
           }}
-          sx={{ 
+          sx={{
             width: '100%',
             display: 'flex',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}
         >
           <Stack
             spacing={3}
             useFlexGap
-            sx={{ 
-              alignItems: 'center', 
+            sx={{
+              alignItems: 'center',
               width: '100%',
               maxWidth: { xs: '100%', sm: '70%' },
-              mx: 'auto'
+              mx: 'auto',
             }}
           >
             <Typography
@@ -310,12 +312,14 @@ const Hero = React.memo(() => {
                 maxWidth: 680,
               }}
             >
-              <span style={{ 
-                whiteSpace: 'nowrap',
-                display: 'flex', 
-                justifyContent: 'center',
-                marginRight: '0.3em'
-              }}>
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginRight: '0.3em',
+                }}
+              >
                 {t('hero.generateQuiz')}
               </span>
               <AnimatedTopics />
@@ -341,10 +345,10 @@ const Hero = React.memo(() => {
               component={motion.div}
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ 
-                duration: 0.7, 
+              transition={{
+                duration: 0.7,
                 delay: 0.8,
-                ease: [0.25, 1, 0.5, 1]
+                ease: [0.25, 1, 0.5, 1],
               }}
               elevation={6}
               sx={{
@@ -402,9 +406,10 @@ const Hero = React.memo(() => {
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
                       },
-                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: 'var(--main-color)',
-                      },
+                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
+                        {
+                          borderColor: 'var(--main-color)',
+                        },
                     }}
                   />
                   {topics.length > 0 && (
@@ -414,7 +419,13 @@ const Hero = React.memo(() => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
                       transition={{ duration: 0.25, ease: 'easeOut' }}
-                      sx={{ width: '100%', position: 'absolute', top: '100%', left: 0, zIndex: 10 }}
+                      sx={{
+                        width: '100%',
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        zIndex: 10,
+                      }}
                     >
                       {suggestedTopics}
                     </Box>
@@ -423,12 +434,12 @@ const Hero = React.memo(() => {
                     component={motion.button}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ 
-                      duration: 0.5, 
+                    transition={{
+                      duration: 0.5,
                       delay: 1.0,
-                      type: "spring",
+                      type: 'spring',
                       stiffness: 400,
-                      damping: 15
+                      damping: 15,
                     }}
                     type="submit"
                     variant="contained"
@@ -443,7 +454,8 @@ const Hero = React.memo(() => {
                       borderRadius: 2,
                       minWidth: { xs: '100%', sm: 140 },
                       boxShadow: '0 2px 8px 0 rgba(124,58,237,0.10)',
-                      transition: 'transform 0.18s cubic-bezier(.4,2,.6,1), background 0.18s',
+                      transition:
+                        'transform 0.18s cubic-bezier(.4,2,.6,1), background 0.18s',
                       '&:hover': {
                         bgcolor: 'var(--caret-color)',
                         transform: 'scale(1.045)',

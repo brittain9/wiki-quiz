@@ -54,11 +54,25 @@ public static class AuthEndpoints
 
         // --- Google Login Initiation Endpoint ---
         group.MapGet("/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator,
-                SignInManager<User> signInManager, HttpContext context) =>
+                SignInManager<User> signInManager, HttpContext context, ILogger<Program> logger) =>
             {
-                var properties = signInManager.ConfigureExternalAuthenticationProperties("Google",
-                    linkGenerator.GetPathByName(context, "GoogleLoginCallback")
-                    + $"?returnUrl={returnUrl}");
+                logger.LogInformation("Initiating Google login with return URL: {ReturnUrl}", returnUrl);
+                
+                // Get the callback path
+                var callbackPath = linkGenerator.GetPathByName(context, "GoogleLoginCallback");
+                
+                // Get the host and scheme - prioritize X-Forwarded headers if available
+                // The Request.Scheme should already use X-Forwarded-Proto thanks to the ForwardedHeaders middleware
+                var scheme = context.Request.Scheme;
+                var host = context.Request.Host.Value;
+                
+                logger.LogInformation("Using scheme: {Scheme} from request", scheme);
+                
+                // Create absolute callback URL with appropriate scheme
+                var callbackUrl = $"{scheme}://{host}{callbackPath}?returnUrl={returnUrl}";
+                logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
+                
+                var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", callbackUrl);
 
                 return Results.Challenge(properties, ["Google"]);
             })
