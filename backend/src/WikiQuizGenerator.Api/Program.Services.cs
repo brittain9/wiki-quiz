@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using WikiQuizGenerator.Data.Options;
 using WikiQuizGenerator.Data.Processors;
+using Serilog;
 
 public partial class Program
 {
@@ -119,7 +120,9 @@ public partial class Program
             };
         });
 
-        string connectionString = BuildConnectionString(configuration);
+        string connectionString = configuration["wikiquizapp:ConnectionString"];
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new ArgumentNullException(nameof(connectionString), "ConnectionString is not configured.");
         services.AddDataServices(connectionString);
         
         services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
@@ -163,7 +166,10 @@ public partial class Program
             options.ClientId = clientId;
             options.ClientSecret = clientSecret;
             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
+            
+            // Log the callback path to verify it's being used
+            Log.Information("Google OAuth callback path set to: {CallbackPath}", options.CallbackPath);
+    
         }).AddJwtBearer(options =>
         {
             var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey)
@@ -192,34 +198,6 @@ public partial class Program
         
         services.AddAuthorization();
         services.AddHttpContextAccessor();
-    }
-
-    private static string BuildConnectionString(IConfiguration configuration)
-    {
-        string host = configuration["wikiquizapp:PostgresHost"];
-        string database = configuration["wikiquizapp:PostgresDb"];
-        string username = configuration["wikiquizapp:PostgresUser"];
-        string password = configuration["wikiquizapp:PostgresPassword"];
-
-        // Validate required values
-        if (string.IsNullOrWhiteSpace(host))
-            throw new ArgumentNullException(nameof(host), "Postgres host is not configured.");
-        if (string.IsNullOrWhiteSpace(database))
-            throw new ArgumentNullException(nameof(database), "Postgres database is not configured.");
-        if (string.IsNullOrWhiteSpace(username))
-            throw new ArgumentNullException(nameof(username), "Postgres username is not configured.");
-        if (string.IsNullOrWhiteSpace(password))
-            throw new ArgumentNullException(nameof(password), "Postgres password is not configured.");
-
-        var sb = new NpgsqlConnectionStringBuilder
-        {
-            Host = host,
-            Database = database,
-            Username = username,
-            Password = password
-        };
-
-        return sb.ConnectionString;
     }
 
     private static string GetPartitionKeyFromUser(HttpContext httpContext)

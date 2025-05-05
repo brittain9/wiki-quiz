@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Use different resource groups for production and testing
-PROD_RESOURCE_GROUP="rg-wikiquiz-production"
-TEST_RESOURCE_GROUP="rg-wikiquiz-test"
-DEV_RESOURCE_GROUP="rg-wikiquiz-dev"
+PROD_RESOURCE_GROUP="rg-quiz-prod"
+TEST_RESOURCE_GROUP="rg-quiz-test"
+DEV_RESOURCE_GROUP="rg-quiz-dev"
 
 RESOURCE_GROUP="$DEV_RESOURCE_GROUP"  # Change to $TEST_RESOURCE_GROUP for testing
 LOCATION="centralus"
@@ -29,15 +29,6 @@ GOOGLE_CLIENT_ID=$(sed -n '3p' "$SECRETS_FILE")
 GOOGLE_CLIENT_SECRET=$(sed -n '4p' "$SECRETS_FILE")
 # Read fifth line (JWT Secret)
 JWT_SECRET=$(sed -n '5p' "$SECRETS_FILE")
-
-# Debug - check if password is empty or contains problematic characters
-if [ -z "$POSTGRES_PASSWORD" ]; then
-  echo "Error: PostgreSQL password is empty! Check your secrets.txt file."
-  exit 1
-fi
-
-echo "Postgres password length: ${#POSTGRES_PASSWORD} characters"
-echo "First character: ${POSTGRES_PASSWORD:0:1}"
 
 # --- End: Reading secrets from secrets.txt ---
 

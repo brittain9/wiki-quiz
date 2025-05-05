@@ -59,24 +59,20 @@ public static class AuthEndpoints
                 logger.LogInformation("Initiating Google login with return URL: {ReturnUrl}", returnUrl);
                 
                 // Get the callback path
-                var callbackPath = linkGenerator.GetPathByName(context, "GoogleLoginCallback") + $"?returnUrl={returnUrl}";
+                var callbackPath = linkGenerator.GetPathByName(context, "GoogleLoginCallback");
                 
-                // Get the host from the request
+                // Get the host and scheme - prioritize X-Forwarded headers if available
+                // The Request.Scheme should already use X-Forwarded-Proto thanks to the ForwardedHeaders middleware
+                var scheme = context.Request.Scheme;
                 var host = context.Request.Host.Value;
                 
-                // Use current scheme for localhost, always force HTTPS otherwise
-                var scheme = host.Contains("localhost") || host.Equals("127.0.0.1") 
-                    ? context.Request.Scheme  // Use whatever scheme is used locally
-                    : "https";                // Always force HTTPS in production
+                logger.LogInformation("Using scheme: {Scheme} from request", scheme);
                 
-                // Build the full callback URL with the appropriate scheme
-                var callbackUrl = $"{scheme}://{host}{callbackPath}";
-                
+                // Create absolute callback URL with appropriate scheme
+                var callbackUrl = $"{scheme}://{host}{callbackPath}?returnUrl={returnUrl}";
                 logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
                 
-                var properties = signInManager.ConfigureExternalAuthenticationProperties(
-                    "Google", 
-                    callbackUrl);
+                var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", callbackUrl);
 
                 return Results.Challenge(properties, ["Google"]);
             })

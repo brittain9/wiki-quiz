@@ -9,7 +9,7 @@
       "value": "Development"
     },
     "containerImage": {
-      "value": "acrwikiquizapi5d6mqkb4y44j2.azurecr.io/wikiquizapi:v0.3"
+      "value": "acrwikiquizapii5yglprgz2pfq.azurecr.io/wikiquizapi:v0.1"
     },
     "containerPort": {
       "value": 8080
@@ -32,23 +32,14 @@
     "googleClientSecret": {
       "value": null
     },
-    "frontendUri": {
-      "value": "https://quiz.alexanderbrittain.com/"
-    },
     "jwtIssuer": {
       "value": "https://quiz.alexanderbrittain.com/"
     },
     "jwtAudience": {
       "value": "https://wikiquiz.azurestaticapps.net"
     },
-    "jwtExpirationTimeInMinutes": {
-      "value": 15
-    },
     "jwtSecret": {
       "value": null
-    },
-    "skipAppConfig": {
-      "value": false
     }
   }
 }
