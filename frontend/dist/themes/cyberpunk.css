@@ -1,0 +1,26 @@
+/* Cyberpunk theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #0d0221;
+  --bg-color-secondary: #1a0e2e;
+  --bg-color-tertiary: #27173b;
+  --main-color: #00ff9f;
+  --caret-color: #00ff9f;
+  --sub-color: #614a85;
+  --sub-alt-color: #342245;
+  --text-color: #ff003c;
+  --error-color: #ff5555;
+  --error-extra-color: #ff2222;
+  --success-color: #00ff9f;
+  --warning-color: #ffb700;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(0, 255, 159, 0.1); /* 10% opacity */
+  --main-color-20: rgba(0, 255, 159, 0.2); /* 20% opacity */
+  --success-color-10: rgba(0, 255, 159, 0.1); /* 10% opacity */
+  --error-color-10: rgba(255, 85, 85, 0.1); /* 10% opacity */
+}

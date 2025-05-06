@@ -1,0 +1,26 @@
+/* Nord theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors (Nord-inspired) */
+  --bg-color: #2e3440; /* nord0 */
+  --bg-color-secondary: #242933;
+  --bg-color-tertiary: #3b4252; /* nord1 */
+  --main-color: #88c0d0; /* nord8 - Light Blue */
+  --caret-color: #88c0d0;
+  --sub-color: #4c566a; /* nord3 - Darker Grey */
+  --sub-alt-color: #434c5e; /* nord2 */
+  --text-color: #d8dee9; /* nord4 - Light Grey/White */
+  --error-color: #bf616a; /* nord11 - Red */
+  --error-extra-color: #a5404a;
+  --success-color: #a3be8c; /* nord14 - Green */
+  --warning-color: #ebcb8b; /* nord13 - Yellow */
+
+  /* Colors with transparency */
+  --main-color-10: rgba(136, 192, 208, 0.1);
+  --main-color-20: rgba(136, 192, 208, 0.2);
+  --success-color-10: rgba(163, 190, 140, 0.1);
+  --error-color-10: rgba(191, 97, 106, 0.1);
+}
