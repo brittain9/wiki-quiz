@@ -20,8 +20,8 @@ import {
   QuizStateProvider,
 } from './context';
 import i18n from './i18n/i18n';
-import { initTheme } from './services/themeService';
 import { createAppTheme } from './theme/mui-theme';
+import { initTheme } from './theme/themeService';
 
 // First load the base theme style element
 const linkElement = document.createElement('link');

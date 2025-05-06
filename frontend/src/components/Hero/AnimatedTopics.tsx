@@ -20,6 +20,13 @@ const AnimatedTopics: React.FC = () => {
   const [isDeleting, setIsDeleting] = React.useState(false);
   const wordRef = React.useRef<HTMLSpanElement>(null);
 
+  // Reset animation state when topics change (language change)
+  React.useEffect(() => {
+    setCurrentTopicIndex(0);
+    setDisplayText('');
+    setIsDeleting(false);
+  }, [topics]);
+
   React.useEffect(() => {
     if (topics.length === 0) return;
 

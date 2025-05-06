@@ -108,25 +108,10 @@ const SubmissionHistory: React.FC = React.memo(() => {
     return 'var(--error-color)';
   }, []);
 
-  // Memoize the login button to prevent re-renders
-  const loginButton = useMemo(
-    () => (
-      <Button
-        variant="contained"
-        onClick={() => checkAuth()}
-        sx={{
-          backgroundColor: 'var(--main-color)',
-          color: 'var(--bg-color)',
-          '&:hover': {
-            backgroundColor: 'var(--caret-color)',
-          },
-        }}
-      >
-        {t('login.loginToView')}
-      </Button>
-    ),
-    [checkAuth, t],
-  );
+  // Don't render anything if user is not logged in or there are no submissions
+  if (!isLoggedIn || (!loading && allSubmissions.length === 0)) {
+    return null;
+  }
 
   // Render the component
   if (loading) {
@@ -149,41 +134,6 @@ const SubmissionHistory: React.FC = React.memo(() => {
       <Typography align="center" sx={{ color: 'var(--error-color)' }}>
         {error}
       </Typography>
-    );
-  }
-
-  // If not logged in, show message to log in
-  if (!isLoggedIn) {
-    return (
-      <Paper
-        elevation={3}
-        sx={{
-          padding: 4,
-          maxWidth: 800,
-          margin: 'auto',
-          mt: 5,
-          mb: 5,
-          backgroundColor: 'var(--bg-color)',
-          color: 'var(--text-color)',
-          border: '1px solid var(--sub-alt-color)',
-          borderRadius: 2,
-        }}
-      >
-        <Typography
-          variant="h5"
-          gutterBottom
-          align="center"
-          sx={{ color: 'var(--text-color)' }}
-        >
-          {t('recentSubmissions.title')}
-        </Typography>
-        <Typography align="center" sx={{ mb: 2, color: 'var(--sub-color)' }}>
-          {t('recentSubmissions.loginRequired')}
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          {loginButton}
-        </Box>
-      </Paper>
     );
   }
 
@@ -232,90 +182,84 @@ const SubmissionHistory: React.FC = React.memo(() => {
             {t('recentSubmissions.title')}
           </Typography>
 
-          {allSubmissions.length === 0 ? (
-            <Typography sx={{ color: 'var(--sub-color)' }}>
-              {t('recentSubmissions.noSubmissions')}
-            </Typography>
-          ) : (
-            <List
-              sx={{
-                width: '100%',
-                maxHeight: 400,
-                overflow: 'auto',
-                bgcolor: 'var(--bg-color)',
-                borderRadius: 1,
-                border: '1px solid var(--sub-alt-color)',
-              }}
-            >
-              {allSubmissions.map((submission) => (
-                <ListItem
-                  key={submission.id}
-                  divider
-                  disablePadding
+          <List
+            sx={{
+              width: '100%',
+              maxHeight: 400,
+              overflow: 'auto',
+              bgcolor: 'var(--bg-color)',
+              borderRadius: 1,
+              border: '1px solid var(--sub-alt-color)',
+            }}
+          >
+            {allSubmissions.map((submission) => (
+              <ListItem
+                key={submission.id}
+                divider
+                disablePadding
+                sx={{
+                  borderBottom: '1px solid var(--sub-alt-color)',
+                  '&:last-child': {
+                    borderBottom: 'none',
+                  },
+                }}
+              >
+                <ListItemButton
+                  onClick={() => handleSubmissionClick(submission.id)}
                   sx={{
-                    borderBottom: '1px solid var(--sub-alt-color)',
-                    '&:last-child': {
-                      borderBottom: 'none',
+                    py: 2,
+                    '&:hover': {
+                      backgroundColor: 'var(--bg-color-secondary)',
                     },
                   }}
                 >
-                  <ListItemButton
-                    onClick={() => handleSubmissionClick(submission.id)}
-                    sx={{
-                      py: 2,
-                      '&:hover': {
-                        backgroundColor: 'var(--bg-color-secondary)',
-                      },
-                    }}
-                  >
-                    <ListItemText
-                      primary={
-                        <Box
+                  <ListItemText
+                    primary={
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Typography
                           sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
+                            color: 'var(--text-color)',
+                            fontWeight: 500,
+                            fontSize: '1rem',
                           }}
                         >
-                          <Typography
-                            sx={{
-                              color: 'var(--text-color)',
-                              fontWeight: 500,
-                              fontSize: '1rem',
-                            }}
-                          >
-                            {submission.title || 'Quiz'}
-                          </Typography>
-                          <Chip
-                            label={`${submission.score.toFixed(0)}%`}
-                            size="small"
-                            sx={{
-                              backgroundColor: 'var(--bg-color-secondary)',
-                              color: getScoreColor(submission.score),
-                              border: `1px solid ${getScoreColor(
-                                submission.score,
-                              )}`,
-                              fontWeight: 'bold',
-                            }}
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <Typography
-                          variant="body2"
-                          sx={{ color: 'var(--sub-color)' }}
-                        >
-                          {submission.submissionTime
-                            ? format(new Date(submission.submissionTime), 'PPp')
-                            : 'No date'}
+                          {submission.title || 'Quiz'}
                         </Typography>
-                      }
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          )}
+                        <Chip
+                          label={`${submission.score.toFixed(0)}%`}
+                          size="small"
+                          sx={{
+                            backgroundColor: 'var(--bg-color-secondary)',
+                            color: getScoreColor(submission.score),
+                            border: `1px solid ${getScoreColor(
+                              submission.score,
+                            )}`,
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      </Box>
+                    }
+                    secondary={
+                      <Typography
+                        variant="body2"
+                        sx={{ color: 'var(--sub-color)' }}
+                      >
+                        {submission.submissionTime
+                          ? format(new Date(submission.submissionTime), 'PPp')
+                          : 'No date'}
+                      </Typography>
+                    }
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
         </Paper>
       </Box>
     </>

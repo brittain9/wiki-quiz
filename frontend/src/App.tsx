@@ -45,8 +45,8 @@ const App: React.FC = React.memo(() => {
         <LazyQuiz />
         <LazySubmissionHistory />
         <LazyHighlights />
+        <Footer />
       </Suspense>
-      <Footer />
       <OverlayManager />
 
       {/* Floating theme selector button */}

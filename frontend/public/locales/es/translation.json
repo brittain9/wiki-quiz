@@ -1,6 +1,6 @@
 {
   "button": {
-    "close": "Cerca"
+    "close": "Cerrar"
   },
   "appBar": {
     "title": "Wiki Quiz App",
@@ -10,16 +10,45 @@
     "title": "Aplicación de Quiz de Wikipedia"
   },
   "hero": {
-    "topics": ["Tema 1", "Tema 2", "Tema 3"],
+    "topics": [
+      "Música",
+      "Viajes",
+      "Clima",
+      "Dinosaurios",
+      "Biografía",
+      "Revolución",
+      "Repostería",
+      "Circuitos",
+      "Festival"
+    ],
     "generateQuiz": "Generar un quiz sobre",
     "topicInfo": "Ingresa cualquier tema que te interese y generaremos un quiz personalizado solo para ti.",
     "placeholder": "Tu tema de quiz",
-    "generatingButtonText": "Generando",
-    "startButtonText": "Comenzar ahora"
+    "generate": "Generar",
+    "generating": "Generando..."
+  },
+  "login": {
+    "title": "Se requiere inicio de sesión",
+    "loginWithGoogle": "Iniciar sesión con Google",
+    "loginButton": "Iniciar sesión",
+    "dismiss": "Descartar",
+    "quizCreationMessage": "Por favor, inicia sesión para crear y realizar quizzes.",
+    "viewSubmissionsMessage": "Por favor, inicia sesión para ver tu historial de quizzes."
+  },
+  "account": {
+    "title": "Mi Cuenta",
+    "viewProfile": "Ver Perfil",
+    "logout": "Cerrar sesión",
+    "loggingOut": "Cerrando sesión...",
+    "usage": "Uso",
+    "profileMessage": "Esta es la descripción general de tu perfil. ¡Más funciones próximamente!"
+  },
+  "theme": {
+    "selector": "Cambiar tema",
+    "title": "Seleccionar Tema"
   },
   "recentSubmissions": {
-    "title": "Envíos recientes",
-    "noHistory": "¡Haz un cuestionario para ver tu historial!"
+    "title": "Envíos recientes"
   },
   "quizresultoverlay": {
     "title": "Resultados del cuestionario",
@@ -28,7 +57,7 @@
   },
   "highlights": {
     "title": "Destacados",
-    "info": "Descubre por qué nuestro producto se destaca: adaptabilidad, durabilidad, diseño fácil de usar e innovación. Disfruta de un soporte al cliente confiable y precisión en cada detalle.",
+    "info": "Descubre qué hace excepcional al Generador de Quizzes de Wikipedia: creación dinámica de quizzes, soporte multilingüe, búsqueda inteligente, integración fluida con IA y diseño meticuloso. Experimenta un rendimiento confiable y precisión en cada característica.",
     "items": {
       "dynamic_quiz": {
         "title": "Generación de Cuestionarios Dinámicos",
@@ -55,5 +84,21 @@
         "desc": "Desde el frontend desarrollado con React y TypeScript hasta el backend con .NET 8 y PostgreSQL, cada componente está meticulosamente diseñado para un rendimiento óptimo."
       }
     }
+  },
+  "quizOptions": {
+    "questions": "Preguntas",
+    "options": "Opciones",
+    "variety": "Variedad",
+    "aiService": "Servicio de IA",
+    "aiModel": "Modelo de IA",
+    "showOptions": "Mostrar opciones",
+    "hideOptions": "Ocultar options",
+    "varietyLevels": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "veryHigh": "Muy Alta"
+    },
+    "noServicesAvailable": "No hay servicios disponibles"
   }
 }

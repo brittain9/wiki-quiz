@@ -1,4 +1,3 @@
-// QuizOptionsComponent.tsx
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import {
@@ -12,10 +11,12 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import React, { useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useQuizOptions } from '../../context/QuizOptionsContext/QuizOptionsContext';
 
 const QuizOptionsComponent: React.FC = () => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = React.useState(false);
 
   const {
@@ -66,15 +67,19 @@ const QuizOptionsComponent: React.FC = () => {
   }, []);
 
   const varietyOptions = [
-    { label: 'Low', value: 1000 },
-    { label: 'Medium', value: 2000 },
-    { label: 'High', value: 5000 },
-    { label: 'Very High', value: 10000 },
+    { label: t('quizOptions.varietyLevels.low'), value: 1000 },
+    { label: t('quizOptions.varietyLevels.medium'), value: 2000 },
+    { label: t('quizOptions.varietyLevels.high'), value: 5000 },
+    { label: t('quizOptions.varietyLevels.veryHigh'), value: 10000 },
   ];
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-      <Tooltip title={expanded ? 'Hide options' : 'Show options'}>
+      <Tooltip
+        title={
+          expanded ? t('quizOptions.hideOptions') : t('quizOptions.showOptions')
+        }
+      >
         <IconButton onClick={toggleExpanded} color="primary" size="small">
           {expanded ? (
             <KeyboardDoubleArrowRightIcon />
@@ -88,11 +93,13 @@ const QuizOptionsComponent: React.FC = () => {
           sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}
         >
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel id="questions-label">Questions</InputLabel>
+            <InputLabel id="questions-label">
+              {t('quizOptions.questions')}
+            </InputLabel>
             <Select
               labelId="questions-label"
               value={quizOptions.numQuestions}
-              label="Questions"
+              label={t('quizOptions.questions')}
               onChange={(e) => setNumQuestions(Number(e.target.value))}
             >
               {[5, 10, 15, 20].map((num) => (
@@ -103,11 +110,13 @@ const QuizOptionsComponent: React.FC = () => {
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel id="options-label">Options</InputLabel>
+            <InputLabel id="options-label">
+              {t('quizOptions.options')}
+            </InputLabel>
             <Select
               labelId="options-label"
               value={quizOptions.numOptions}
-              label="Options"
+              label={t('quizOptions.options')}
               onChange={(e) => setNumOptions(Number(e.target.value))}
             >
               {[2, 3, 4, 5].map((num) => (
@@ -118,11 +127,13 @@ const QuizOptionsComponent: React.FC = () => {
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel id="variety-label">Variety</InputLabel>
+            <InputLabel id="variety-label">
+              {t('quizOptions.variety')}
+            </InputLabel>
             <Select
               labelId="variety-label"
               value={quizOptions.extractLength || 10000}
-              label="Variety"
+              label={t('quizOptions.variety')}
               onChange={(e) => setExtractLength(Number(e.target.value))}
             >
               {varietyOptions.map((option) => (
@@ -134,11 +145,13 @@ const QuizOptionsComponent: React.FC = () => {
           </FormControl>
 
           <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel id="service-label">AI Service</InputLabel>
+            <InputLabel id="service-label">
+              {t('quizOptions.aiService')}
+            </InputLabel>
             <Select
               labelId="service-label"
               value={quizOptions.selectedService?.toString() ?? ''}
-              label="AI Service"
+              label={t('quizOptions.aiService')}
               onChange={handleServiceChange}
             >
               {quizOptions.availableServices.length > 0 ? (
@@ -149,7 +162,7 @@ const QuizOptionsComponent: React.FC = () => {
                 ))
               ) : (
                 <MenuItem value="" disabled>
-                  No services available
+                  {t('quizOptions.noServicesAvailable')}
                 </MenuItem>
               )}
             </Select>
@@ -157,11 +170,13 @@ const QuizOptionsComponent: React.FC = () => {
 
           {quizOptions.selectedService !== null && (
             <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel id="model-label">AI Model</InputLabel>
+              <InputLabel id="model-label">
+                {t('quizOptions.aiModel')}
+              </InputLabel>
               <Select
                 labelId="model-label"
                 value={quizOptions.selectedModel?.toString() ?? ''}
-                label="AI Model"
+                label={t('quizOptions.aiModel')}
                 onChange={handleModelChange}
               >
                 {quizOptions.availableModels.map((model) => (

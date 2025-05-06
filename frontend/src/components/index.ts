@@ -3,7 +3,7 @@ export { default as Footer } from './Footer';
 export { default as Highlights } from './Highlights';
 export { default as LanguageSelection } from './AppBar/LanguageSelection';
 export { default as SubmissionHistory } from './SubmissionHistory';
-export { default as LoginButton } from './LoginButton';
+export { default as LoginButton } from './AppBar/Account/LoginButton';
 
 // AppBar components
 export { default as QuizAppBar } from './AppBar/QuizAppBar';

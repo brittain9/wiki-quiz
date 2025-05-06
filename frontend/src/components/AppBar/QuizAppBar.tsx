@@ -12,9 +12,9 @@ import Toolbar from '@mui/material/Toolbar';
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import AuthControls from './Account/AuthControls';
 import LanguageToggle from './LanguageSelection';
 import QuizOptionsComponent from './QuizOptionsComponent';
-import LoginButton from '../LoginButton';
 
 const QuizAppBar: React.FC = () => {
   const [open, setOpen] = React.useState(false);
@@ -122,7 +122,8 @@ const QuizAppBar: React.FC = () => {
           <Box
             sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', px: 0 }}
           >
-            <Typography color="text.primary" sx={{ mr: 2 }}>
+            <LanguageToggle />
+            <Typography color="text.primary" sx={{ mr: 2, ml: 2 }}>
               {t('appBar.title')}
             </Typography>
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
@@ -144,8 +145,7 @@ const QuizAppBar: React.FC = () => {
             }}
           >
             <QuizOptionsComponent />
-            <LanguageToggle />
-            <LoginButton />
+            <AuthControls />
           </Box>
           <Box sx={{ display: { sm: 'flex', md: 'none' } }}>
             <IconButton
@@ -173,7 +173,7 @@ const QuizAppBar: React.FC = () => {
                   {t('appBar.highlights')}
                 </MenuItem>
                 <MenuItem>
-                  <LoginButton />
+                  <AuthControls />
                 </MenuItem>
               </Box>
             </Drawer>

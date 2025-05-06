@@ -2,7 +2,13 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 
 import QuizQuestion from './QuizQuestion';
 import QuizResult from './QuizResult';
@@ -18,6 +24,8 @@ const QuizContainer: React.FC = React.memo(() => {
     setCurrentSubmission,
     addSubmissionToHistory,
   } = useQuizState();
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -44,6 +52,19 @@ const QuizContainer: React.FC = React.memo(() => {
       setScore(null);
     }
   }, [currentQuiz]);
+
+  // Scroll to quiz container when quiz finishes generating
+  useEffect(() => {
+    if (!isGenerating && currentQuiz && containerRef.current) {
+      // Add a small delay to make scrolling more noticeable
+      setTimeout(() => {
+        containerRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }, 300);
+    }
+  }, [isGenerating, currentQuiz]);
 
   // Handlers
   const handleAnswerChange = useCallback(
@@ -132,6 +153,7 @@ const QuizContainer: React.FC = React.memo(() => {
 
   return (
     <Box
+      ref={containerRef}
       sx={{
         maxWidth: 800,
         mx: 'auto',
