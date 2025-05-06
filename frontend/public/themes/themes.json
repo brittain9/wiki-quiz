@@ -13,18 +13,6 @@
       "colors": ["#f9fafb", "#6d28d9", "#1f2937"]
     },
     {
-      "id": "contrast",
-      "name": "High Contrast",
-      "file": "contrast.css",
-      "colors": ["#000000", "#ffffff", "#ffff00"]
-    },
-    {
-      "id": "nature",
-      "name": "Nature",
-      "file": "nature.css",
-      "colors": ["#1e3a2b", "#86c98f", "#d8e0d9"]
-    },
-    {
       "id": "synthwave",
       "name": "Synthwave",
       "file": "synthwave.css",
@@ -47,6 +35,78 @@
       "name": "Candy",
       "file": "candy.css",
       "colors": ["#f8bbd0", "#9c27b0", "#4a148c"]
+    },
+    {
+      "id": "cyberpunk",
+      "name": "Cyberpunk",
+      "file": "cyberpunk.css",
+      "colors": ["#0d0221", "#00ff9f", "#ff003c"]
+    },
+    {
+      "id": "coffee",
+      "name": "Coffee",
+      "file": "coffee.css",
+      "colors": ["#38220f", "#a87c5b", "#f1e3d3"]
+    },
+    {
+      "id": "forest",
+      "name": "Forest",
+      "file": "forest.css",
+      "colors": ["#1b2e1b", "#668f60", "#e8f4ea"]
+    },
+    {
+      "id": "space",
+      "name": "Space",
+      "file": "space.css",
+      "colors": ["#000000", "#ffffff", "#ffffff"]
+    },
+    {
+      "id": "retro",
+      "name": "Retro",
+      "file": "retro.css",
+      "colors": ["#2d2d2d", "#00ff00", "#ffb000"]
+    },
+    {
+      "id": "arctic",
+      "name": "Arctic",
+      "file": "arctic.css",
+      "colors": ["#dce7f0", "#0369a1", "#f0f9ff"]
+    },
+    {
+      "id": "pastel-dreams",
+      "name": "Pastel Dreams",
+      "file": "pastel-dreams.css",
+      "colors": ["#f0e6f2", "#a0c4ff", "#5c5c8a"]
+    },
+    {
+      "id": "sepia",
+      "name": "Sepia",
+      "file": "sepia.css",
+      "colors": ["#f4e8d1", "#70542d", "#43341b"]
+    },
+    {
+      "id": "crimson-code",
+      "name": "Crimson Code",
+      "file": "crimson-code.css",
+      "colors": ["#3D0000", "#FF4136", "#FFD1D1"]
+    },
+    {
+      "id": "monokai",
+      "name": "Monokai",
+      "file": "monokai.css",
+      "colors": ["#272822", "#fd971f", "#f8f8f2"]
+    },
+    {
+      "id": "dracula",
+      "name": "Dracula",
+      "file": "dracula.css",
+      "colors": ["#282a36", "#bd93f9", "#f8f8f2"]
+    },
+    {
+      "id": "nord",
+      "name": "Nord",
+      "file": "nord.css",
+      "colors": ["#2e3440", "#88c0d0", "#d8dee9"]
     }
   ]
 }

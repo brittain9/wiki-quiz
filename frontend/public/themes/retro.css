@@ -1,0 +1,26 @@
+/* Retro theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #2d2d2d;
+  --bg-color-secondary: #222222;
+  --bg-color-tertiary: #383838;
+  --main-color: #00ff00;
+  --caret-color: #00ff00;
+  --sub-color: #5a5a5a;
+  --sub-alt-color: #3d3d3d;
+  --text-color: #ffb000;
+  --error-color: #ff5555;
+  --error-extra-color: #ff2222;
+  --success-color: #00ff00;
+  --warning-color: #ffb000;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(0, 255, 0, 0.1); /* 10% opacity */
+  --main-color-20: rgba(0, 255, 0, 0.2); /* 20% opacity */
+  --success-color-10: rgba(0, 255, 0, 0.1); /* 10% opacity */
+  --error-color-10: rgba(255, 85, 85, 0.1); /* 10% opacity */
+}
