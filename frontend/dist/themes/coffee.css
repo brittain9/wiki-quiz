@@ -1,0 +1,26 @@
+/* Coffee theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #38220f;
+  --bg-color-secondary: #2b1a0c;
+  --bg-color-tertiary: #462a14;
+  --main-color: #a87c5b;
+  --caret-color: #a87c5b;
+  --sub-color: #8c6b4f;
+  --sub-alt-color: #593315;
+  --text-color: #f1e3d3;
+  --error-color: #ca4754;
+  --error-extra-color: #a53640;
+  --success-color: #7d9e6a;
+  --warning-color: #d2b48c;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(168, 124, 91, 0.1); /* 10% opacity */
+  --main-color-20: rgba(168, 124, 91, 0.2); /* 20% opacity */
+  --success-color-10: rgba(125, 158, 106, 0.1); /* 10% opacity */
+  --error-color-10: rgba(202, 71, 84, 0.1); /* 10% opacity */
+}

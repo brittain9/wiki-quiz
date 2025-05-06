@@ -1,0 +1,26 @@
+/* Arctic theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #dce7f0;
+  --bg-color-secondary: #c9dbe9;
+  --bg-color-tertiary: #e7f0f6;
+  --main-color: #0369a1;
+  --caret-color: #0369a1;
+  --sub-color: #7094b3;
+  --sub-alt-color: #a6c7de;
+  --text-color: #141e29;
+  --error-color: #ca4754;
+  --error-extra-color: #a53640;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(3, 105, 161, 0.1); /* 10% opacity */
+  --main-color-20: rgba(3, 105, 161, 0.2); /* 20% opacity */
+  --success-color-10: rgba(76, 175, 80, 0.1); /* 10% opacity */
+  --error-color-10: rgba(202, 71, 84, 0.1); /* 10% opacity */
+}

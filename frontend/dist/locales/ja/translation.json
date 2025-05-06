@@ -1,0 +1,59 @@
+{
+  "button": {
+    "close": "近い"
+  },
+  "appBar": {
+    "title": "Wiki Quiz App",
+    "highlights": "ハイライト"
+  },
+  "footer": {
+    "title": "ウィキペディアクイズアプリ"
+  },
+  "hero": {
+    "topics": ["トピック1", "トピック2", "トピック3"],
+    "generateQuiz": "について、クイズを生成する",
+    "topicInfo": "興味のあるトピックを入力してください。あなただけのカスタムクイズを生成します。",
+    "placeholder": "あなたのクイズトピック",
+    "generatingButtonText": "生成中",
+    "startButtonText": "今すぐ始める"
+  },
+  "recentSubmissions": {
+    "title": "最近の投稿",
+    "noHistory": "クイズに答えて、あなたの履歴を見てみましょう!"
+  },
+  "quizresultoverlay": {
+    "title": "クイズ結果",
+    "score": "スコア",
+    "question": "質問"
+  },
+  "highlights": {
+    "title": "ハイライト",
+    "info": "当社の製品が際立つ理由をご覧ください：適応性、耐久性、ユーザーフレンドリーなデザイン、そしてイノベーション。信頼性の高いカスタマーサポートと細部にまでこだわった精密さをお楽しみください。",
+    "items": {
+      "dynamic_quiz": {
+        "title": "ダイナミッククイズ生成",
+        "desc": "AIとWikipediaを活用して、魅力的でトピックに特化したクイズを生成し、ニーズに合わせて調整し、ユーザーエンゲージメントと学習を向上させます。"
+      },
+      "inclusive_design": {
+        "title": "すべてのユーザーのための包括的デザイン",
+        "desc": "私たちのアプリは、幅広いユーザーに対応できるよう設計されており、誰もが多様なトピックを探索し、興味を持つことができます。"
+      },
+      "multilingual_support": {
+        "title": "9言語対応",
+        "desc": "英語、スペイン語、フランス語、日本語、中国語など、9言語でクイズを提供し、世界中のユーザーにアクセス可能性を確保します。"
+      },
+      "intelligent_search": {
+        "title": "インテリジェント検索",
+        "desc": "インテリジェントな検索機能を使用してトピックを正確にターゲットにし、数百万のWikipedia記事から関連性が高く正確なクイズコンテンツを提供します。"
+      },
+      "ai_integration": {
+        "title": "シームレスなAI統合",
+        "desc": "OpenAIやPerplexityなどの主要なAI APIとシームレスに統合し、最先端のパフォーマンスと機能を実現します。"
+      },
+      "meticulous_design": {
+        "title": "細部へのこだわり",
+        "desc": "ReactとTypeScriptで構築されたフロントエンドから、.NET 8とPostgreSQLで動作するバックエンドまで、各コンポーネントは最適なパフォーマンスのために綿密に設計されています。"
+      }
+    }
+  }
+}

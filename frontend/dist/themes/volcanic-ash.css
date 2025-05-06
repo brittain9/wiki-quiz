@@ -1,0 +1,26 @@
+/* Volcanic Ash theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #1f1f1f; /* Very dark charcoal */
+  --bg-color-secondary: #141414; /* Almost black */
+  --bg-color-tertiary: #2a2a2a; /* Dark grey */
+  --main-color: #ff4500; /* OrangeRed - Fiery accent */
+  --caret-color: #ff4500;
+  --sub-color: #dc143c; /* Crimson - Deeper red accent */
+  --sub-alt-color: #363636;
+  --text-color: #e0e0e0; /* Light grey */
+  --error-color: #ff6347; /* Tomato - visible red for error */
+  --error-extra-color: #d2321e;
+  --success-color: #ff8c00; /* DarkOrange for success */
+  --warning-color: #ff4500; /* OrangeRed for warning */
+
+  /* Colors with transparency */
+  --main-color-10: rgba(255, 69, 0, 0.1);
+  --main-color-20: rgba(255, 69, 0, 0.2);
+  --success-color-10: rgba(255, 140, 0, 0.1);
+  --error-color-10: rgba(255, 99, 71, 0.1);
+}
