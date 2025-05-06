@@ -10,16 +10,45 @@
     "title": "Application Quiz Wikipédia"
   },
   "hero": {
-    "topics": ["Sujet 1", "Sujet 2", "Sujet 3"],
+    "topics": [
+      "Musique",
+      "Voyage",
+      "Climat",
+      "Dinosaures",
+      "Biographie",
+      "Révolution",
+      "Pâtisserie",
+      "Circuits",
+      "Festival"
+    ],
     "generateQuiz": "Générer un quiz sur",
     "topicInfo": "Entrez n'importe quel sujet qui vous intéresse, et nous générerons un quiz personnalisé juste pour vous.",
     "placeholder": "Votre sujet de quiz",
-    "generatingButtonText": "Génération en cours",
-    "startButtonText": "Commencer maintenant"
+    "generate": "Générer",
+    "generating": "Génération en cours..."
+  },
+  "login": {
+    "title": "Connexion requise",
+    "loginWithGoogle": "Se connecter avec Google",
+    "loginButton": "Se connecter",
+    "dismiss": "Ignorer",
+    "quizCreationMessage": "Veuillez vous connecter pour créer et répondre à des quiz.",
+    "viewSubmissionsMessage": "Veuillez vous connecter pour voir l'historique de vos quiz."
+  },
+  "account": {
+    "title": "Mon Compte",
+    "viewProfile": "Voir le profil",
+    "logout": "Se déconnecter",
+    "loggingOut": "Déconnexion en cours...",
+    "usage": "Utilisation",
+    "profileMessage": "Ceci est l'aperçu de votre profil. Plus de fonctionnalités bientôt disponibles !"
+  },
+  "theme": {
+    "selector": "Changer de thème",
+    "title": "Sélectionner un thème"
   },
   "recentSubmissions": {
-    "title": "Soumissions récentes",
-    "noHistory": "Répondez à un quiz pour voir votre histoire !"
+    "title": "Soumissions récentes"
   },
   "quizresultoverlay": {
     "title": "Résultats du quiz",
@@ -28,7 +57,7 @@
   },
   "highlights": {
     "title": "Points forts",
-    "info": "Découvrez pourquoi notre produit se démarque : adaptabilité, durabilité, conception conviviale et innovation. Profitez d'un support client fiable et d'une précision dans chaque détail.",
+    "info": "Découvrez ce qui rend le Générateur de Quiz Wikipédia exceptionnel : création dynamique de quiz, support multilingue, recherche intelligente, intégration transparente de l'IA et conception méticuleuse. Profitez de performances fiables et d'une précision dans chaque fonctionnalité.",
     "items": {
       "dynamic_quiz": {
         "title": "Génération de Quiz Dynamique",
@@ -55,5 +84,21 @@
         "desc": "Du frontend développé avec React et TypeScript au backend propulsé par .NET 8 et PostgreSQL, chaque composant est méticuleusement conçu pour des performances optimales."
       }
     }
+  },
+  "quizOptions": {
+    "questions": "Questions",
+    "options": "Options",
+    "variety": "Variété",
+    "aiService": "Service d'IA",
+    "aiModel": "Modèle d'IA",
+    "showOptions": "Afficher les options",
+    "hideOptions": "Masquer les options",
+    "varietyLevels": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "veryHigh": "Très Élevée"
+    },
+    "noServicesAvailable": "Aucun service disponible"
   }
 }
