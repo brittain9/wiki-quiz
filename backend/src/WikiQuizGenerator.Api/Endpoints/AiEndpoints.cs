@@ -1,12 +1,11 @@
 using System.Security.Claims;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Models;
 
 namespace WikiQuizGenerator.Api;
 
-public static class AiServiceEndpoints
+public static class AiEndpoints
 {
-    public static void MapAiServiceEndpoints(this WebApplication app)
+    public static void MapAiEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("/api/ai")
                        .WithTags("AI");
@@ -22,7 +21,7 @@ public static class AiServiceEndpoints
         });
 
         // Endpoint for getting models based on AI service ID
-        // open ai has an endpoint for this /v1/models
+        // TODO: open ai has an endpoint for this /v1/models
         group.MapGet("/models", (IAiServiceManager aiServiceManager, string aiServiceId)
             => Results.Ok(aiServiceManager.GetModels(aiServiceId)))
         .WithName("GetAiModels")

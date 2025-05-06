@@ -41,7 +41,7 @@ public partial class Program
 
         app.MapAuthEndpoints();
         app.MapQuizEndpoints();
-        app.MapAiServiceEndpoints();
+        app.MapAiEndpoints();
         app.MapSubmissionEndpoints();
 
         // Check if Swagger should be enabled (either in Development or explicitly via env var)

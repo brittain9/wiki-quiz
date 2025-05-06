@@ -13,28 +13,23 @@ public static class AuthEndpoints
 
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        // Group endpoints under /api/account
-        // Updated the tag to "Account" to better reflect the new endpoints
         var group = app.MapGroup("/api/auth")
             .WithTags("Authenication");
 
-        // --- Register Endpoint ---
         group.MapPost("/register", async (RegisterRequest registerRequest, IAccountService accountService) =>
             {
                 await accountService.RegisterAsync(registerRequest);
                 return Results.Ok();
             })
-            .AllowAnonymous(); // Typically, registration should be anonymous
+            .AllowAnonymous();
 
-        // --- Login Endpoint ---
         group.MapPost("/login", async (LoginRequest loginRequest, IAccountService accountService) =>
             {
                 await accountService.LoginAsync(loginRequest);
                 return Results.Ok();
             })
-            .AllowAnonymous(); // Login endpoint should be anonymous
+            .AllowAnonymous();
 
-        // --- Refresh Token Endpoint ---
         group.MapPost("/refresh", async (HttpContext httpContext, IAccountService accountService) =>
             {
                 // Extract refresh token from cookie
@@ -43,32 +38,23 @@ public static class AuthEndpoints
                 // Check if the token exists before calling the service
                 if (string.IsNullOrEmpty(refreshToken))
                 {
-                    // Or return Results.BadRequest("Refresh token not found.");
                     return Results.Unauthorized();
                 }
 
                 await accountService.RefreshTokenAsync(refreshToken);
                 return Results.Ok();
             })
-            .AllowAnonymous(); // Refresh often needs to be anonymous as the access token might be expired
+            .AllowAnonymous();
 
-        // --- Google Login Initiation Endpoint ---
         group.MapGet("/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator,
                 SignInManager<User> signInManager, HttpContext context, ILogger<Program> logger) =>
             {
-                logger.LogInformation("Initiating Google login with return URL: {ReturnUrl}", returnUrl);
-                
                 // Get the callback path
                 var callbackPath = linkGenerator.GetPathByName(context, "GoogleLoginCallback");
                 
-                // Get the host and scheme - prioritize X-Forwarded headers if available
-                // The Request.Scheme should already use X-Forwarded-Proto thanks to the ForwardedHeaders middleware
                 var scheme = context.Request.Scheme;
                 var host = context.Request.Host.Value;
-                
-                logger.LogInformation("Using scheme: {Scheme} from request", scheme);
-                
-                // Create absolute callback URL with appropriate scheme
+
                 var callbackUrl = $"{scheme}://{host}{callbackPath}?returnUrl={returnUrl}";
                 logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
                 
@@ -76,9 +62,8 @@ public static class AuthEndpoints
 
                 return Results.Challenge(properties, ["Google"]);
             })
-            .AllowAnonymous(); // Starting Google login must be anonymous
+            .AllowAnonymous();
 
-        // --- Google Login Callback Endpoint ---
         group.MapGet("/login/google/callback", async ([FromQuery] string returnUrl,
                 HttpContext context, IAccountService accountService, SignInManager<User> signInManager) =>
             {
@@ -93,10 +78,9 @@ public static class AuthEndpoints
 
                 return Results.Redirect(returnUrl);
             })
-            .WithName("GoogleLoginCallback") // Name the route for LinkGenerator
-            .AllowAnonymous(); // Callback endpoint is hit anonymously initially, relies on external cookie
+            .WithName("GoogleLoginCallback")
+            .AllowAnonymous();
         
-        // --- Logout Endpoint ---
         group.MapPost("/logout", async (ClaimsPrincipal user, IAccountService accountService) =>
             {
                 // Get user ID from claims
@@ -108,7 +92,7 @@ public static class AuthEndpoints
                 await accountService.LogoutAsync(userId);
                 return Results.Ok();
             })
-            .RequireAuthorization(); // Only authenticated users can logout
+            .RequireAuthorization();
 
         group.MapGet("/user", async (ClaimsPrincipal user, IAccountService accountService) =>
             {
@@ -121,6 +105,6 @@ public static class AuthEndpoints
                 var userInfo = await accountService.GetUserInfoAsync(userId);
                 return Results.Ok(userInfo);
             })
-            .RequireAuthorization(); // Only authenticated users can access their info
+            .RequireAuthorization();
     }
 }
