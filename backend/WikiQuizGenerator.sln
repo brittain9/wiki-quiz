@@ -23,8 +23,8 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{30258541-D0D8-F3FD-D559-E63D6BF074C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.Pulumi", "infra\WikiQuizGenerator.Pulumi.csproj", "{0565733E-AE4F-4571-915C-39A6C9DDE05B}"
-EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiQuizGenerator.Pulumi.Azure", "infra\WikiQuizGenerator.Pulumi.Azure\WikiQuizGenerator.Pulumi.Azure.csproj", "{0565733E-AE4F-4571-915C-39A6C9DDE05B}"
+EndProjects
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
