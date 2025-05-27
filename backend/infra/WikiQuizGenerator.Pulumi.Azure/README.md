@@ -63,9 +63,9 @@ pulumi config set containerImage acrwikiquizapii5yglprgz2pfq.azurecr.io/wikiquiz
 pulumi config set containerPort 8080
 pulumi config set postgresAdminLogin pgadmin
 pulumi config set postgresDatabaseName WikiQuizGenerator
-pulumi config set frontendUrl https://quiz.alexanderbrittain.com
-pulumi config set jwtIssuer https://quiz.alexanderbrittain.com/
-pulumi config set jwtAudience https://wikiquiz.azurestaticapps.net
+pulumi config set frontendUrl http://yoururl.com
+pulumi config set jwtIssuer https://yoururl.com/
+pulumi config set jwtAudience https://yoururl.net
 ```
 
 ### 4. Configure Secrets
@@ -91,7 +91,7 @@ pulumi preview
 pulumi up
 ```
 
-Review the changes and confirm the deployment. 
+Review the changes and confirm the deployment.
 
 ### 6. Access Resources
 
@@ -170,4 +170,4 @@ pulumi destroy
 2. Use **separate stacks** for different environments (dev, test, prod).
 3. Review changes carefully with `pulumi preview` before applying them.
 4. Consider using [Pulumi CI/CD integration](https://www.pulumi.com/docs/guides/continuous-delivery/) for automated deployments.
-5. After deployment, the app in the Container App will use Managed Identity to access secrets in Key Vault via App Configuration for maximum security. 
+5. After deployment, the app in the Container App will use Managed Identity to access secrets in Key Vault via App Configuration for maximum security.

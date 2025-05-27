@@ -1,2 +1,17 @@
 config:
-  azure-native:location: WestUS2
+  azure-native:location: centralus
+  WikiQuizGenerator.Pulumi.Azure:projectName: wikiquizapi
+  WikiQuizGenerator.Pulumi.Azure:environmentName: Development
+  WikiQuizGenerator.Pulumi.Azure:containerImage: acrwikiquizapii5yglprgz2pfq.azurecr.io/wikiquizapi:v0.1
+  WikiQuizGenerator.Pulumi.Azure:containerPort: 8080
+  WikiQuizGenerator.Pulumi.Azure:postgresAdminLogin: pgadmin
+  # Note: Secrets below should be encrypted with 'pulumi config set --secret'
+  # WikiQuizGenerator.Pulumi.Azure:postgresAdminPassword: <value>
+  WikiQuizGenerator.Pulumi.Azure:postgresDatabaseName: WikiQuizGenerator
+  # WikiQuizGenerator.Pulumi.Azure:openAiApiKey: <value>
+  # WikiQuizGenerator.Pulumi.Azure:googleClientId: <value>
+  # WikiQuizGenerator.Pulumi.Azure:googleClientSecret: <value>
+  WikiQuizGenerator.Pulumi.Azure:frontendUrl: https://quiz.alexanderbrittain.com
+  WikiQuizGenerator.Pulumi.Azure:jwtIssuer: https://quiz.alexanderbrittain.com/
+  WikiQuizGenerator.Pulumi.Azure:jwtAudience: https://wikiquiz.azurestaticapps.net
+  # WikiQuizGenerator.Pulumi.Azure:jwtSecret: <value>
