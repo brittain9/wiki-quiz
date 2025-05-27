@@ -4,8 +4,11 @@ using Pulumi.AzureNative.App.Inputs;
 using Pulumi.AzureNative.KeyVault;
 using Pulumi.AzureNative.ManagedIdentity;
 using Pulumi.AzureNative.Resources;
+using Pulumi.AzureNative.AppConfiguration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
 {
@@ -15,7 +18,6 @@ namespace WikiQuiz.Infrastructure.Modules
         public ResourceGroup ResourceGroup { get; set; } = null!;
         public string Location { get; set; } = null!;
         public string EnvironmentShort { get; set; } = null!;
-        public Func<string, int, string> SanitizeName { get; set; } = null!;
         
         // From MonitoringModule
         public Output<string> LogAnalyticsWorkspaceId { get; set; } = null!;
@@ -42,15 +44,15 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public Output<string> ContainerAppFqdn { get; private set; }
 
         public ContainerAppsModule(string name, ContainerAppsModuleArgs args, ComponentResourceOptions? options = null)
-            : base("wikiquiz:modules:ContainerAppsModule", name, args, options)
+            : base("wikiquiz:modules:ContainerAppsModule", name, options)
         {
             // Container App Environment
-            var containerAppEnvName = args.SanitizeName($"cae-{args.Config.ProjectName}-{args.EnvironmentShort}", 32);
+            var containerAppEnvName = AzureResourceNaming.GenerateContainerAppsEnvironmentName(args.Config.ProjectName, args.EnvironmentShort);
             
             ContainerAppEnvironment = new ManagedEnvironment("containerAppEnv", new ManagedEnvironmentArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
-                Name = containerAppEnvName,
+                EnvironmentName = containerAppEnvName,
                 Location = args.Location,
                 AppLogsConfiguration = new AppLogsConfigurationArgs
                 {
@@ -64,13 +66,11 @@ namespace WikiQuiz.Infrastructure.Modules
             }, new CustomResourceOptions { Parent = this });
 
             // Container App
-            var containerAppName = args.SanitizeName($"app-{args.Config.ProjectName}-{args.EnvironmentShort}", 32);
+            var containerAppName = AzureResourceNaming.GenerateContainerAppName(args.Config.ProjectName, args.EnvironmentShort);
             
             // Dictionary for user assigned identities with the Managed Identity's ID as key
-            var userAssignedIdentities = Output.Create(new Dictionary<string, object?>());
-            userAssignedIdentities = Output.Tuple(args.UserAssignedIdentity.Id).Apply(values =>
+            var userAssignedIdentities = args.UserAssignedIdentity.Id.Apply(identityId =>
             {
-                var (identityId) = values;
                 return new Dictionary<string, object?>
                 {
                     { identityId, new Dictionary<string, object?>() }
@@ -80,12 +80,12 @@ namespace WikiQuiz.Infrastructure.Modules
             ContainerApp = new ContainerApp("containerApp", new ContainerAppArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
-                Name = containerAppName,
+                ContainerAppName = containerAppName,
                 Location = args.Location,
                 Identity = new ManagedServiceIdentityArgs
                 {
-                    Type = ManagedServiceIdentityType.UserAssigned,
-                    UserAssignedIdentities = userAssignedIdentities
+                    Type = Pulumi.AzureNative.App.ManagedServiceIdentityType.UserAssigned,
+                    UserAssignedIdentities = userAssignedIdentities.Apply(dict => dict.Keys.ToArray())
                 },
                 ManagedEnvironmentId = ContainerAppEnvironment.Id,
                 Configuration = new ConfigurationArgs
@@ -102,15 +102,8 @@ namespace WikiQuiz.Infrastructure.Modules
                     {
                         External = true,
                         TargetPort = args.Config.ContainerPort,
-                        Transport = "auto",
-                        AllowInsecure = false,
-                        CorsPolicy = new CorsArgs
-                        {
-                            AllowedOrigins = new InputList<string> { args.Config.FrontendUrl },
-                            AllowedHeaders = new InputList<string> { "*" },
-                            AllowCredentials = true,
-                            MaxAge = 86400
-                        }
+                        Transport = IngressTransportMethod.Auto,
+                        AllowInsecure = false
                     }
                 },
                 Template = new TemplateArgs
@@ -155,7 +148,7 @@ namespace WikiQuiz.Infrastructure.Modules
             }, new CustomResourceOptions 
             { 
                 Parent = this,
-                DependsOn = new Resource[]
+                DependsOn = new Pulumi.Resource[]
                 {
                     ContainerAppEnvironment,
                     args.UserAssignedIdentity,

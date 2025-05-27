@@ -4,6 +4,7 @@ using Pulumi.AzureNative.AppConfiguration.Inputs;
 using Pulumi.AzureNative.KeyVault; // For Vault resource type in args
 using Pulumi.AzureNative.Resources;
 using System;
+using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
 {
@@ -14,7 +15,6 @@ namespace WikiQuiz.Infrastructure.Modules
         public string Location { get; set; } = null!;
         public string EnvironmentShort { get; set; } = null!;
         public Output<string> UniqueSuffix { get; set; } = null!;
-        public Func<string, int, string> SanitizeName { get; set; } = null!;
 
         public Output<string> KeyVaultUri { get; set; } = null!;
         public string OpenAIApiKeySecretName { get; set; } = null!;
@@ -31,19 +31,19 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public Output<string> AppConfigStoreEndpoint { get; private set; }
 
         public AppConfigModule(string name, AppConfigModuleArgs args, ComponentResourceOptions? options = null)
-            : base("wikiquiz:modules:AppConfigModule", name, args, options)
+            : base("wikiquiz:modules:AppConfigModule", name, options)
         {
             var appConfigStoreName = args.UniqueSuffix.Apply(suffix =>
-                args.SanitizeName($"acfg-{args.Config.ProjectName}-{args.EnvironmentShort}-{suffix}", 50)
+                AzureResourceNaming.GenerateAppConfigurationName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
             AppConfigurationStore = new ConfigurationStore("appConfigStore", new ConfigurationStoreArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
-                StoreName = appConfigStoreName,
+                ConfigStoreName = appConfigStoreName,
                 Location = args.Location,
                 Sku = new SkuArgs { Name = "Free" },
-                Identity = new ResourceIdentityArgs { Type = KnownResourceIdentityType.SystemAssigned }
+                Identity = new ResourceIdentityArgs { Type = IdentityType.SystemAssigned }
             }, new CustomResourceOptions { Parent = this });
 
             AppConfigStoreEndpoint = AppConfigurationStore.Endpoint.Apply(e => e ?? "");
@@ -63,8 +63,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 ResourceGroupName = args.ResourceGroup.Name,
                 ConfigStoreName = AppConfigurationStore.Name,
                 KeyValueName = configKeyJwtIssuer, 
-                Value = args.Config.JwtIssuer,
-                Label = label
+                Value = args.Config.JwtIssuer
             }, new CustomResourceOptions { Parent = AppConfigurationStore });
 
             _ = new KeyValue("jwtAudienceSetting", new KeyValueArgs
@@ -72,8 +71,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 ResourceGroupName = args.ResourceGroup.Name,
                 ConfigStoreName = AppConfigurationStore.Name,
                 KeyValueName = configKeyJwtAudience,
-                Value = args.Config.JwtAudience,
-                Label = label
+                Value = args.Config.JwtAudience
             }, new CustomResourceOptions { Parent = AppConfigurationStore });
 
             var kvRefContentType = "application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8";
@@ -85,8 +83,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 ConfigStoreName = AppConfigurationStore.Name,
                 KeyValueName = configKeyOpenAIApiKey,
                 Value = args.KeyVaultUri.Apply(uri => $"{{\"uri\":\"{uri}secrets/{args.OpenAIApiKeySecretName}\"}}"),
-                ContentType = kvRefContentType,
-                Label = label
+                ContentType = kvRefContentType
             }, dependsOnKeyVaultSecrets);
             
             _ = new KeyValue("googleClientIdRefSetting", new KeyValueArgs
@@ -95,8 +92,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 ConfigStoreName = AppConfigurationStore.Name,
                 KeyValueName = configKeyGoogleClientId,
                 Value = args.KeyVaultUri.Apply(uri => $"{{\"uri\":\"{uri}secrets/{args.GoogleClientIdSecretName}\"}}"),
-                ContentType = kvRefContentType,
-                Label = label
+                ContentType = kvRefContentType
             }, dependsOnKeyVaultSecrets);
 
             _ = new KeyValue("googleClientSecretRefSetting", new KeyValueArgs
@@ -105,8 +101,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 ConfigStoreName = AppConfigurationStore.Name,
                 KeyValueName = configKeyGoogleClientSecret,
                 Value = args.KeyVaultUri.Apply(uri => $"{{\"uri\":\"{uri}secrets/{args.GoogleClientSecretSecretName}\"}}"),
-                ContentType = kvRefContentType,
-                Label = label
+                ContentType = kvRefContentType
             }, dependsOnKeyVaultSecrets);
 
             _ = new KeyValue("jwtSecretRefSetting", new KeyValueArgs
@@ -115,8 +110,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 ConfigStoreName = AppConfigurationStore.Name,
                 KeyValueName = configKeyJwtSecret,
                 Value = args.KeyVaultUri.Apply(uri => $"{{\"uri\":\"{uri}secrets/{args.JwtSecretKvName}\"}}"),
-                ContentType = kvRefContentType,
-                Label = label
+                ContentType = kvRefContentType
             }, dependsOnKeyVaultSecrets);
 
             _ = new KeyValue("postgresConnStringRefSetting", new KeyValueArgs
@@ -125,8 +119,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 ConfigStoreName = AppConfigurationStore.Name,
                 KeyValueName = configKeyPostgresConnectionString,
                 Value = args.KeyVaultUri.Apply(uri => $"{{\"uri\":\"{uri}secrets/{args.PostgresConnectionStringSecretName}\"}}"),
-                ContentType = kvRefContentType,
-                Label = label
+                ContentType = kvRefContentType
             }, dependsOnKeyVaultSecrets);
 
             this.RegisterOutputs();

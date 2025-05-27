@@ -6,8 +6,9 @@ using System;
 using System.Collections.Generic;
 using WikiQuiz.Infrastructure; // Assuming Configuration.cs is here
 using WikiQuiz.Infrastructure.Modules;
+using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
-class MyStack : Stack
+public class MyStack : Stack
 {
     // --- Stack Outputs ---
     [Output] public Output<string> ContainerAppUrl { get; private set; }
@@ -24,12 +25,12 @@ class MyStack : Stack
 
         var resourceGroup = new ResourceGroup("resourceGroup", new ResourceGroupArgs
         {
-            // Resource group name from Bicep: rg-wikiquizapi-development (example)
-            ResourceGroupName = $"rg-{config.ProjectName.ToLower()}-{config.EnvironmentName.ToLower()}",
+            // Using the new naming utility (which contains intentional errors)
+            ResourceGroupName = AzureResourceNaming.GenerateResourceGroupName(config.ProjectName, config.EnvironmentName),
             Location = config.Location,
         });
 
-        // --- Naming Convention Variables ( mirroring Bicep logic ) ---
+        // --- Environment and Unique Suffix Setup ---
         var environmentShort = config.EnvironmentName switch
         {
             "Production" => "prod",
@@ -38,9 +39,7 @@ class MyStack : Stack
             _ => config.EnvironmentName.ToLower().Substring(0, Math.Min(config.EnvironmentName.Length, 4)) // Fallback
         };
 
-        // Bicep's uniqueString is based on resourceGroup.id, projectName, location.
-        // We will generate a similar unique suffix. Pulumi's Random provider is good for this.
-        // For now, a placeholder to be replaced by a RandomString resource.
+        // Generate a unique suffix for resources that need it
         var uniqueSuffixResource = new Pulumi.Random.RandomString("uniqueSuffix", new Pulumi.Random.RandomStringArgs
         {
             Length = 6,
@@ -48,20 +47,6 @@ class MyStack : Stack
             Upper = false,
         });
         var uniqueSuffix = uniqueSuffixResource.Result;
-
-        // Helper function for safe substring and lowercasing, similar to Bicep's pattern
-        Func<string, int, string> SanitizeName = (name, maxLength) => 
-        {
-            var lower = name.ToLower();
-            return lower.Length <= maxLength ? lower : lower.Substring(0, maxLength);
-        };
-
-        // Helper to remove non-alphanumeric for specific resources like ACR
-        Func<string, int, string> SanitizeAlphaNumeric = (name, maxLength) =>
-        {
-            var replaced = Regex.Replace(name, "[^a-zA-Z0-9]", "");
-            return SanitizeName(replaced, maxLength);
-        };
 
         // Get current Azure tenant ID for Key Vault
         var currentClient = GetClientConfig.InvokeAsync().Result;
@@ -75,7 +60,6 @@ class MyStack : Stack
             Config = config,
             ResourceGroup = resourceGroup,
             EnvironmentShort = environmentShort,
-            SanitizeName = SanitizeName,
             Location = config.Location
         });
 
@@ -85,7 +69,7 @@ class MyStack : Stack
             Config = config,
             ResourceGroup = resourceGroup,
             UniqueSuffix = uniqueSuffix,
-            SanitizeName = SanitizeName,
+            EnvironmentShort = environmentShort,
             Location = config.Location
         });
 
@@ -96,7 +80,7 @@ class MyStack : Stack
             ResourceGroup = resourceGroup,
             UniqueSuffix = uniqueSuffix,
             Location = config.Location,
-            SanitizeAlphaNumeric = SanitizeAlphaNumeric
+            EnvironmentShort = environmentShort
         });
 
         // 4. Azure Database for PostgreSQL
@@ -106,8 +90,7 @@ class MyStack : Stack
             ResourceGroup = resourceGroup,
             Location = config.Location,
             EnvironmentShort = environmentShort,
-            UniqueSuffix = uniqueSuffix,
-            SanitizeName = SanitizeName
+            UniqueSuffix = uniqueSuffix
         });
 
         // 5. Azure Key Vault and Secrets
@@ -118,7 +101,6 @@ class MyStack : Stack
             Location = config.Location,
             EnvironmentShort = environmentShort,
             UniqueSuffix = uniqueSuffix,
-            SanitizeName = SanitizeName,
             TenantId = tenantId,
             PostgresServerFqdn = databaseModule.PostgresServerFqdn,
             PostgresDatabaseNameOutput = databaseModule.PostgresDatabaseNameOutput
@@ -132,7 +114,6 @@ class MyStack : Stack
             Location = config.Location,
             EnvironmentShort = environmentShort,
             UniqueSuffix = uniqueSuffix,
-            SanitizeName = SanitizeName,
             KeyVaultUri = secretsManagementModule.KeyVaultUri,
             OpenAIApiKeySecretName = secretsManagementModule.SecretNameOpenAIApiKey,
             GoogleClientIdSecretName = secretsManagementModule.SecretNameGoogleClientId,
@@ -158,7 +139,6 @@ class MyStack : Stack
             ResourceGroup = resourceGroup,
             Location = config.Location,
             EnvironmentShort = environmentShort,
-            SanitizeName = SanitizeName,
             LogAnalyticsWorkspaceId = monitoringModule.LogAnalyticsWorkspaceId,
             LogAnalyticsWorkspaceSharedKey = monitoringModule.LogAnalyticsWorkspaceSharedKey,
             UserAssignedIdentity = identityModule.UserAssignedIdentity,

@@ -3,6 +3,7 @@ using Pulumi.AzureNative.Authorization;
 using Pulumi.AzureNative.KeyVault;
 using Pulumi.AzureNative.ManagedIdentity;
 using Pulumi.AzureNative.ContainerRegistry;
+using Pulumi.AzureNative.AppConfiguration;
 using System;
 
 namespace WikiQuiz.Infrastructure.Modules
@@ -14,7 +15,7 @@ namespace WikiQuiz.Infrastructure.Modules
         
         // Resources to assign roles to
         public Vault KeyVault { get; set; } = null!;
-        public AppConfiguration.ConfigurationStore AppConfigStore { get; set; } = null!;
+        public ConfigurationStore AppConfigStore { get; set; } = null!;
         public Registry AcrRegistry { get; set; } = null!;
     }
 
@@ -25,7 +26,7 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public RoleAssignment AcrPullRoleAssignment { get; private set; }
 
         public AuthorizationModule(string name, AuthorizationModuleArgs args, ComponentResourceOptions? options = null)
-            : base("wikiquiz:modules:AuthorizationModule", name, args, options)
+            : base("wikiquiz:modules:AuthorizationModule", name, options)
         {
             // Key Vault Secrets User role assignment
             KeyVaultSecretsUserRoleAssignment = new RoleAssignment("keyVaultSecretsUserRoleAssignment", new RoleAssignmentArgs
@@ -62,7 +63,7 @@ namespace WikiQuiz.Infrastructure.Modules
 
         private static Output<string> GetCurrentSubscription()
         {
-            return GetClientConfig.InvokeAsync().Apply(config => config.SubscriptionId);
+            return Output.Create(GetClientConfig.InvokeAsync()).Apply(config => config.SubscriptionId);
         }
     }
 } 

@@ -3,6 +3,7 @@ using Pulumi.AzureNative.DBforPostgreSQL;
 using Pulumi.AzureNative.DBforPostgreSQL.Inputs;
 using Pulumi.AzureNative.Resources;
 using System;
+using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
 {
@@ -13,7 +14,6 @@ namespace WikiQuiz.Infrastructure.Modules
         public string Location { get; set; } = null!;
         public string EnvironmentShort { get; set; } = null!;
         public Output<string> UniqueSuffix { get; set; } = null!;
-        public Func<string, int, string> SanitizeName { get; set; } = null!;
     }
 
     public class DatabaseModule : ComponentResource
@@ -25,10 +25,10 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public Output<string> PostgresDatabaseNameOutput { get; private set; }
 
         public DatabaseModule(string name, DatabaseModuleArgs args, ComponentResourceOptions? options = null)
-            : base("wikiquiz:modules:DatabaseModule", name, args, options)
+            : base("wikiquiz:modules:DatabaseModule", name, options)
         {
             var postgresServerName = args.UniqueSuffix.Apply(suffix =>
-                args.SanitizeName($"pg-{args.Config.ProjectName}-{args.EnvironmentShort}-{suffix}", 63)
+                AzureResourceNaming.GenerateSqlServerName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
             PostgresServer = new Server("postgresServer", new ServerArgs
@@ -41,23 +41,23 @@ namespace WikiQuiz.Infrastructure.Modules
                     Name = "Standard_B1ms", 
                     Tier = SkuTier.Burstable
                 },
-                Properties = new ServerPropertiesForDefaultCreateArgs
-                {
-                    AdministratorLogin = args.Config.PostgresAdminLogin,
-                    AdministratorLoginPassword = args.Config.PostgresAdminPassword,
-                    Version = ServerVersion.Version_15,
-                    Storage = new StorageArgs { StorageSizeGB = 32 },
-                    Backup = new BackupArgs { BackupRetentionDays = 7, GeoRedundantBackup = GeoRedundantBackupEnum.Disabled },
-                    Network = new NetworkArgs { PublicNetworkAccess = PublicNetworkAccessEnum.Enabled },
-                    HighAvailability = new HighAvailabilityArgs { Mode = HighAvailabilityMode.Disabled }
-                }
+                AdministratorLogin = args.Config.PostgresAdminLogin,
+                AdministratorLoginPassword = args.Config.PostgresAdminPassword,
+                Version = "15",
+                Storage = new StorageArgs { StorageSizeGB = 32 },
+                Backup = new Pulumi.AzureNative.DBforPostgreSQL.Inputs.BackupArgs 
+                { 
+                    BackupRetentionDays = 7, 
+                    GeoRedundantBackup = GeoRedundantBackupEnum.Disabled 
+                },
+                HighAvailability = new HighAvailabilityArgs { Mode = HighAvailabilityMode.Disabled }
             }, new CustomResourceOptions { Parent = this });
 
             PostgresDatabase = new Database("postgresDatabase", new DatabaseArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
                 ServerName = PostgresServer.Name,
-                DatabaseName = args.Config.PostgresDatabaseName, 
+                DatabaseName = AzureResourceNaming.GenerateSqlDatabaseName(args.Config.ProjectName, args.EnvironmentShort), 
                 Charset = "UTF8",
                 Collation = "en_US.utf8"
             }, new CustomResourceOptions { Parent = PostgresServer });

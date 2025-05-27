@@ -3,6 +3,7 @@ using Pulumi.AzureNative.ContainerRegistry;
 using Pulumi.AzureNative.ContainerRegistry.Inputs;
 using Pulumi.AzureNative.Resources;
 using System;
+using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
 {
@@ -12,7 +13,7 @@ namespace WikiQuiz.Infrastructure.Modules
         public ResourceGroup ResourceGroup { get; set; } = null!;
         public Output<string> UniqueSuffix { get; set; } = null!;
         public string Location { get; set; } = null!;
-        public Func<string, int, string> SanitizeAlphaNumeric { get; set; } = null!;
+        public string EnvironmentShort { get; set; } = null!;
     }
 
     public class RegistryModule : ComponentResource
@@ -21,10 +22,10 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public Output<string> AcrLoginServer { get; private set; }
 
         public RegistryModule(string name, RegistryModuleArgs args, ComponentResourceOptions? options = null)
-            : base("wikiquiz:modules:RegistryModule", name, args, options)
+            : base("wikiquiz:modules:RegistryModule", name, options)
         {
             var acrName = args.UniqueSuffix.Apply(suffix =>
-                args.SanitizeAlphaNumeric($"acr{args.Config.ProjectName}{suffix}", 50)
+                AzureResourceNaming.GenerateContainerRegistryName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
             AcrRegistry = new Registry("acrRegistry", new RegistryArgs

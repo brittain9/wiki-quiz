@@ -3,7 +3,8 @@ using Pulumi.AzureNative.KeyVault;
 using Pulumi.AzureNative.KeyVault.Inputs;
 using Pulumi.AzureNative.Resources;
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
+using WikiQuizGenerator.Pulumi.Azure.Utilities; 
 
 namespace WikiQuiz.Infrastructure.Modules
 {
@@ -14,7 +15,6 @@ namespace WikiQuiz.Infrastructure.Modules
         public string Location { get; set; } = null!;
         public string EnvironmentShort { get; set; } = null!;
         public Output<string> UniqueSuffix { get; set; } = null!;
-        public Func<string, int, string> SanitizeName { get; set; } = null!;
         public Output<string> TenantId { get; set; } = null!;
         public Output<string> PostgresServerFqdn { get; set; } = null!;
         public Output<string> PostgresDatabaseNameOutput { get; set; } = null!;
@@ -32,10 +32,10 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public string SecretNamePostgresConnectionString { get; } = "PostgresConnectionString";
 
         public SecretsManagementModule(string name, SecretsManagementModuleArgs args, ComponentResourceOptions? options = null)
-            : base("wikiquiz:modules:SecretsManagementModule", name, args, options)
+            : base("wikiquiz:modules:SecretsManagementModule", name, options)
         {
             var keyVaultName = args.UniqueSuffix.Apply(suffix =>
-                args.SanitizeName($"kv{args.Config.ProjectName}{args.EnvironmentShort}{suffix}", 24)
+                AzureResourceNaming.GenerateKeyVaultName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
             KeyVault = new Vault("keyVault", new VaultArgs

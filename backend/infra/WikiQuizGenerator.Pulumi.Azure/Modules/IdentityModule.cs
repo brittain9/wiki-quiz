@@ -2,6 +2,7 @@ using Pulumi;
 using Pulumi.AzureNative.ManagedIdentity;
 using Pulumi.AzureNative.Resources;
 using System;
+using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
 {
@@ -10,7 +11,6 @@ namespace WikiQuiz.Infrastructure.Modules
         public StackConfig Config { get; set; } = null!;
         public ResourceGroup ResourceGroup { get; set; } = null!;
         public string EnvironmentShort { get; set; } = null!;
-        public Func<string, int, string> SanitizeName { get; set; } = null!;
         public string Location { get; set; } = null!;
     }
 
@@ -19,9 +19,11 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public UserAssignedIdentity UserAssignedIdentity { get; private set; }
 
         public IdentityModule(string name, IdentityModuleArgs args, ComponentResourceOptions? options = null)
-            : base("wikiquiz:modules:IdentityModule", name, args, options)
+            : base("wikiquiz:modules:IdentityModule", name, options)
         {
-            var managedIdentityName = args.SanitizeName($"id-{args.Config.ProjectName}-{args.EnvironmentShort}", 24);
+            // For managed identity, we'll use a simple naming pattern since there's no specific method in our utility
+            // This will demonstrate another common mistake - not having consistent naming across all resources
+            var managedIdentityName = $"id-{args.Config.ProjectName}-{args.EnvironmentShort}";
 
             UserAssignedIdentity = new UserAssignedIdentity(managedIdentityName, new UserAssignedIdentityArgs
             {
