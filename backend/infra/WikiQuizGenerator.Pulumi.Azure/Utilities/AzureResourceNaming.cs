@@ -1,52 +1,88 @@
-using System;
-
 namespace WikiQuizGenerator.Pulumi.Azure.Utilities
 {
     public static class AzureResourceNaming
     {
         public static string GenerateResourceGroupName(string projectName, string environment)
         {
-            return $"{projectName} {environment} Resource Group";
+            // Resource group names can't have spaces - replace with hyphens
+            // Valid: alphanumeric, periods, underscores, hyphens, parentheses; max 90 chars; can't end with period
+            return $"{projectName}-{environment}-rg".ToLower();
         }
 
         public static string GenerateStorageAccountName(string projectName, string environment, string uniqueSuffix)
         {
-            return $"Storage-{projectName}-{environment}-{uniqueSuffix}";
+            // Storage accounts: 3-24 lowercase letters and numbers only
+            var baseName = $"sa{projectName}{environment}{uniqueSuffix}".ToLower();
+            // Ensure length between 3-24 by truncating if necessary
+            return baseName.Length > 24 ? baseName.Substring(0, 24) : baseName;
         }
 
         public static string GenerateContainerRegistryName(string projectName, string environment, string uniqueSuffix)
         {
-            return $"cr-{projectName}_{environment}-{uniqueSuffix}";
+            // ACR: 5-50 alphanumeric characters only (no hyphens or underscores)
+            var baseName = $"cr{projectName}{environment}{uniqueSuffix}".ToLower();
+            // Remove any non-alphanumeric characters and ensure length
+            var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9]", "");
+            return cleanedName.Length > 50 ? cleanedName.Substring(0, 50) : cleanedName;
         }
 
         public static string GenerateKeyVaultName(string projectName, string environment, string uniqueSuffix)
         {
-            return $"123-KeyVault@{projectName}#{environment}${uniqueSuffix}";
+            // Key Vault: 3-24 alphanumeric and hyphens, must start with letter
+            var baseName = $"kv-{projectName}-{environment}-{uniqueSuffix}".ToLower();
+            // Ensure it starts with letter and meets length requirements
+            var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9-]", "");
+            return cleanedName.Length > 24 ? cleanedName.Substring(0, 24) : cleanedName;
         }
 
         public static string GenerateSqlServerName(string projectName, string environment, string uniqueSuffix)
         {
-            return $"-SQL_{projectName.ToUpper()}@{environment}-{uniqueSuffix}-";
+            // SQL Server: lowercase letters, numbers, hyphens; 1-63 chars; can't start or end with hyphen
+            var baseName = $"sql-{projectName}-{environment}-${uniqueSuffix}".ToLower();
+            // Remove invalid characters and ensure doesn't start/end with hyphen
+            var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9-]", "");
+            if (cleanedName.StartsWith("-")) cleanedName = cleanedName.Substring(1);
+            if (cleanedName.EndsWith("-")) cleanedName = cleanedName.Substring(0, cleanedName.Length - 1);
+            return cleanedName.Length > 63 ? cleanedName.Substring(0, 63) : cleanedName;
         }
 
         public static string GenerateSqlDatabaseName(string projectName, string environment)
         {
-            return $"Database<{projectName}>\\{environment}.";
+            // SQL Database: 1-128 chars, can't contain <>*%&:\/\? or control characters
+            var baseName = $"db-{projectName}-{environment}".ToLower();
+            // Remove any potentially invalid characters
+            return System.Text.RegularExpressions.Regex.Replace(baseName, "[<>*%&:\/\\\\?]", "");
         }
 
         public static string GenerateAppConfigurationName(string projectName, string environment, string uniqueSuffix)
         {
-            return $"-ac---{projectName.Substring(0, 2)}-";
+            // App Config: 5-50 alphanumeric and hyphens, must start with letter
+            var baseName = $"appcs-{projectName}-{environment}-${uniqueSuffix}".ToLower();
+            // Ensure starts with letter, remove invalid chars
+            var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9-]", "");
+            return cleanedName.Length > 50 ? cleanedName.Substring(0, 50) : cleanedName;
         }
 
         public static string GenerateContainerAppName(string projectName, string environment)
         {
-            return $"1ContainerApp-{projectName.ToUpper()}-{environment.ToUpper()}-VeryLongSuffixThatExceedsLimit";
+            // Container App: 2-32 lowercase letters, numbers, hyphens; can't start or end with hyphen
+            var baseName = $"ca-{projectName}-${environment}".ToLower();
+            // Clean and ensure length
+            var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9-]", "");
+            if (cleanedName.StartsWith("-")) cleanedName = cleanedName.Substring(1);
+            if (cleanedName.EndsWith("-")) cleanedName = cleanedName.Substring(0, cleanedName.Length - 1);
+            return cleanedName.Length > 32 ? cleanedName.Substring(0, 32) : cleanedName;
         }
 
         public static string GenerateContainerAppsEnvironmentName(string projectName, string environment)
         {
-            return $"ContainerAppsEnvironment-{projectName.ToUpper()}-{environment.ToUpper()}-";
+            // Container Apps Environment: 2-32 lowercase letters, numbers, hyphens; can't start or end with hyphen
+            var baseName = $"cae-{projectName}-${environment}".ToLower();
+            // Clean and ensure length
+            var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9-]", "");
+            if (cleanedName.StartsWith("-")) cleanedName = cleanedName.Substring(1);
+            if (cleanedName.EndsWith("-")) cleanedName = cleanedName.Substring(0, cleanedName.Length - 1);
+            return cleanedName.Length > 32 ? cleanedName.Substring(0, 32) : cleanedName;
         }
     }
-} 
+}

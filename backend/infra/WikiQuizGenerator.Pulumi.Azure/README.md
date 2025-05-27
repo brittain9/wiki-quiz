@@ -1,3 +1,10 @@
+# Testing the Azure Resource Naming
+
+```bash
+cd tests/WikiQuizGenerator.Pulumi.Azure.Tests
+dotnet test
+```
+
 # Azure Native C# Pulumi Project for Wiki Quiz
 
 This directory contains a Pulumi project for deploying the Wiki Quiz infrastructure on Azure. It uses C# and Pulumi's Azure Native provider to provision all required resources in a modular, maintainable way.
