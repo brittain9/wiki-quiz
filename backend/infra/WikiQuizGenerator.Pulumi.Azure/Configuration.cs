@@ -12,7 +12,8 @@ namespace WikiQuiz.Infrastructure
         public string Location { get; }
         public string ProjectName { get; }
         public string EnvironmentName { get; }
-        public string ContainerImage { get; }
+        public string ContainerImageName { get; }
+        public string ContainerImageTag { get; }
         public int ContainerPort { get; }
         public string PostgresAdminLogin { get; }
         public Output<string> PostgresAdminPassword { get; } // Secret
@@ -24,6 +25,11 @@ namespace WikiQuiz.Infrastructure
         public string JwtAudience { get; }
         public Output<string> JwtSecret { get; }              // Secret
         public string FrontendUrl { get; }
+        
+        // Custom Domain Configuration
+        public string? CustomDomain { get; }
+        public bool EnableCustomDomain { get; }
+        public string? CertificateId { get; }
 
         public StackConfig()
         {
@@ -36,7 +42,8 @@ namespace WikiQuiz.Infrastructure
             Location = _azureNativeConfig.Get("location") ?? "centralus"; 
             ProjectName = _config.Require("projectName"); 
             EnvironmentName = _config.Get("environmentName") ?? "Development"; 
-            ContainerImage = _config.Require("containerImage"); 
+            ContainerImageName = _config.Get("containerImageName") ?? "wikiquiz-api"; 
+            ContainerImageTag = _config.Get("containerImageTag") ?? "latest"; 
             ContainerPort = _config.GetInt32("containerPort") ?? 8080; 
             PostgresAdminLogin = _config.Require("postgresAdminLogin"); 
             PostgresAdminPassword = _config.RequireSecret("postgresAdminPassword"); 
@@ -44,10 +51,40 @@ namespace WikiQuiz.Infrastructure
             OpenAiApiKey = _config.RequireSecret("openAiApiKey");            
             GoogleClientId = _config.RequireSecret("googleClientId");        
             GoogleClientSecret = _config.RequireSecret("googleClientSecret"); 
-            JwtIssuer = _config.Require("jwtIssuer"); 
-            JwtAudience = _config.Require("jwtAudience"); 
+            JwtIssuer = _config.Get("jwtIssuer") ?? GenerateDefaultJwtIssuer(); 
+            JwtAudience = _config.Get("jwtAudience") ?? GenerateDefaultJwtAudience(); 
             JwtSecret = _config.RequireSecret("jwtSecret");                  
-            FrontendUrl = _config.Require("frontendUrl"); 
+            FrontendUrl = _config.Require("frontendUrl");
+            
+            // Custom Domain Configuration
+            CustomDomain = _config.Get("customDomain");
+            EnableCustomDomain = _config.GetBoolean("enableCustomDomain") ?? false;
+            CertificateId = _config.Get("certificateId");
+        }
+        
+        private string GenerateDefaultJwtIssuer()
+        {
+            if (!string.IsNullOrEmpty(CustomDomain) && EnableCustomDomain)
+            {
+                return $"https://{CustomDomain}/";
+            }
+            
+            return EnvironmentName.ToLower() switch
+            {
+                "production" => "https://api.quiz.alexanderbrittain.com/",
+                "test" => "https://api-test.quiz.alexanderbrittain.com/",
+                _ => "https://api-dev.quiz.alexanderbrittain.com/"
+            };
+        }
+        
+        private string GenerateDefaultJwtAudience()
+        {
+            return EnvironmentName.ToLower() switch
+            {
+                "production" => "wikiquiz-api-prod",
+                "test" => "wikiquiz-api-test", 
+                _ => "wikiquiz-api-dev"
+            };
         }
     }
 } 

@@ -18,6 +18,7 @@ namespace WikiQuiz.Infrastructure.Modules
         public Output<string> TenantId { get; set; } = null!;
         public Output<string> PostgresServerFqdn { get; set; } = null!;
         public Output<string> PostgresDatabaseNameOutput { get; set; } = null!;
+        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
     }
 
     public class SecretsManagementModule : ComponentResource
@@ -38,6 +39,13 @@ namespace WikiQuiz.Infrastructure.Modules
                 AzureResourceNaming.GenerateKeyVaultName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
+            // Environment-specific SKU
+            var keyVaultSku = args.Config.EnvironmentName.ToLower() switch
+            {
+                "production" => SkuName.Premium,
+                _ => SkuName.Standard
+            };
+
             KeyVault = new Vault("keyVault", new VaultArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
@@ -48,11 +56,12 @@ namespace WikiQuiz.Infrastructure.Modules
                     Sku = new SkuArgs
                     {
                         Family = SkuFamily.A,
-                        Name = SkuName.Standard,
+                        Name = keyVaultSku,
                     },
                     TenantId = args.TenantId,
                     EnableRbacAuthorization = true,
-                }
+                },
+                Tags = args.Tags
             }, new CustomResourceOptions { Parent = this });
 
             KeyVaultUri = KeyVault.Properties.Apply(p => p.VaultUri ?? "");
@@ -81,7 +90,7 @@ namespace WikiQuiz.Infrastructure.Modules
                 Properties = new SecretPropertiesArgs { Value = args.Config.GoogleClientSecret }
             }, new CustomResourceOptions { Parent = KeyVault });
 
-            _ = new Secret("jwtSecretKv", new SecretArgs // Renamed logical name to avoid conflict if JwtSecret used elsewhere
+            _ = new Secret("jwtSecretKv", new SecretArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
                 VaultName = KeyVault.Name,

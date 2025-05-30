@@ -35,6 +35,10 @@ namespace WikiQuiz.Infrastructure.Modules
         // For dependsOn
         public Output<string> KeyVaultUri { get; set; } = null!;
         public ConfigurationStore AppConfigStore { get; set; } = null!;
+        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
+        
+        // Custom Domain Support
+        public ManagedCertificate? ManagedCertificate { get; set; }
     }
 
     public class ContainerAppsModule : ComponentResource
@@ -42,6 +46,7 @@ namespace WikiQuiz.Infrastructure.Modules
         [Output] public ManagedEnvironment ContainerAppEnvironment { get; private set; }
         [Output] public ContainerApp ContainerApp { get; private set; }
         [Output] public Output<string> ContainerAppFqdn { get; private set; }
+        [Output] public Output<string> ContainerAppUrl { get; private set; }
 
         public ContainerAppsModule(string name, ContainerAppsModuleArgs args, ComponentResourceOptions? options = null)
             : base("wikiquiz:modules:ContainerAppsModule", name, options)
@@ -62,7 +67,8 @@ namespace WikiQuiz.Infrastructure.Modules
                         CustomerId = args.LogAnalyticsWorkspaceId,
                         SharedKey = args.LogAnalyticsWorkspaceSharedKey
                     }
-                }
+                },
+                Tags = args.Tags
             }, new CustomResourceOptions { Parent = this });
 
             // Container App
@@ -103,27 +109,21 @@ namespace WikiQuiz.Infrastructure.Modules
                         External = true,
                         TargetPort = args.Config.ContainerPort,
                         Transport = IngressTransportMethod.Auto,
-                        AllowInsecure = false
+                        AllowInsecure = false,
+                        CustomDomains = GetCustomDomains(args)
                     }
                 },
                 Template = new TemplateArgs
                 {
-                    Scale = new ScaleArgs
-                    {
-                        MinReplicas = 0,
-                        MaxReplicas = 1
-                    },
+                    Scale = GetScaleConfiguration(args.Config.EnvironmentName),
                     Containers = new ContainerArgs[]
                     {
                         new ContainerArgs
                         {
                             Name = "webapi",
-                            Image = args.Config.ContainerImage,
-                            Resources = new ContainerResourcesArgs
-                            {
-                                Cpu = 0.25,
-                                Memory = "0.5Gi"
-                            },
+                            Image = args.AcrLoginServer.Apply(loginServer => 
+                                $"{loginServer}/{args.Config.ContainerImageName}:{args.Config.ContainerImageTag}"),
+                            Resources = GetResourceConfiguration(args.Config.EnvironmentName),
                             Env = new EnvironmentVarArgs[]
                             {
                                 new EnvironmentVarArgs
@@ -144,21 +144,130 @@ namespace WikiQuiz.Infrastructure.Modules
                             }
                         }
                     }
-                }
+                },
+                Tags = args.Tags
             }, new CustomResourceOptions 
             { 
                 Parent = this,
-                DependsOn = new Pulumi.Resource[]
-                {
-                    ContainerAppEnvironment,
-                    args.UserAssignedIdentity,
-                    args.AppConfigStore
-                }
+                DependsOn = GetDependencies(args)
             });
 
             ContainerAppFqdn = ContainerApp.Configuration.Apply(c => c?.Ingress?.Fqdn ?? "");
+            
+            // Set the URL based on whether custom domain is enabled
+            ContainerAppUrl = args.Config.EnableCustomDomain && !string.IsNullOrEmpty(args.Config.CustomDomain)
+                ? Output.Create($"https://{args.Config.CustomDomain}")
+                : ContainerAppFqdn.Apply(fqdn => $"https://{fqdn}");
 
             this.RegisterOutputs();
+        }
+
+        private static CustomDomainArgs[]? GetCustomDomains(ContainerAppsModuleArgs args)
+        {
+            if (!args.Config.EnableCustomDomain || 
+                string.IsNullOrEmpty(args.Config.CustomDomain) || 
+                args.ManagedCertificate == null)
+            {
+                return null;
+            }
+
+            return new CustomDomainArgs[]
+            {
+                new CustomDomainArgs
+                {
+                    Name = args.Config.CustomDomain,
+                    CertificateId = args.ManagedCertificate.Id,
+                    BindingType = BindingType.SniEnabled
+                }
+            };
+        }
+
+        private static Pulumi.Resource[] GetDependencies(ContainerAppsModuleArgs args)
+        {
+            var dependencies = new List<Pulumi.Resource>
+            {
+                args.UserAssignedIdentity,
+                args.AppConfigStore
+            };
+
+            if (args.ManagedCertificate != null)
+            {
+                dependencies.Add(args.ManagedCertificate);
+            }
+
+            return dependencies.ToArray();
+        }
+
+        private static ScaleArgs GetScaleConfiguration(string environmentName)
+        {
+            return environmentName.ToLower() switch
+            {
+                "production" => new ScaleArgs
+                {
+                    MinReplicas = 2,
+                    MaxReplicas = 10,
+                    Rules = new ScaleRuleArgs[]
+                    {
+                        new ScaleRuleArgs
+                        {
+                            Name = "http-scaling",
+                            Http = new HttpScaleRuleArgs
+                            {
+                                Metadata = new Dictionary<string, string>
+                                {
+                                    { "concurrentRequests", "30" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "test" => new ScaleArgs
+                {
+                    MinReplicas = 1,
+                    MaxReplicas = 3,
+                    Rules = new ScaleRuleArgs[]
+                    {
+                        new ScaleRuleArgs
+                        {
+                            Name = "http-scaling",
+                            Http = new HttpScaleRuleArgs
+                            {
+                                Metadata = new Dictionary<string, string>
+                                {
+                                    { "concurrentRequests", "50" }
+                                }
+                            }
+                        }
+                    }
+                },
+                _ => new ScaleArgs // Development
+                {
+                    MinReplicas = 0,
+                    MaxReplicas = 1
+                }
+            };
+        }
+
+        private static ContainerResourcesArgs GetResourceConfiguration(string environmentName)
+        {
+            return environmentName.ToLower() switch
+            {
+                "production" => new ContainerResourcesArgs
+                {
+                    Cpu = 1.0,
+                    Memory = "2Gi"
+                },
+                "test" => new ContainerResourcesArgs
+                {
+                    Cpu = 0.5,
+                    Memory = "1Gi"
+                },
+                _ => new ContainerResourcesArgs // Development
+                {
+                    Cpu = 0.25,
+                    Memory = "0.5Gi"
+                }
+            };
         }
     }
 } 

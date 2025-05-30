@@ -1,180 +1,294 @@
-# Testing the Azure Resource Naming
+# WikiQuiz Azure Infrastructure (Pulumi)
 
-```bash
-cd tests/WikiQuizGenerator.Pulumi.Azure.Tests
-dotnet test
+This directory contains the Pulumi infrastructure-as-code for deploying the WikiQuiz application to Azure. The infrastructure supports multiple environments with automatic custom domain configuration.
+
+## 🏗️ Architecture Overview
+
+The infrastructure deploys the following Azure resources:
+
+- **Resource Group**: Container for all resources
+- **User Assigned Identity**: For secure service-to-service authentication
+- **Log Analytics Workspace**: Centralized logging and monitoring
+- **Azure Container Registry**: Private container image storage
+- **PostgreSQL Flexible Server**: Managed database with environment-specific sizing
+- **Key Vault**: Secure secret storage with RBAC
+- **App Configuration**: Centralized configuration management
+- **Container Apps Environment**: Serverless container hosting platform
+- **Container App**: The main application with auto-scaling
+- **Managed Certificate**: Automatic SSL certificate management for custom domains
+
+## 🌍 Environment Configuration
+
+### Environment-Specific Resources
+
+| Environment     | Location   | Database SKU          | Container Resources | Replicas | Custom Domain                       |
+| --------------- | ---------- | --------------------- | ------------------- | -------- | ----------------------------------- |
+| **Development** | Central US | B1ms (1 vCore, 2GB)   | 0.25 CPU, 0.5GB RAM | 0-1      | Disabled                            |
+| **Test**        | Central US | B2s (2 vCore, 4GB)    | 0.5 CPU, 1GB RAM    | 1-3      | api-test.quiz.alexanderbrittain.com |
+| **Production**  | East US    | D2s_v3 (2 vCore, 8GB) | 1.0 CPU, 2GB RAM    | 2-10     | api.quiz.alexanderbrittain.com      |
+
+### Custom Domain Configuration
+
+The infrastructure supports automatic custom domain setup with managed SSL certificates:
+
+- **Development**: Custom domains disabled (uses default Container App URL)
+- **Test**: `api-test.quiz.alexanderbrittain.com`
+- **Production**: `api.quiz.alexanderbrittain.com`
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+1. **Azure CLI** - [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+2. **Pulumi CLI** - [Install Pulumi](https://www.pulumi.com/docs/get-started/install/)
+3. **PowerShell** - For deployment scripts
+4. **Azure Subscription** - With appropriate permissions
+
+### Initial Setup
+
+1. **Clone and navigate to the infrastructure directory:**
+
+   ```bash
+   cd infra/WikiQuizGenerator.Pulumi.Azure
+   ```
+
+2. **Login to Azure and Pulumi:**
+
+   ```bash
+   az login
+   pulumi login
+   ```
+
+3. **Initialize Pulumi stack for your environment:**
+
+   ```bash
+   # For development
+   pulumi stack init dev
+
+   # For test
+   pulumi stack init tst
+
+   # For production
+   pulumi stack init prd
+   ```
+
+### Deployment
+
+Use the automated deployment script:
+
+```powershell
+# Deploy to development
+./deploy.ps1 -Environment dev
+
+# Deploy to test
+./deploy.ps1 -Environment tst
+
+# Deploy to production
+./deploy.ps1 -Environment prd
 ```
 
-# Azure Native C# Pulumi Project for Wiki Quiz
+The script will:
 
-This directory contains a Pulumi project for deploying the Wiki Quiz infrastructure on Azure. It uses C# and Pulumi's Azure Native provider to provision all required resources in a modular, maintainable way.
+- Validate prerequisites
+- Prompt for required secrets
+- Set configuration values
+- Deploy the infrastructure
+- Display connection information
 
-## Infrastructure Overview
+## 🌐 Custom Domain Setup
 
-This project deploys the following Azure resources:
+### Automatic Custom Domain Configuration
 
-- **Resource Group**: Contains all other resources
-- **User-Assigned Managed Identity**: Used by the Container App to securely access other resources
-- **Log Analytics Workspace**: For application logging and monitoring
-- **Azure Container Registry (ACR)**: Stores container images
-- **Azure Key Vault**: Securely stores secrets
-- **Azure App Configuration**: Stores application settings and Key Vault references
-- **Azure Database for PostgreSQL Flexible Server**: Database for the application
-- **Azure Container Apps Environment**: Hosts the Container App
-- **Azure Container App**: Runs the application container
+The infrastructure automatically configures custom domains for test and production environments.
 
-## Prerequisites
+### Manual DNS Setup Process (Cloudflare)
 
-1. **Pulumi CLI**: [Install Pulumi](https://www.pulumi.com/docs/get-started/install/)
-2. **Azure CLI**: [Install Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-3. **.NET SDK**: Version 6.0 or later
-4. **Azure Subscription**: You need an active Azure subscription
+1. **Deploy the infrastructure first:**
 
-## Getting Started
+   ```powershell
+   ./deploy.ps1 -Environment tst
+   ```
 
-### 1. Login to Azure and Pulumi
+2. **Get the Container App URL:**
 
-```bash
-# Login to Azure
-az login
+   ```bash
+   pulumi stack output ContainerAppUrl
+   # Example output: https://ca-wikiquiz-test.kindpond-12345678.centralus.azurecontainerapps.io
+   ```
 
-# Login to Pulumi (if using Pulumi Cloud for state management)
-pulumi login
+3. **Create DNS records in Cloudflare:**
 
-# Alternatively, use local state management
-pulumi login --local
+   **CNAME Record:**
+
+   - **Type**: CNAME
+   - **Name**: `api-test` (for api-test.quiz.alexanderbrittain.com)
+   - **Target**: `ca-wikiquiz-test.kindpond-12345678.centralus.azurecontainerapps.io` (from step 2, without https://)
+   - **TTL**: Auto or 300 seconds
+   - **Proxy status**: DNS only (gray cloud, not proxied)
+
+4. **Get the domain verification TXT record:**
+
+   - Go to Azure Portal → Container Apps → Your Container App → Custom domains
+   - Click "Add custom domain"
+   - Enter your domain (e.g., `api-test.quiz.alexanderbrittain.com`)
+   - Azure will show you the required TXT record
+
+5. **Create the TXT record in Cloudflare:**
+
+   - **Type**: TXT
+   - **Name**: `asuid.api-test` (for the verification subdomain)
+   - **Content**: [The verification string from Azure portal]
+   - **TTL**: Auto or 300 seconds
+
+6. **Complete domain verification in Azure:**
+   - Return to the Azure portal custom domain setup
+   - Click "Validate" to verify the TXT record
+   - Add the domain once validation passes
+
+### Custom Domain Configuration Options
+
+You can customize domains in the environment configuration files:
+
+```yaml
+# Pulumi.tst.yaml
+config:
+  enableCustomDomain: true
+  customDomain: api-test.quiz.alexanderbrittain.com
 ```
 
-### 2. Initialize the Pulumi Stack
+### Important Notes for Cloudflare
+
+- **Disable Proxy**: Make sure the CNAME record is "DNS only" (gray cloud), not proxied through Cloudflare
+- **SSL/TLS Mode**: Set to "Full" or "Full (strict)" in Cloudflare SSL/TLS settings
+- **DNS Propagation**: Usually takes 5-10 minutes with Cloudflare
+- **Certificate**: Azure will automatically provision a managed SSL certificate
+
+## 🔧 Configuration Management
+
+### Environment Files
+
+- `Pulumi.dev.yaml` - Development configuration
+- `Pulumi.tst.yaml` - Test configuration
+- `Pulumi.prd.yaml` - Production configuration
+
+### Required Secrets
+
+Set these secrets for each environment:
 
 ```bash
-# Navigate to the infrastructure directory
-cd infra
-
-# Create a new stack (e.g., dev, test, prod)
-pulumi stack init dev
+pulumi config set --secret postgresAdminPassword "YourSecurePassword123!"
+pulumi config set --secret openAiApiKey "sk-your-openai-api-key"
+pulumi config set --secret googleClientId "your-google-client-id"
+pulumi config set --secret googleClientSecret "your-google-client-secret"
+pulumi config set --secret jwtSecret "your-jwt-secret-key"
 ```
 
-### 3. Configure the Stack
+### JWT Configuration
 
-Pulumi uses configuration values to customize the deployment. Use the following commands to set required configuration values:
+The infrastructure automatically configures JWT settings:
+
+- **Issuer**: Uses custom domain URL when enabled, falls back to environment-specific defaults
+- **Audience**: Environment-specific API identifiers (`wikiquiz-api-dev`, `wikiquiz-api-test`, `wikiquiz-api-prod`)
+
+## 📊 Container Image Management
+
+### Image Configuration
+
+Configure container images in environment files:
+
+```yaml
+config:
+  containerImageName: wikiquizapi
+  containerImageTag: v0.1 # dev
+  # containerImageTag: latest  # test
+  # containerImageTag: stable  # production
+```
+
+### Building and Pushing Images
 
 ```bash
-# Set the Azure region (defaults to centralus if not specified)
-pulumi config set azure-native:location eastus
+# Build and tag image
+docker build -t wikiquizapi:v0.1 .
 
-# Required configuration values
-pulumi config set projectName wikiquizapi
-pulumi config set environmentName Development  # Development, Test, or Production
-pulumi config set containerImage acrwikiquizapii5yglprgz2pfq.azurecr.io/wikiquizapi:v0.1
-pulumi config set containerPort 8080
-pulumi config set postgresAdminLogin pgadmin
-pulumi config set postgresDatabaseName WikiQuizGenerator
-pulumi config set frontendUrl http://yoururl.com
-pulumi config set jwtIssuer https://yoururl.com/
-pulumi config set jwtAudience https://yoururl.net
+# Tag for ACR
+docker tag wikiquizapi:v0.1 [ACR_LOGIN_SERVER]/wikiquizapi:v0.1
+
+# Push to ACR
+az acr login --name [ACR_NAME]
+docker push [ACR_LOGIN_SERVER]/wikiquizapi:v0.1
 ```
 
-### 4. Configure Secrets
+## 🔍 Monitoring and Troubleshooting
 
-Pulumi securely manages secrets by encrypting them at rest. Set the following secret values:
+### View Stack Outputs
 
 ```bash
-# Set secret values (these will be encrypted)
-pulumi config set --secret postgresAdminPassword [YOUR_POSTGRES_PASSWORD]
-pulumi config set --secret openAiApiKey [YOUR_OPENAI_API_KEY]
-pulumi config set --secret googleClientId [YOUR_GOOGLE_CLIENT_ID]
-pulumi config set --secret googleClientSecret [YOUR_GOOGLE_CLIENT_SECRET]
-pulumi config set --secret jwtSecret [YOUR_JWT_SECRET]
+pulumi stack output
 ```
 
-### 5. Preview and Deploy
+### Check Resource Status
 
 ```bash
-# Preview the deployment (no changes are made)
-pulumi preview
+# List all resources
+pulumi stack --show-urns
 
-# Deploy the infrastructure
-pulumi up
+# View specific resource
+az containerapp show --name [CONTAINER_APP_NAME] --resource-group [RG_NAME]
 ```
 
-Review the changes and confirm the deployment.
+### Common Issues
 
-### 6. Access Resources
+1. **Custom Domain Validation Failing**
 
-After deployment, Pulumi will output useful information about your resources, including:
+   - Verify DNS records are correctly configured
+   - Check TXT record value in Azure portal
+   - Wait for DNS propagation (up to 48 hours)
 
-- `containerAppUrl`: The fully qualified domain name for your Container App
-- `acrLoginServer`: The login server for your Azure Container Registry
-- `postgresFqdn`: The FQDN for your PostgreSQL server
-- `keyVaultName`: The name of your Key Vault
-- `keyVaultUri`: The URI of your Key Vault
-- `appConfigStoreName`: The name of your App Configuration store
-- `appConfigStoreEndpoint`: The endpoint URI of your App Configuration store
+2. **Container App Not Starting**
 
-You can access these outputs at any time using:
+   - Check container logs in Azure portal
+   - Verify image exists in ACR
+   - Check environment variables and secrets
+
+3. **Database Connection Issues**
+   - Verify PostgreSQL server is running
+   - Check connection string in Key Vault
+   - Ensure firewall rules allow Container App access
+
+### Useful Commands
 
 ```bash
-pulumi stack output [OUTPUT_NAME]
+# View container app logs
+az containerapp logs show --name [CONTAINER_APP_NAME] --resource-group [RG_NAME]
+
+# Check custom domain status
+az containerapp hostname list --name [CONTAINER_APP_NAME] --resource-group [RG_NAME]
+
+# Verify certificate status
+az containerapp env certificate list --name [ENVIRONMENT_NAME] --resource-group [RG_NAME]
 ```
 
-## Managing Environment-Specific Configurations
+## 🔄 CI/CD Integration
 
-You can create and manage multiple stacks for different environments:
+The infrastructure supports automated deployments through GitHub Actions or Azure DevOps:
 
-```bash
-# Create a production stack
-pulumi stack init prod
+1. Store Pulumi access token as secret
+2. Configure Azure service principal
+3. Set environment-specific secrets
+4. Use deployment script in pipeline
 
-# Select an existing stack
-pulumi stack select dev
+## 🧹 Cleanup
 
-# List available stacks
-pulumi stack ls
-```
-
-Each stack has its own configuration and state, allowing you to have different settings for different environments.
-
-## Updating the Infrastructure
-
-To update the infrastructure after changes to the code:
-
-```bash
-# Preview changes
-pulumi preview
-
-# Apply changes
-pulumi up
-```
-
-## Destroying the Infrastructure
-
-To tear down all resources:
+To destroy the infrastructure:
 
 ```bash
 pulumi destroy
 ```
 
-**WARNING**: This will permanently delete all resources created by this Pulumi project. Use with caution.
+**Warning**: This will permanently delete all resources and data.
 
-## Project Structure
+## 📚 Additional Resources
 
-- **MyStack.cs**: The main stack definition that orchestrates all modules
-- **Configuration.cs**: Strongly-typed configuration for the stack
-- **Modules/**: Directory containing modular components
-  - **IdentityModule.cs**: Manages User-Assigned Managed Identity
-  - **MonitoringModule.cs**: Manages Log Analytics Workspace
-  - **RegistryModule.cs**: Manages Azure Container Registry
-  - **SecretsManagementModule.cs**: Manages Key Vault and its secrets
-  - **AppConfigModule.cs**: Manages App Configuration and its key-values
-  - **DatabaseModule.cs**: Manages PostgreSQL server and database
-  - **ContainerAppsModule.cs**: Manages Container Apps Environment and Container App
-  - **AuthorizationModule.cs**: Manages role assignments for the Managed Identity
-
-## Best Practices
-
-1. **Never commit secrets** to version control. Use `pulumi config set --secret` to manage sensitive values.
-2. Use **separate stacks** for different environments (dev, test, prod).
-3. Review changes carefully with `pulumi preview` before applying them.
-4. Consider using [Pulumi CI/CD integration](https://www.pulumi.com/docs/guides/continuous-delivery/) for automated deployments.
-5. After deployment, the app in the Container App will use Managed Identity to access secrets in Key Vault via App Configuration for maximum security.
+- [Pulumi Azure Native Documentation](https://www.pulumi.com/registry/packages/azure-native/)
+- [Azure Container Apps Documentation](https://docs.microsoft.com/en-us/azure/container-apps/)
+- [Azure Container Apps Custom Domains](https://docs.microsoft.com/en-us/azure/container-apps/custom-domains-certificates)

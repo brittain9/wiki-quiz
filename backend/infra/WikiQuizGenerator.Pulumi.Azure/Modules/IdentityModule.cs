@@ -2,6 +2,7 @@ using Pulumi;
 using Pulumi.AzureNative.ManagedIdentity;
 using Pulumi.AzureNative.Resources;
 using System;
+using System.Collections.Generic;
 using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
@@ -12,6 +13,7 @@ namespace WikiQuiz.Infrastructure.Modules
         public ResourceGroup ResourceGroup { get; set; } = null!;
         public string EnvironmentShort { get; set; } = null!;
         public string Location { get; set; } = null!;
+        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
     }
 
     public class IdentityModule : ComponentResource
@@ -21,15 +23,14 @@ namespace WikiQuiz.Infrastructure.Modules
         public IdentityModule(string name, IdentityModuleArgs args, ComponentResourceOptions? options = null)
             : base("wikiquiz:modules:IdentityModule", name, options)
         {
-            // For managed identity, we'll use a simple naming pattern since there's no specific method in our utility
-            // This will demonstrate another common mistake - not having consistent naming across all resources
-            var managedIdentityName = $"id-{args.Config.ProjectName}-{args.EnvironmentShort}";
+            var managedIdentityName = AzureResourceNaming.GenerateUserAssignedIdentityName(args.Config.ProjectName, args.EnvironmentShort);
 
-            UserAssignedIdentity = new UserAssignedIdentity(managedIdentityName, new UserAssignedIdentityArgs
+            UserAssignedIdentity = new UserAssignedIdentity("userAssignedIdentity", new UserAssignedIdentityArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
                 ResourceName = managedIdentityName,
                 Location = args.Location,
+                Tags = args.Tags
             }, new CustomResourceOptions { Parent = this });
 
             this.RegisterOutputs();

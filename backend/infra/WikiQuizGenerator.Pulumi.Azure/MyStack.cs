@@ -18,25 +18,37 @@ public class MyStack : Stack
     [Output] public Output<string> KeyVaultUri { get; private set; }
     [Output] public Output<string> AppConfigStoreName { get; private set; }
     [Output] public Output<string> AppConfigStoreEndpoint { get; private set; }
+    [Output] public Output<string> ResourceGroupName { get; private set; }
+    [Output] public Output<string>? CustomDomainUrl { get; private set; }
 
     public MyStack()
     {
         var config = new StackConfig();
 
+        // Common tags for all resources
+        var commonTags = new Dictionary<string, string>
+        {
+            { "Project", config.ProjectName },
+            { "Environment", config.EnvironmentName },
+            { "ManagedBy", "Pulumi" },
+            { "CreatedDate", DateTime.UtcNow.ToString("yyyy-MM-dd") },
+            { "Owner", "WikiQuiz Team" }
+        };
+
         var resourceGroup = new ResourceGroup("resourceGroup", new ResourceGroupArgs
         {
-            // Using the new naming utility (which contains intentional errors)
             ResourceGroupName = AzureResourceNaming.GenerateResourceGroupName(config.ProjectName, config.EnvironmentName),
             Location = config.Location,
+            Tags = commonTags
         });
 
         // --- Environment and Unique Suffix Setup ---
         var environmentShort = config.EnvironmentName switch
         {
-            "Production" => "prod",
+            "Production" => "prd",
             "Development" => "dev",
-            "Test" => "test",
-            _ => config.EnvironmentName.ToLower().Substring(0, Math.Min(config.EnvironmentName.Length, 4)) // Fallback
+            "Test" => "tst",
+            _ => config.EnvironmentName.ToLower().Substring(0, Math.Min(config.EnvironmentName.Length, 3))
         };
 
         // Generate a unique suffix for resources that need it
@@ -60,7 +72,8 @@ public class MyStack : Stack
             Config = config,
             ResourceGroup = resourceGroup,
             EnvironmentShort = environmentShort,
-            Location = config.Location
+            Location = config.Location,
+            Tags = commonTags
         });
 
         // 2. Log Analytics Workspace
@@ -70,7 +83,8 @@ public class MyStack : Stack
             ResourceGroup = resourceGroup,
             UniqueSuffix = uniqueSuffix,
             EnvironmentShort = environmentShort,
-            Location = config.Location
+            Location = config.Location,
+            Tags = commonTags
         });
 
         // 3. Azure Container Registry
@@ -80,7 +94,8 @@ public class MyStack : Stack
             ResourceGroup = resourceGroup,
             UniqueSuffix = uniqueSuffix,
             Location = config.Location,
-            EnvironmentShort = environmentShort
+            EnvironmentShort = environmentShort,
+            Tags = commonTags
         });
 
         // 4. Azure Database for PostgreSQL
@@ -90,7 +105,8 @@ public class MyStack : Stack
             ResourceGroup = resourceGroup,
             Location = config.Location,
             EnvironmentShort = environmentShort,
-            UniqueSuffix = uniqueSuffix
+            UniqueSuffix = uniqueSuffix,
+            Tags = commonTags
         });
 
         // 5. Azure Key Vault and Secrets
@@ -103,7 +119,8 @@ public class MyStack : Stack
             UniqueSuffix = uniqueSuffix,
             TenantId = tenantId,
             PostgresServerFqdn = databaseModule.PostgresServerFqdn,
-            PostgresDatabaseNameOutput = databaseModule.PostgresDatabaseNameOutput
+            PostgresDatabaseNameOutput = databaseModule.PostgresDatabaseNameOutput,
+            Tags = commonTags
         });
 
         // 6. Azure App Configuration
@@ -120,7 +137,8 @@ public class MyStack : Stack
             GoogleClientSecretSecretName = secretsManagementModule.SecretNameGoogleClientSecret,
             JwtSecretKvName = secretsManagementModule.SecretNameJwtSecret,
             PostgresConnectionStringSecretName = secretsManagementModule.SecretNamePostgresConnectionString,
-            KeyVaultResource = secretsManagementModule.KeyVault
+            KeyVaultResource = secretsManagementModule.KeyVault,
+            Tags = commonTags
         });
 
         // 7. Role Assignments
@@ -132,8 +150,8 @@ public class MyStack : Stack
             AcrRegistry = registryModule.AcrRegistry
         });
 
-        // 8. Container Apps Environment and Container App
-        var containerAppsModule = new ContainerAppsModule("containerApps", new ContainerAppsModuleArgs
+        // 8. Container Apps Environment (needed for custom domain)
+        var containerAppsEnvModule = new ContainerAppsModule("containerAppsEnv", new ContainerAppsModuleArgs
         {
             Config = config,
             ResourceGroup = resourceGroup,
@@ -145,7 +163,8 @@ public class MyStack : Stack
             AcrLoginServer = registryModule.AcrLoginServer,
             AppConfigStoreEndpoint = appConfigModule.AppConfigStoreEndpoint,
             KeyVaultUri = secretsManagementModule.KeyVaultUri,
-            AppConfigStore = appConfigModule.AppConfigurationStore
+            AppConfigStore = appConfigModule.AppConfigurationStore,
+            Tags = commonTags
         }, new ComponentResourceOptions
         {
             DependsOn = 
@@ -157,13 +176,64 @@ public class MyStack : Stack
             }
         });
 
+        // 9. Custom Domain (if enabled)
+        var customDomainModule = new CustomDomainModule("customDomain", new CustomDomainModuleArgs
+        {
+            Config = config,
+            ResourceGroup = resourceGroup,
+            Location = config.Location,
+            EnvironmentShort = environmentShort,
+            ContainerAppEnvironment = containerAppsEnvModule.ContainerAppEnvironment,
+            Tags = commonTags
+        });
+
+        // 10. Update Container App with custom domain (if enabled)
+        if (config.EnableCustomDomain && !string.IsNullOrEmpty(config.CustomDomain))
+        {
+            // We need to recreate the container app with custom domain support
+            var containerAppsWithDomainModule = new ContainerAppsModule("containerAppsWithDomain", new ContainerAppsModuleArgs
+            {
+                Config = config,
+                ResourceGroup = resourceGroup,
+                Location = config.Location,
+                EnvironmentShort = environmentShort,
+                LogAnalyticsWorkspaceId = monitoringModule.LogAnalyticsWorkspaceId,
+                LogAnalyticsWorkspaceSharedKey = monitoringModule.LogAnalyticsWorkspaceSharedKey,
+                UserAssignedIdentity = identityModule.UserAssignedIdentity,
+                AcrLoginServer = registryModule.AcrLoginServer,
+                AppConfigStoreEndpoint = appConfigModule.AppConfigStoreEndpoint,
+                KeyVaultUri = secretsManagementModule.KeyVaultUri,
+                AppConfigStore = appConfigModule.AppConfigurationStore,
+                Tags = commonTags,
+                ManagedCertificate = customDomainModule.ManagedCertificate
+            }, new ComponentResourceOptions
+            {
+                DependsOn = 
+                {
+                    authorizationModule.KeyVaultSecretsUserRoleAssignment,
+                    authorizationModule.AppConfigDataReaderRoleAssignment,
+                    authorizationModule.AcrPullRoleAssignment,
+                    customDomainModule
+                }
+            });
+
+            // Use the custom domain container app for outputs
+            ContainerAppUrl = containerAppsWithDomainModule.ContainerAppUrl;
+            CustomDomainUrl = customDomainModule.CustomDomainUrl;
+        }
+        else
+        {
+            // Use the regular container app for outputs
+            ContainerAppUrl = containerAppsEnvModule.ContainerAppUrl;
+        }
+
         // --- Assign outputs ---
-        ContainerAppUrl = containerAppsModule.ContainerAppFqdn;
         AcrLoginServer = registryModule.AcrLoginServer;
         PostgresFqdn = databaseModule.PostgresServerFqdn;
         KeyVaultName = secretsManagementModule.KeyVault.Name;
         KeyVaultUri = secretsManagementModule.KeyVaultUri;
         AppConfigStoreName = appConfigModule.AppConfigurationStore.Name;
         AppConfigStoreEndpoint = appConfigModule.AppConfigStoreEndpoint;
+        ResourceGroupName = resourceGroup.Name;
     }
 } 

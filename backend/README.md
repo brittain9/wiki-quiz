@@ -1,10 +1,3 @@
-# Testing the Azure Resource Naming
-
-```bash
-cd tests/WikiQuizGenerator.Pulumi.Azure.Tests
-dotnet test
-```
-
 # Wikipedia Quiz Generator
 
 This project generates high-quality quizzes based on nearly any topic in nine languages using Wikipedia and AI.

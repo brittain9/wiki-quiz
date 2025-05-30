@@ -3,6 +3,7 @@ using Pulumi.AzureNative.DBforPostgreSQL;
 using Pulumi.AzureNative.DBforPostgreSQL.Inputs;
 using Pulumi.AzureNative.Resources;
 using System;
+using System.Collections.Generic;
 using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
@@ -14,6 +15,7 @@ namespace WikiQuiz.Infrastructure.Modules
         public string Location { get; set; } = null!;
         public string EnvironmentShort { get; set; } = null!;
         public Output<string> UniqueSuffix { get; set; } = null!;
+        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
     }
 
     public class DatabaseModule : ComponentResource
@@ -28,8 +30,16 @@ namespace WikiQuiz.Infrastructure.Modules
             : base("wikiquiz:modules:DatabaseModule", name, options)
         {
             var postgresServerName = args.UniqueSuffix.Apply(suffix =>
-                AzureResourceNaming.GenerateSqlServerName(args.Config.ProjectName, args.EnvironmentShort, suffix)
+                AzureResourceNaming.GeneratePostgresServerName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
+
+            // Environment-specific SKU configuration
+            var (skuName, skuTier, storageSizeGB, backupRetentionDays, geoRedundantBackup) = args.Config.EnvironmentName.ToLower() switch
+            {
+                "production" => ("Standard_D2s_v3", SkuTier.GeneralPurpose, 128, 30, GeoRedundantBackupEnum.Enabled),
+                "test" => ("Standard_B2s", SkuTier.Burstable, 64, 14, GeoRedundantBackupEnum.Disabled),
+                _ => ("Standard_B1ms", SkuTier.Burstable, 32, 7, GeoRedundantBackupEnum.Disabled) // Development
+            };
 
             PostgresServer = new Server("postgresServer", new ServerArgs
             {
@@ -38,26 +48,32 @@ namespace WikiQuiz.Infrastructure.Modules
                 Location = args.Location,
                 Sku = new SkuArgs
                 {
-                    Name = "Standard_B1ms", 
-                    Tier = SkuTier.Burstable
+                    Name = skuName,
+                    Tier = skuTier
                 },
                 AdministratorLogin = args.Config.PostgresAdminLogin,
                 AdministratorLoginPassword = args.Config.PostgresAdminPassword,
                 Version = "15",
-                Storage = new StorageArgs { StorageSizeGB = 32 },
+                Storage = new StorageArgs { StorageSizeGB = storageSizeGB },
                 Backup = new Pulumi.AzureNative.DBforPostgreSQL.Inputs.BackupArgs 
                 { 
-                    BackupRetentionDays = 7, 
-                    GeoRedundantBackup = GeoRedundantBackupEnum.Disabled 
+                    BackupRetentionDays = backupRetentionDays, 
+                    GeoRedundantBackup = geoRedundantBackup 
                 },
-                HighAvailability = new HighAvailabilityArgs { Mode = HighAvailabilityMode.Disabled }
+                HighAvailability = new HighAvailabilityArgs 
+                { 
+                    Mode = args.Config.EnvironmentName.ToLower() == "production" 
+                        ? HighAvailabilityMode.ZoneRedundant 
+                        : HighAvailabilityMode.Disabled 
+                },
+                Tags = args.Tags
             }, new CustomResourceOptions { Parent = this });
 
             PostgresDatabase = new Database("postgresDatabase", new DatabaseArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
                 ServerName = PostgresServer.Name,
-                DatabaseName = AzureResourceNaming.GenerateSqlDatabaseName(args.Config.ProjectName, args.EnvironmentShort), 
+                DatabaseName = AzureResourceNaming.GeneratePostgresDatabaseName(args.Config.ProjectName, args.EnvironmentShort), 
                 Charset = "UTF8",
                 Collation = "en_US.utf8"
             }, new CustomResourceOptions { Parent = PostgresServer });
