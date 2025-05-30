@@ -14,19 +14,15 @@ public static class SubmissionEndpoints
                        .WithTags("Submission")
                        .RequireAuthorization();
 
+        // TODO: Make sure only the owner can access the submission
         group.MapGet("/quizsubmission/{id:int}", async (int id, IQuizRepository quizRepository, ClaimsPrincipal user) =>
         {
             return await GetUserQuizSubmissionById(id, quizRepository, user);
         });
 
-        group.MapGet("/quizsubmission/recent", async (IQuizRepository quizRepository, ClaimsPrincipal user) =>
+        group.MapGet("/my-submissions", async (IQuizRepository quizRepository, ClaimsPrincipal user, [FromQuery] int page = 1, [FromQuery] int pageSize = 10) =>
         {
-            return await GetRecentSubmissions(quizRepository, user);
-        });
-
-        group.MapGet("/my-submissions", async (IQuizRepository quizRepository, ClaimsPrincipal user) =>
-        {
-            return await GetUserSubmissions(quizRepository, user);
+            return await GetUserSubmissionsPaginated(quizRepository, user, page, pageSize);
         });
     }
 
@@ -42,32 +38,6 @@ public static class SubmissionEndpoints
         if (submission == null) return Results.NotFound();
 
         return Results.Ok(QuizResultMapper.ToDto(submission));
-    }
-
-    private static async Task<IResult> GetRecentSubmissions(IQuizRepository quizRepository, ClaimsPrincipal claimsPrincipal)
-    {
-        // Get the current user's ID from claims
-        var userId = GetUserIdFromClaims(claimsPrincipal);
-        if (userId == Guid.Empty)
-        {
-            return Results.Unauthorized();
-        }
-        
-        // Get submissions for the current user only
-        var userSubmissions = await quizRepository.GetSubmissionsByUserIdAsync(userId);
-        
-        if (userSubmissions == null || !userSubmissions.Any())
-        {
-            return Results.Ok(Array.Empty<SubmissionResponseDto>());
-        }
-        
-        // Take the most recent submissions first (they should already be ordered by date in the repository)
-        var submissionDtos = userSubmissions
-            .Take(10) // Limit to 10 most recent
-            .Select(submission => submission.ToDto())
-            .ToList();
-            
-        return Results.Ok(submissionDtos);
     }
 
     private static async Task<IResult> GetUserSubmissions(IQuizRepository quizRepository, ClaimsPrincipal claimsPrincipal)
@@ -90,6 +60,41 @@ public static class SubmissionEndpoints
             .ToList();
 
         return Results.Ok(submissionDtos);
+    }
+
+    private static async Task<IResult> GetUserSubmissionsPaginated(IQuizRepository quizRepository, ClaimsPrincipal claimsPrincipal, int page, int pageSize)
+    {
+        var userId = GetUserIdFromClaims(claimsPrincipal);
+        if (userId == Guid.Empty)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Validate pagination parameters
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100; // Limit max page size
+
+        var (userSubmissions, totalCount) = await quizRepository.GetSubmissionsByUserIdPaginatedAsync(userId, page, pageSize);
+
+        var submissionDtos = userSubmissions
+            .Select(submission => submission.ToDto())
+            .ToList();
+
+        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+        var paginatedResponse = new PaginatedResponseDto<SubmissionResponseDto>
+        {
+            Items = submissionDtos,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = totalPages,
+            HasNextPage = page < totalPages,
+            HasPreviousPage = page > 1
+        };
+
+        return Results.Ok(paginatedResponse);
     }
     
     private static Guid GetUserIdFromClaims(ClaimsPrincipal claimsPrincipal)

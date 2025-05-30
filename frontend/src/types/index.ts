@@ -18,6 +18,7 @@ export type {
   QuestionAnswer,
   SubmissionResponse,
   SubmissionDetail,
+  PaginatedResponse,
 } from './quizSubmission.types';
 
 // Export context types

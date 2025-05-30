@@ -16,6 +16,7 @@ public interface IQuizRepository
     Task<Submission> GetSubmissionByIdAsync(int submissionId);
     Task<IEnumerable<Submission>> GetAllSubmissionsAsync();
     Task<IEnumerable<Submission>> GetSubmissionsByUserIdAsync(Guid userId);
+    Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsByUserIdPaginatedAsync(Guid userId, int page, int pageSize);
     Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId);
     Task<Submission?> GetUserSubmissionByQuizIdAsync(int quizId, Guid userId, CancellationToken cancellationToken);
 

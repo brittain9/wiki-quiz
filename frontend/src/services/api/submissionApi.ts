@@ -1,6 +1,6 @@
 import { apiGet, parseApiError } from '../apiService';
 
-import type { SubmissionResponse, SubmissionDetail } from '../../types';
+import type { SubmissionResponse, SubmissionDetail, PaginatedResponse } from '../../types';
 
 // Submission API endpoints
 const SUBMISSION_ENDPOINTS = {
@@ -63,6 +63,34 @@ export const submissionApi = {
       console.error(`Failed to get user submissions: ${parseApiError(error)}`);
       // Return empty array on error instead of throwing
       return [];
+    }
+  },
+
+  /**
+   * Get paginated submissions for the current user
+   */
+  async getMySubmissionsPaginated(
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<PaginatedResponse<SubmissionResponse>> {
+    try {
+      const url = `${SUBMISSION_ENDPOINTS.MY_SUBMISSIONS}?page=${page}&pageSize=${pageSize}`;
+      const response = await apiGet<PaginatedResponse<SubmissionResponse>>(url);
+      return response;
+    } catch (error) {
+      console.error(
+        `Failed to get paginated user submissions: ${parseApiError(error)}`,
+      );
+      // Return empty paginated response on error
+      return {
+        items: [],
+        totalCount: 0,
+        page: 1,
+        pageSize: pageSize,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      };
     }
   },
 };

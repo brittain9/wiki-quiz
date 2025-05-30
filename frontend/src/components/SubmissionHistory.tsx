@@ -9,6 +9,12 @@ import {
   Box,
   Chip,
   Button,
+  Pagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
 } from '@mui/material';
 import { format } from 'date-fns';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
@@ -19,13 +25,21 @@ import { useOverlay } from '../context/OverlayContext/OverlayContext';
 import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../hooks/useAuthCheck';
 import { submissionApi } from '../services';
-import { SubmissionResponse } from '../types/quizSubmission.types';
+import { SubmissionResponse, PaginatedResponse } from '../types/quizSubmission.types';
 
 const SubmissionHistory: React.FC = React.memo(() => {
   const { submissionHistory: newSubmissions } = useQuizState();
-  const [allSubmissions, setAllSubmissions] = useState<SubmissionResponse[]>(
-    [],
-  );
+  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<SubmissionResponse>>({
+    items: [],
+    totalCount: 0,
+    page: 1,
+    pageSize: 10,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isLoggedIn } = useAuth();
@@ -36,51 +50,62 @@ const SubmissionHistory: React.FC = React.memo(() => {
     message: t('login.viewSubmissionsMessage'),
   });
 
-  // Fetch submissions from the backend when authenticated
-  useEffect(() => {
-    let isMounted = true;
-    const fetchSubmissions = async () => {
-      // Only fetch if logged in
-      if (!isLoggedIn) {
-        setLoading(false);
-        return;
-      }
+  // Fetch paginated submissions from the backend
+  const fetchSubmissions = useCallback(async (page: number, size: number) => {
+    if (!isLoggedIn) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const recentSubmissions = await submissionApi.getRecentSubmissions();
-        if (isMounted) {
-          setAllSubmissions(recentSubmissions);
-        }
-      } catch {
-        if (isMounted) {
-          setError(
-            'Failed to fetch recent submissions. Please try again later.',
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
+    setLoading(true);
+    setError(null);
 
-    fetchSubmissions();
-    return () => {
-      isMounted = false;
-    };
+    try {
+      const response = await submissionApi.getMySubmissionsPaginated(page, size);
+      setPaginatedData(response);
+    } catch {
+      setError('Failed to fetch submissions. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   }, [isLoggedIn]);
 
-  // Merge new submissions into the existing list and remove duplicates
+  // Fetch submissions when component mounts or when page/pageSize changes
   useEffect(() => {
-    if (newSubmissions.length > 0) {
-      setAllSubmissions((prevSubmissions) => {
-        const updatedSubmissions = [...newSubmissions, ...prevSubmissions];
-        return Array.from(
-          new Map(updatedSubmissions.map((item) => [item.id, item])).values(),
-        );
+    fetchSubmissions(currentPage, pageSize);
+  }, [fetchSubmissions, currentPage, pageSize]);
+
+  // Handle new submissions from quiz state (for real-time updates)
+  useEffect(() => {
+    if (newSubmissions.length > 0 && currentPage === 1) {
+      // Only update if we're on the first page to avoid confusion
+      setPaginatedData(prev => {
+        const existingIds = new Set(prev.items.map(item => item.id));
+        const newItems = newSubmissions.filter(item => !existingIds.has(item.id));
+        
+        if (newItems.length === 0) return prev;
+
+        const updatedItems = [...newItems, ...prev.items].slice(0, pageSize);
+        return {
+          ...prev,
+          items: updatedItems,
+          totalCount: prev.totalCount + newItems.length,
+        };
       });
     }
-  }, [newSubmissions]);
+  }, [newSubmissions, currentPage, pageSize]);
+
+  // Handle page change
+  const handlePageChange = useCallback((_: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  // Handle page size change
+  const handlePageSizeChange = useCallback((event: any) => {
+    const newPageSize = event.target.value as number;
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+  }, []);
 
   // Handle the click on a submission to view details
   const handleSubmissionClick = useCallback(
@@ -127,6 +152,9 @@ const SubmissionHistory: React.FC = React.memo(() => {
     ),
     [checkAuth, t],
   );
+
+  // Page size options
+  const pageSizeOptions = [5, 10, 20, 50];
 
   // Render the component
   if (loading) {
@@ -232,89 +260,174 @@ const SubmissionHistory: React.FC = React.memo(() => {
             {t('recentSubmissions.title')}
           </Typography>
 
-          {allSubmissions.length === 0 ? (
-            <Typography sx={{ color: 'var(--sub-color)' }}>
-              {t('recentSubmissions.noSubmissions')}
+          {/* Page size selector */}
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ color: 'var(--sub-color)' }}>
+              {paginatedData.totalCount > 0 
+                ? `Showing ${((currentPage - 1) * pageSize) + 1}-${Math.min(currentPage * pageSize, paginatedData.totalCount)} of ${paginatedData.totalCount} submissions`
+                : 'No submissions found'
+              }
             </Typography>
-          ) : (
-            <List
-              sx={{
-                width: '100%',
-                maxHeight: 400,
-                overflow: 'auto',
-                bgcolor: 'var(--bg-color)',
-                borderRadius: 1,
-                border: '1px solid var(--sub-alt-color)',
-              }}
-            >
-              {allSubmissions.map((submission) => (
-                <ListItem
-                  key={submission.id}
-                  divider
-                  disablePadding
-                  sx={{
-                    borderBottom: '1px solid var(--sub-alt-color)',
-                    '&:last-child': {
-                      borderBottom: 'none',
-                    },
-                  }}
-                >
-                  <ListItemButton
-                    onClick={() => handleSubmissionClick(submission.id)}
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel 
+                sx={{ 
+                  color: 'var(--sub-color)',
+                  '&.Mui-focused': { color: 'var(--main-color)' }
+                }}
+              >
+                Per Page
+              </InputLabel>
+              <Select
+                value={pageSize}
+                label="Per Page"
+                onChange={handlePageSizeChange}
+                sx={{
+                  color: 'var(--text-color)',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'var(--sub-alt-color)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'var(--main-color)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'var(--main-color)',
+                  },
+                  '& .MuiSvgIcon-root': {
+                    color: 'var(--text-color)',
+                  },
+                }}
+              >
+                {pageSizeOptions.map((option) => (
+                  <MenuItem 
+                    key={option} 
+                    value={option}
                     sx={{
-                      py: 2,
+                      color: 'var(--text-color)',
+                      backgroundColor: 'var(--bg-color)',
                       '&:hover': {
                         backgroundColor: 'var(--bg-color-secondary)',
                       },
                     }}
                   >
-                    <ListItemText
-                      primary={
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Typography
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {paginatedData.items.length === 0 ? (
+            <Typography sx={{ color: 'var(--sub-color)' }}>
+              {t('recentSubmissions.noSubmissions')}
+            </Typography>
+          ) : (
+            <>
+              <List
+                sx={{
+                  width: '100%',
+                  bgcolor: 'var(--bg-color)',
+                  borderRadius: 1,
+                  border: '1px solid var(--sub-alt-color)',
+                  mb: 2,
+                }}
+              >
+                {paginatedData.items.map((submission) => (
+                  <ListItem
+                    key={submission.id}
+                    divider
+                    disablePadding
+                    sx={{
+                      borderBottom: '1px solid var(--sub-alt-color)',
+                      '&:last-child': {
+                        borderBottom: 'none',
+                      },
+                    }}
+                  >
+                    <ListItemButton
+                      onClick={() => handleSubmissionClick(submission.id)}
+                      sx={{
+                        py: 2,
+                        '&:hover': {
+                          backgroundColor: 'var(--bg-color-secondary)',
+                        },
+                      }}
+                    >
+                      <ListItemText
+                        primary={
+                          <Box
                             sx={{
-                              color: 'var(--text-color)',
-                              fontWeight: 500,
-                              fontSize: '1rem',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
                             }}
                           >
-                            {submission.title || 'Quiz'}
+                            <Typography
+                              sx={{
+                                color: 'var(--text-color)',
+                                fontWeight: 500,
+                                fontSize: '1rem',
+                              }}
+                            >
+                              {submission.title || 'Quiz'}
+                            </Typography>
+                            <Chip
+                              label={`${submission.score.toFixed(0)}%`}
+                              size="small"
+                              sx={{
+                                backgroundColor: 'var(--bg-color-secondary)',
+                                color: getScoreColor(submission.score),
+                                border: `1px solid ${getScoreColor(
+                                  submission.score,
+                                )}`,
+                                fontWeight: 'bold',
+                              }}
+                            />
+                          </Box>
+                        }
+                        secondary={
+                          <Typography
+                            variant="body2"
+                            sx={{ color: 'var(--sub-color)' }}
+                          >
+                            {submission.submissionTime
+                              ? format(new Date(submission.submissionTime), 'PPp')
+                              : 'No date'}
                           </Typography>
-                          <Chip
-                            label={`${submission.score.toFixed(0)}%`}
-                            size="small"
-                            sx={{
-                              backgroundColor: 'var(--bg-color-secondary)',
-                              color: getScoreColor(submission.score),
-                              border: `1px solid ${getScoreColor(
-                                submission.score,
-                              )}`,
-                              fontWeight: 'bold',
-                            }}
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <Typography
-                          variant="body2"
-                          sx={{ color: 'var(--sub-color)' }}
-                        >
-                          {submission.submissionTime
-                            ? format(new Date(submission.submissionTime), 'PPp')
-                            : 'No date'}
-                        </Typography>
-                      }
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
+                        }
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+
+              {/* Pagination controls */}
+              {paginatedData.totalPages > 1 && (
+                <Stack spacing={2} alignItems="center">
+                  <Pagination
+                    count={paginatedData.totalPages}
+                    page={currentPage}
+                    onChange={handlePageChange}
+                    color="primary"
+                    sx={{
+                      '& .MuiPaginationItem-root': {
+                        color: 'var(--text-color)',
+                        borderColor: 'var(--sub-alt-color)',
+                        '&:hover': {
+                          backgroundColor: 'var(--bg-color-secondary)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'var(--main-color)',
+                          color: 'var(--bg-color)',
+                          '&:hover': {
+                            backgroundColor: 'var(--caret-color)',
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </Stack>
+              )}
+            </>
           )}
         </Paper>
       </Box>

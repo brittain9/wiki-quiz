@@ -108,6 +108,25 @@ public class QuizRepository : IQuizRepository
             .ToListAsync();
     }
 
+    public async Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsByUserIdPaginatedAsync(Guid userId, int page, int pageSize)
+    {
+        var query = _context.QuizSubmissions
+            .Where(s => s.UserId == userId)
+            .Include(qs => qs.Quiz).ThenInclude(q => q.AIResponses).ThenInclude(a => a.Questions)
+            .Include(qs => qs.Answers)
+            .Include(qs => qs.User)
+            .OrderByDescending(s => s.SubmissionTime);
+
+        var totalCount = await query.CountAsync();
+        
+        var submissions = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (submissions, totalCount);
+    }
+
     public async Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId)
     {
         return await _context.QuizSubmissions
