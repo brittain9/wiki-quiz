@@ -4,6 +4,7 @@ using Pulumi.AzureNative.AppConfiguration.Inputs;
 using Pulumi.AzureNative.KeyVault; // For Vault resource type in args
 using Pulumi.AzureNative.Resources;
 using System;
+using System.Collections.Generic;
 using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 namespace WikiQuiz.Infrastructure.Modules
@@ -23,6 +24,7 @@ namespace WikiQuiz.Infrastructure.Modules
         public string JwtSecretKvName { get; set; } = null!;
         public string PostgresConnectionStringSecretName { get; set; } = null!;
         public Vault KeyVaultResource { get; set; } = null!;
+        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
     }
 
     public class AppConfigModule : ComponentResource
@@ -43,7 +45,8 @@ namespace WikiQuiz.Infrastructure.Modules
                 ConfigStoreName = appConfigStoreName,
                 Location = args.Location,
                 Sku = new SkuArgs { Name = "Free" },
-                Identity = new ResourceIdentityArgs { Type = IdentityType.SystemAssigned }
+                Identity = new ResourceIdentityArgs { Type = IdentityType.SystemAssigned },
+                Tags = args.Tags
             }, new CustomResourceOptions { Parent = this });
 
             AppConfigStoreEndpoint = AppConfigurationStore.Endpoint.Apply(e => e ?? "");
@@ -125,4 +128,4 @@ namespace WikiQuiz.Infrastructure.Modules
             this.RegisterOutputs();
         }
     }
-} 
+}

@@ -36,9 +36,6 @@ namespace WikiQuiz.Infrastructure.Modules
         public Output<string> KeyVaultUri { get; set; } = null!;
         public ConfigurationStore AppConfigStore { get; set; } = null!;
         public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
-        
-        // Custom Domain Support
-        public ManagedCertificate? ManagedCertificate { get; set; }
     }
 
     public class ContainerAppsModule : ComponentResource
@@ -109,8 +106,7 @@ namespace WikiQuiz.Infrastructure.Modules
                         External = true,
                         TargetPort = args.Config.ContainerPort,
                         Transport = IngressTransportMethod.Auto,
-                        AllowInsecure = false,
-                        CustomDomains = GetCustomDomains(args)
+                        AllowInsecure = false
                     }
                 },
                 Template = new TemplateArgs
@@ -154,48 +150,20 @@ namespace WikiQuiz.Infrastructure.Modules
 
             ContainerAppFqdn = ContainerApp.Configuration.Apply(c => c?.Ingress?.Fqdn ?? "");
             
-            // Set the URL based on whether custom domain is enabled
-            ContainerAppUrl = args.Config.EnableCustomDomain && !string.IsNullOrEmpty(args.Config.CustomDomain)
-                ? Output.Create($"https://{args.Config.CustomDomain}")
-                : ContainerAppFqdn.Apply(fqdn => $"https://{fqdn}");
+            // Set the URL to the default Azure Container App URL
+            ContainerAppUrl = ContainerAppFqdn.Apply(fqdn => $"https://{fqdn}");
 
             this.RegisterOutputs();
         }
 
-        private static CustomDomainArgs[]? GetCustomDomains(ContainerAppsModuleArgs args)
-        {
-            if (!args.Config.EnableCustomDomain || 
-                string.IsNullOrEmpty(args.Config.CustomDomain) || 
-                args.ManagedCertificate == null)
-            {
-                return null;
-            }
-
-            return new CustomDomainArgs[]
-            {
-                new CustomDomainArgs
-                {
-                    Name = args.Config.CustomDomain,
-                    CertificateId = args.ManagedCertificate.Id,
-                    BindingType = BindingType.SniEnabled
-                }
-            };
-        }
 
         private static Pulumi.Resource[] GetDependencies(ContainerAppsModuleArgs args)
         {
-            var dependencies = new List<Pulumi.Resource>
+            return new Pulumi.Resource[]
             {
                 args.UserAssignedIdentity,
                 args.AppConfigStore
             };
-
-            if (args.ManagedCertificate != null)
-            {
-                dependencies.Add(args.ManagedCertificate);
-            }
-
-            return dependencies.ToArray();
         }
 
         private static ScaleArgs GetScaleConfiguration(string environmentName)
@@ -270,4 +238,4 @@ namespace WikiQuiz.Infrastructure.Modules
             };
         }
     }
-} 
+}

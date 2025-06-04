@@ -1,8 +1,8 @@
 using Pulumi;
 using Pulumi.AzureNative.DBforPostgreSQL;
 using Pulumi.AzureNative.DBforPostgreSQL.Inputs;
+using BackupArgs = Pulumi.AzureNative.DBforPostgreSQL.Inputs.BackupArgs;
 using Pulumi.AzureNative.Resources;
-using System;
 using System.Collections.Generic;
 using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
@@ -33,13 +33,19 @@ namespace WikiQuiz.Infrastructure.Modules
                 AzureResourceNaming.GeneratePostgresServerName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
-            // Environment-specific SKU configuration
-            var (skuName, skuTier, storageSizeGB, backupRetentionDays, geoRedundantBackup) = args.Config.EnvironmentName.ToLower() switch
+            // Use environment-specific configuration
+            var dbConfig = args.Config.EnvConfig.Database;
+            var skuTier = dbConfig.SkuTier switch
             {
-                "production" => ("Standard_D2s_v3", SkuTier.GeneralPurpose, 128, 30, GeoRedundantBackupEnum.Enabled),
-                "test" => ("Standard_B2s", SkuTier.Burstable, 64, 14, GeoRedundantBackupEnum.Disabled),
-                _ => ("Standard_B1ms", SkuTier.Burstable, 32, 7, GeoRedundantBackupEnum.Disabled) // Development
+                "GeneralPurpose" => SkuTier.GeneralPurpose,
+                "Burstable" => SkuTier.Burstable,
+                "MemoryOptimized" => SkuTier.MemoryOptimized,
+                _ => SkuTier.Burstable
             };
+
+            var geoRedundantBackup = dbConfig.GeoRedundantBackup 
+                ? GeoRedundantBackupEnum.Enabled 
+                : GeoRedundantBackupEnum.Disabled;
 
             PostgresServer = new Server("postgresServer", new ServerArgs
             {
@@ -48,49 +54,52 @@ namespace WikiQuiz.Infrastructure.Modules
                 Location = args.Location,
                 Sku = new SkuArgs
                 {
-                    Name = skuName,
+                    Name = dbConfig.SkuName,
                     Tier = skuTier
                 },
                 AdministratorLogin = args.Config.PostgresAdminLogin,
                 AdministratorLoginPassword = args.Config.PostgresAdminPassword,
                 Version = "15",
-                Storage = new StorageArgs { StorageSizeGB = storageSizeGB },
-                Backup = new Pulumi.AzureNative.DBforPostgreSQL.Inputs.BackupArgs 
+                Storage = new StorageArgs { StorageSizeGB = dbConfig.StorageSizeGB },
+                Backup = new BackupArgs 
                 { 
-                    BackupRetentionDays = backupRetentionDays, 
+                    BackupRetentionDays = dbConfig.BackupRetentionDays, 
                     GeoRedundantBackup = geoRedundantBackup 
                 },
                 HighAvailability = new HighAvailabilityArgs 
                 { 
-                    Mode = args.Config.EnvironmentName.ToLower() == "production" 
+                    Mode = args.Config.EnvConfig.HighAvailabilityEnabled 
                         ? HighAvailabilityMode.ZoneRedundant 
                         : HighAvailabilityMode.Disabled 
                 },
                 Tags = args.Tags
             }, new CustomResourceOptions { Parent = this });
 
+            // Create database
             PostgresDatabase = new Database("postgresDatabase", new DatabaseArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
                 ServerName = PostgresServer.Name,
-                DatabaseName = AzureResourceNaming.GeneratePostgresDatabaseName(args.Config.ProjectName, args.EnvironmentShort), 
+                DatabaseName = args.Config.PostgresDatabaseName,
                 Charset = "UTF8",
                 Collation = "en_US.utf8"
-            }, new CustomResourceOptions { Parent = PostgresServer });
+            }, new CustomResourceOptions { Parent = this });
 
-            PostgresFirewallRuleAllowAzure = new FirewallRule("allowAllWindowsAzureIps", new FirewallRuleArgs
+            // Allow Azure services to access the database
+            PostgresFirewallRuleAllowAzure = new FirewallRule("postgresFirewallRuleAllowAzure", new FirewallRuleArgs
             {
                 ResourceGroupName = args.ResourceGroup.Name,
                 ServerName = PostgresServer.Name,
                 FirewallRuleName = "AllowAllWindowsAzureIps",
                 StartIpAddress = "0.0.0.0",
                 EndIpAddress = "0.0.0.0"
-            }, new CustomResourceOptions { Parent = PostgresServer });
+            }, new CustomResourceOptions { Parent = this });
 
-            PostgresServerFqdn = PostgresServer.FullyQualifiedDomainName.Apply(fqdn => fqdn ?? "");
-            PostgresDatabaseNameOutput = PostgresDatabase.Name.Apply(name => name ?? "");
+            // Set outputs
+            PostgresServerFqdn = PostgresServer.FullyQualifiedDomainName;
+            PostgresDatabaseNameOutput = Output.Create(args.Config.PostgresDatabaseName);
 
             this.RegisterOutputs();
         }
     }
-} 
+}

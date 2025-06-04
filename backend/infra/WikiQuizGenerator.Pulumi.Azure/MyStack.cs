@@ -10,7 +10,7 @@ using WikiQuizGenerator.Pulumi.Azure.Utilities;
 
 public class MyStack : Stack
 {
-    // --- Stack Outputs ---
+    // Stack Outputs
     [Output] public Output<string> ContainerAppUrl { get; private set; }
     [Output] public Output<string> AcrLoginServer { get; private set; }
     [Output] public Output<string> PostgresFqdn { get; private set; }
@@ -19,7 +19,6 @@ public class MyStack : Stack
     [Output] public Output<string> AppConfigStoreName { get; private set; }
     [Output] public Output<string> AppConfigStoreEndpoint { get; private set; }
     [Output] public Output<string> ResourceGroupName { get; private set; }
-    [Output] public Output<string>? CustomDomainUrl { get; private set; }
 
     public MyStack()
     {
@@ -35,6 +34,7 @@ public class MyStack : Stack
             { "Owner", "WikiQuiz Team" }
         };
 
+        // Resource Group
         var resourceGroup = new ResourceGroup("resourceGroup", new ResourceGroupArgs
         {
             ResourceGroupName = AzureResourceNaming.GenerateResourceGroupName(config.ProjectName, config.EnvironmentName),
@@ -42,16 +42,7 @@ public class MyStack : Stack
             Tags = commonTags
         });
 
-        // --- Environment and Unique Suffix Setup ---
-        var environmentShort = config.EnvironmentName switch
-        {
-            "Production" => "prd",
-            "Development" => "dev",
-            "Test" => "tst",
-            _ => config.EnvironmentName.ToLower().Substring(0, Math.Min(config.EnvironmentName.Length, 3))
-        };
-
-        // Generate a unique suffix for resources that need it
+        // Generate unique suffix for resources that need it
         var uniqueSuffixResource = new Pulumi.Random.RandomString("uniqueSuffix", new Pulumi.Random.RandomStringArgs
         {
             Length = 6,
@@ -64,14 +55,14 @@ public class MyStack : Stack
         var currentClient = GetClientConfig.InvokeAsync().Result;
         var tenantId = Output.Create(currentClient.TenantId);
 
-        // --- Module Instantiation (in dependency order) ---
+        // Module Instantiation (in dependency order)
 
         // 1. Managed Identity
         var identityModule = new IdentityModule("identity", new IdentityModuleArgs
         {
             Config = config,
             ResourceGroup = resourceGroup,
-            EnvironmentShort = environmentShort,
+            EnvironmentShort = config.EnvironmentShort,
             Location = config.Location,
             Tags = commonTags
         });
@@ -82,7 +73,7 @@ public class MyStack : Stack
             Config = config,
             ResourceGroup = resourceGroup,
             UniqueSuffix = uniqueSuffix,
-            EnvironmentShort = environmentShort,
+            EnvironmentShort = config.EnvironmentShort,
             Location = config.Location,
             Tags = commonTags
         });
@@ -94,7 +85,7 @@ public class MyStack : Stack
             ResourceGroup = resourceGroup,
             UniqueSuffix = uniqueSuffix,
             Location = config.Location,
-            EnvironmentShort = environmentShort,
+            EnvironmentShort = config.EnvironmentShort,
             Tags = commonTags
         });
 
@@ -104,7 +95,7 @@ public class MyStack : Stack
             Config = config,
             ResourceGroup = resourceGroup,
             Location = config.Location,
-            EnvironmentShort = environmentShort,
+            EnvironmentShort = config.EnvironmentShort,
             UniqueSuffix = uniqueSuffix,
             Tags = commonTags
         });
@@ -115,7 +106,7 @@ public class MyStack : Stack
             Config = config,
             ResourceGroup = resourceGroup,
             Location = config.Location,
-            EnvironmentShort = environmentShort,
+            EnvironmentShort = config.EnvironmentShort,
             UniqueSuffix = uniqueSuffix,
             TenantId = tenantId,
             PostgresServerFqdn = databaseModule.PostgresServerFqdn,
@@ -129,7 +120,7 @@ public class MyStack : Stack
             Config = config,
             ResourceGroup = resourceGroup,
             Location = config.Location,
-            EnvironmentShort = environmentShort,
+            EnvironmentShort = config.EnvironmentShort,
             UniqueSuffix = uniqueSuffix,
             KeyVaultUri = secretsManagementModule.KeyVaultUri,
             OpenAIApiKeySecretName = secretsManagementModule.SecretNameOpenAIApiKey,
@@ -150,13 +141,14 @@ public class MyStack : Stack
             AcrRegistry = registryModule.AcrRegistry
         });
 
-        // 8. Container Apps Environment (needed for custom domain)
-        var containerAppsEnvModule = new ContainerAppsModule("containerAppsEnv", new ContainerAppsModuleArgs
+
+        // 9. Container Apps Environment and App
+        var containerAppsModule = new ContainerAppsModule("containerApps", new ContainerAppsModuleArgs
         {
             Config = config,
             ResourceGroup = resourceGroup,
             Location = config.Location,
-            EnvironmentShort = environmentShort,
+            EnvironmentShort = config.EnvironmentShort,
             LogAnalyticsWorkspaceId = monitoringModule.LogAnalyticsWorkspaceId,
             LogAnalyticsWorkspaceSharedKey = monitoringModule.LogAnalyticsWorkspaceSharedKey,
             UserAssignedIdentity = identityModule.UserAssignedIdentity,
@@ -167,73 +159,25 @@ public class MyStack : Stack
             Tags = commonTags
         }, new ComponentResourceOptions
         {
-            DependsOn = 
+            DependsOn = new[]
             {
-                // Ensure role assignments are completed before Container App creation
                 authorizationModule.KeyVaultSecretsUserRoleAssignment,
                 authorizationModule.AppConfigDataReaderRoleAssignment,
                 authorizationModule.AcrPullRoleAssignment
             }
         });
 
-        // 9. Custom Domain (if enabled)
-        var customDomainModule = new CustomDomainModule("customDomain", new CustomDomainModuleArgs
-        {
-            Config = config,
-            ResourceGroup = resourceGroup,
-            Location = config.Location,
-            EnvironmentShort = environmentShort,
-            ContainerAppEnvironment = containerAppsEnvModule.ContainerAppEnvironment,
-            Tags = commonTags
-        });
-
-        // 10. Update Container App with custom domain (if enabled)
-        if (config.EnableCustomDomain && !string.IsNullOrEmpty(config.CustomDomain))
-        {
-            // We need to recreate the container app with custom domain support
-            var containerAppsWithDomainModule = new ContainerAppsModule("containerAppsWithDomain", new ContainerAppsModuleArgs
-            {
-                Config = config,
-                ResourceGroup = resourceGroup,
-                Location = config.Location,
-                EnvironmentShort = environmentShort,
-                LogAnalyticsWorkspaceId = monitoringModule.LogAnalyticsWorkspaceId,
-                LogAnalyticsWorkspaceSharedKey = monitoringModule.LogAnalyticsWorkspaceSharedKey,
-                UserAssignedIdentity = identityModule.UserAssignedIdentity,
-                AcrLoginServer = registryModule.AcrLoginServer,
-                AppConfigStoreEndpoint = appConfigModule.AppConfigStoreEndpoint,
-                KeyVaultUri = secretsManagementModule.KeyVaultUri,
-                AppConfigStore = appConfigModule.AppConfigurationStore,
-                Tags = commonTags,
-                ManagedCertificate = customDomainModule.ManagedCertificate
-            }, new ComponentResourceOptions
-            {
-                DependsOn = 
-                {
-                    authorizationModule.KeyVaultSecretsUserRoleAssignment,
-                    authorizationModule.AppConfigDataReaderRoleAssignment,
-                    authorizationModule.AcrPullRoleAssignment,
-                    customDomainModule
-                }
-            });
-
-            // Use the custom domain container app for outputs
-            ContainerAppUrl = containerAppsWithDomainModule.ContainerAppUrl;
-            CustomDomainUrl = customDomainModule.CustomDomainUrl;
-        }
-        else
-        {
-            // Use the regular container app for outputs
-            ContainerAppUrl = containerAppsEnvModule.ContainerAppUrl;
-        }
-
-        // --- Assign outputs ---
+        // Assign outputs
+        ContainerAppUrl = containerAppsModule.ContainerAppUrl;
         AcrLoginServer = registryModule.AcrLoginServer;
         PostgresFqdn = databaseModule.PostgresServerFqdn;
-        KeyVaultName = secretsManagementModule.KeyVault.Name;
-        KeyVaultUri = secretsManagementModule.KeyVaultUri;
-        AppConfigStoreName = appConfigModule.AppConfigurationStore.Name;
+            KeyVaultName = secretsManagementModule.KeyVault.Name;
+            KeyVaultUri = secretsManagementModule.KeyVaultUri;
+            AppConfigStoreName = appConfigModule.AppConfigurationStore.Name;
         AppConfigStoreEndpoint = appConfigModule.AppConfigStoreEndpoint;
         ResourceGroupName = resourceGroup.Name;
+        
+
+        this.RegisterOutputs();
     }
-} 
+}
