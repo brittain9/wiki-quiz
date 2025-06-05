@@ -55,4 +55,15 @@ public class UserRepository : IUserRepository
 
         return totalCost;
     }
+
+    public async Task UpdateUserPointsAndLevelAsync(Guid userId, int pointsToAdd, int newLevel)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.TotalPoints += pointsToAdd;
+            user.Level = newLevel;
+            await _context.SaveChangesAsync();
+        }
+    }
 }

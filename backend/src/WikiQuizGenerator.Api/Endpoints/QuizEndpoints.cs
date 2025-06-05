@@ -3,6 +3,7 @@ using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Mappers;
 using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
@@ -107,6 +108,8 @@ public static class QuizEndpoints
     private static async Task<IResult> HandleSubmitQuiz(
         SubmissionDto submissionDto, 
         IQuizRepository quizRepository, 
+        IUserRepository userRepository,
+        IPointsService pointsService,
         ClaimsPrincipal claimsPrincipal,
         CancellationToken cancellationToken)
     {
@@ -134,14 +137,32 @@ public static class QuizEndpoints
             return TypedResults.Conflict("You have already submitted this quiz. Only one submission per quiz is allowed.");
         }
 
+        // Get all questions from the quiz
+        var allQuestions = quiz.AIResponses.SelectMany(r => r.Questions ?? Enumerable.Empty<Question>()).ToList();
+        
+        // Calculate points and score
+        var pointsEarned = pointsService.CalculatePointsEarned(allQuestions, submissionDto.QuestionAnswers);
+        
+        // Get current user to calculate new level
+        var user = await userRepository.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return TypedResults.NotFound("User not found.");
+        }
+        
+        var newTotalPoints = user.TotalPoints + pointsEarned;
+        var newLevel = pointsService.CalculateLevel(newTotalPoints);
+
         var submission = SubmissionMapper.ToModel(submissionDto);
         submission.Quiz = quiz; // Link to the fetched quiz
         submission.UserId = userId;
         submission.Score = CalculateScore(submissionDto, quiz);
+        submission.PointsEarned = pointsEarned;
         submission.SubmissionTime = DateTime.UtcNow;
 
-        // Assume AddSubmissionAsync populates submission.Id upon successful save
+        // Save submission and update user points/level
         await quizRepository.AddSubmissionAsync(submission, cancellationToken);
+        await userRepository.UpdateUserPointsAndLevelAsync(userId, pointsEarned, newLevel);
 
         var resultDto = SubmissionMapper.ToDto(submission);
 

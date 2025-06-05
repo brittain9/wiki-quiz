@@ -11,6 +11,8 @@ public class User : IdentityUser<Guid>
     public bool isPremium { get; set; } // dont limit cost of premium users
     public double TotalCost { get; set; }
     public double WeeklyCost { get; set; } // For rate limiting based on weekly usage.
+    public int TotalPoints { get; set; } = 0;
+    public int Level { get; set; } = 1;
 
     public static User Create(string email, string firstName, string lastName)
     {

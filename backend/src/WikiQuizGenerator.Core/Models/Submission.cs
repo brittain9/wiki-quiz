@@ -12,4 +12,5 @@ public class Submission
     public List<QuestionAnswer> Answers { get; set; } = new List<QuestionAnswer>();
     public DateTime SubmissionTime { get; set; }
     public int Score { get; set; }
+    public int PointsEarned { get; set; }
 }

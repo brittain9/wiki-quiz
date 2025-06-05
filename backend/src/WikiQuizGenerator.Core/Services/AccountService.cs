@@ -211,7 +211,9 @@ public class AccountService : IAccountService
             user.Id,
             user.Email,
             user.FirstName,
-            user.LastName
+            user.LastName,
+            user.TotalPoints,
+            user.Level
         );
     }
 }

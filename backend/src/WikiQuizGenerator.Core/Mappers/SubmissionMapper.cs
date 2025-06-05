@@ -27,6 +27,7 @@ public static class SubmissionMapper
         {
             Id = submission.Id,
             Score = submission.Score,
+            PointsEarned = submission.PointsEarned,
             Title = submission.Quiz.Title,
             UserId = submission.UserId,
             SubmissionTime = submission.SubmissionTime

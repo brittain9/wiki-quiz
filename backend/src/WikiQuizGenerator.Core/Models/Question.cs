@@ -27,6 +27,8 @@ public class Question
     [Range(1, 5)]
     public int CorrectOptionNumber { get; set; }
 
+    public int PointValue { get; set; } = 1000; // Default points per question
+
     // Navigational property for one to many relationship between ai response and question
     public int AIResponseId { get; set; }
     

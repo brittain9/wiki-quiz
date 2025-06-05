@@ -20,6 +20,7 @@ public class SubmissionResponseDto
     public int Id { get; set; } // id of the submission
     public string Title { get; set; }
     public int Score { get; set; }
+    public int PointsEarned { get; set; }
     public Guid UserId { get; set; }
     public DateTime SubmissionTime { get; set; }
 }

@@ -127,6 +127,7 @@ public partial class Program
         
         services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<IPointsService, PointsService>();
 
         // TODO: These lifetimes could use work
         services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>(); // This also probably doesn't need DE
