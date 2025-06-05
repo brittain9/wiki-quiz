@@ -18,6 +18,8 @@ export interface UserInfo {
   email: string | null;
   firstName: string | null;
   lastName: string | null;
+  totalPoints: number;
+  level: number;
 }
 
 export const authApi = {

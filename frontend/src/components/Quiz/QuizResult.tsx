@@ -1,8 +1,10 @@
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import React, { useCallback } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 import { useOverlay } from '../../context';
 import { Quiz, SubmissionResponse } from '../../types';
@@ -58,11 +60,31 @@ const QuizResult: React.FC<QuizResultProps> = ({
           color: 'var(--text-color)',
           fontWeight: 600,
           textAlign: 'center',
-          mb: 3,
+          mb: 2,
         }}
       >
         Quiz Complete!
       </Typography>
+
+      {/* Points Earned Display */}
+      {currentSubmission && currentSubmission.pointsEarned > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Chip
+            icon={<EmojiEventsIcon />}
+            label={`+${currentSubmission.pointsEarned.toLocaleString()} points earned!`}
+            sx={{
+              bgcolor: 'var(--success-color)',
+              color: 'white',
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              padding: '8px 16px',
+              '& .MuiChip-icon': {
+                color: 'white',
+              },
+            }}
+          />
+        </Box>
+      )}
 
       <Box
         sx={{

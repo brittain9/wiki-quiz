@@ -14,6 +14,7 @@ export interface SubmissionResponse {
   id: number;
   title: string;
   score: number;
+  pointsEarned: number;
   submissionTime: Date;
 }
 

@@ -1,7 +1,10 @@
 import CloseIcon from '@mui/icons-material/Close';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import StarIcon from '@mui/icons-material/Star';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Fade from '@mui/material/Fade';
 import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -167,6 +170,29 @@ const AccountOverlay: React.FC = () => {
               <Typography variant="body1" sx={{ opacity: 0.8 }}>
                 {userInfo.email}
               </Typography>
+              
+              {/* Points and Level Display */}
+              <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 1 }}>
+                <Chip
+                  icon={<StarIcon />}
+                  label={`Level ${userInfo.level}`}
+                  sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.2)',
+                    color: 'inherit',
+                    fontWeight: 'bold',
+                  }}
+                />
+                <Chip
+                  icon={<EmojiEventsIcon />}
+                  label={`${userInfo.totalPoints.toLocaleString()} pts`}
+                  sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.2)',
+                    color: 'inherit',
+                    fontWeight: 'bold',
+                  }}
+                />
+              </Box>
+              
               {/* Cost usage progress bar */}
               <Box sx={{ width: '100%', mt: 3 }}>
                 {loadingCost ? (
