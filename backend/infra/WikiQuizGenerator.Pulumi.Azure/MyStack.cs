@@ -19,6 +19,9 @@ public class MyStack : Stack
     [Output] public Output<string> AppConfigStoreName { get; private set; }
     [Output] public Output<string> AppConfigStoreEndpoint { get; private set; }
     [Output] public Output<string> ResourceGroupName { get; private set; }
+    [Output] public Output<string> StaticWebAppUrl { get; private set; }
+    [Output] public Output<string> StaticWebAppName { get; private set; }
+    [Output] public Output<string> StaticWebAppDeploymentToken { get; private set; }
 
     public MyStack()
     {
@@ -167,15 +170,30 @@ public class MyStack : Stack
             }
         });
 
+        // 10. Static Web App
+        var staticWebAppModule = new StaticWebAppModule("staticWebApp", new StaticWebAppModuleArgs
+        {
+            Config = config,
+            ResourceGroup = resourceGroup,
+            Location = config.Location,
+            EnvironmentShort = config.EnvironmentShort,
+            UniqueSuffix = uniqueSuffix,
+            BackendUrl = containerAppsModule.ContainerAppUrl,
+            Tags = commonTags
+        });
+
         // Assign outputs
         ContainerAppUrl = containerAppsModule.ContainerAppUrl;
         AcrLoginServer = registryModule.AcrLoginServer;
         PostgresFqdn = databaseModule.PostgresServerFqdn;
-            KeyVaultName = secretsManagementModule.KeyVault.Name;
-            KeyVaultUri = secretsManagementModule.KeyVaultUri;
-            AppConfigStoreName = appConfigModule.AppConfigurationStore.Name;
+        KeyVaultName = secretsManagementModule.KeyVault.Name;
+        KeyVaultUri = secretsManagementModule.KeyVaultUri;
+        AppConfigStoreName = appConfigModule.AppConfigurationStore.Name;
         AppConfigStoreEndpoint = appConfigModule.AppConfigStoreEndpoint;
         ResourceGroupName = resourceGroup.Name;
+        StaticWebAppUrl = staticWebAppModule.StaticWebAppUrl;
+        StaticWebAppName = staticWebAppModule.StaticWebAppName;
+        StaticWebAppDeploymentToken = staticWebAppModule.StaticWebAppDeploymentToken;
         
 
         this.RegisterOutputs();

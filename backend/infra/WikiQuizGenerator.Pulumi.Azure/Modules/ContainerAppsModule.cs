@@ -222,11 +222,6 @@ namespace WikiQuiz.Infrastructure.Modules
             {
                 "production" => new ContainerResourcesArgs
                 {
-                    Cpu = 1.0,
-                    Memory = "2Gi"
-                },
-                "test" => new ContainerResourcesArgs
-                {
                     Cpu = 0.5,
                     Memory = "1Gi"
                 },

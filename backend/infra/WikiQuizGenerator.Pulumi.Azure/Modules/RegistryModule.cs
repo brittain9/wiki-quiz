@@ -30,13 +30,8 @@ namespace WikiQuiz.Infrastructure.Modules
                 AzureResourceNaming.GenerateContainerRegistryName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
-            // Environment-specific SKU
-            var acrSku = args.Config.EnvironmentName.ToLower() switch
-            {
-                "production" => SkuName.Premium,
-                "test" => SkuName.Standard,
-                _ => SkuName.Basic // Development
-            };
+            // Environment-specific SKU - Using Basic for all environments to minimize cost
+            var acrSku = SkuName.Basic;
 
             AcrRegistry = new Registry("acrRegistry", new RegistryArgs
             {

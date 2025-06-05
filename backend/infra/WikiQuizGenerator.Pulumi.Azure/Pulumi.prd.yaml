@@ -1,5 +1,5 @@
 config:
-  azure-native:location: eastus
+  azure-native:location: centralus
   WikiQuizGenerator.Pulumi:projectName: wikiquiz
   WikiQuizGenerator.Pulumi:environmentName: Production
   WikiQuizGenerator.Pulumi:containerImageName: wikiquizapi

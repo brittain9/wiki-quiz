@@ -113,5 +113,15 @@ namespace WikiQuizGenerator.Pulumi.Azure.Utilities
             var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9-]", "");
             return cleanedName.Length > 64 ? cleanedName.Substring(0, 64) : cleanedName;
         }
+
+        public static string GenerateStaticWebAppName(string projectName, string environment, string uniqueSuffix)
+        {
+            // Static Web App: 2-60 alphanumeric and hyphens; can't start or end with hyphen
+            var baseName = $"swa-{projectName}-{environment}-{uniqueSuffix}".ToLower();
+            var cleanedName = System.Text.RegularExpressions.Regex.Replace(baseName, "[^a-z0-9-]", "");
+            if (cleanedName.StartsWith("-")) cleanedName = cleanedName.Substring(1);
+            if (cleanedName.EndsWith("-")) cleanedName = cleanedName.Substring(0, cleanedName.Length - 1);
+            return cleanedName.Length > 60 ? cleanedName.Substring(0, 60) : cleanedName;
+        }
     }
 }

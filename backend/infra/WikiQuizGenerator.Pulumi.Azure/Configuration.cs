@@ -178,10 +178,10 @@ namespace WikiQuiz.Infrastructure
             (Database, Container, Scaling, HighAvailabilityEnabled) = environment switch
             {
                 "Production" => (
-                    new DatabaseConfig("Standard_D2s_v3", "GeneralPurpose", 128, 30, true),
-                    new ContainerConfig(1.0, 2.0),
-                    new ScalingConfig(2, 10),
-                    true
+                    new DatabaseConfig("Standard_B2s", "Burstable", 32, 7, false),
+                    new ContainerConfig(0.5, 1.0),
+                    new ScalingConfig(1, 3),
+                    false
                 ),
                 "Development" => (
                     new DatabaseConfig("Standard_B1ms", "Burstable", 32, 7, false),

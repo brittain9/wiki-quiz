@@ -39,12 +39,8 @@ namespace WikiQuiz.Infrastructure.Modules
                 AzureResourceNaming.GenerateKeyVaultName(args.Config.ProjectName, args.EnvironmentShort, suffix)
             );
 
-            // Environment-specific SKU
-            var keyVaultSku = args.Config.EnvironmentName.ToLower() switch
-            {
-                "production" => SkuName.Premium,
-                _ => SkuName.Standard
-            };
+            // Using Standard SKU for all environments to minimize cost
+            var keyVaultSku = SkuName.Standard;
 
             KeyVault = new Vault("keyVault", new VaultArgs
             {
