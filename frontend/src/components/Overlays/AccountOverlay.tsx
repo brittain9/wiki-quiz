@@ -184,7 +184,7 @@ const AccountOverlay: React.FC = () => {
                 />
                 <Chip
                   icon={<EmojiEventsIcon />}
-                  label={`${userInfo.totalPoints.toLocaleString()} pts`}
+                  label={`${(userInfo.totalPoints || 0).toLocaleString()} pts`}
                   sx={{
                     bgcolor: 'rgba(255, 255, 255, 0.2)',
                     color: 'inherit',

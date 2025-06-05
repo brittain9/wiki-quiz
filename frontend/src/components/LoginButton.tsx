@@ -2,6 +2,7 @@
 import GoogleIcon from '@mui/icons-material/Google';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
+import StarIcon from '@mui/icons-material/Star';
 import {
   Box,
   Snackbar,
@@ -15,6 +16,9 @@ import {
   IconButton,
   Avatar,
   Button,
+  Chip,
+  Fade,
+  Grow,
 } from '@mui/material';
 import React, { useEffect, useState, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -82,7 +86,45 @@ const LoginButton = memo(() => {
   // Display user avatar button if logged in
   if (isLoggedIn) {
     return (
-      <Box display="flex" alignItems="center" sx={{ minHeight: 40 }}>
+      <Box display="flex" alignItems="center" sx={{ minHeight: 40, gap: 1 }}>
+        <Grow in={isLoggedIn} timeout={800}>
+          <Chip
+            icon={<StarIcon sx={{ fontSize: '1rem' }} />}
+            label={`Level ${userInfo?.level || 1}`}
+            size="small"
+            sx={{
+              height: 28,
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              bgcolor: 'var(--main-color)',
+              color: 'var(--bg-color)',
+              border: '2px solid var(--main-color-light)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              animation: 'pulse 2s infinite',
+              '@keyframes pulse': {
+                '0%': {
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                },
+                '50%': {
+                  boxShadow: '0 4px 16px rgba(var(--main-color-rgb), 0.4)',
+                  transform: 'scale(1.05)',
+                },
+                '100%': {
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                },
+              },
+              '&:hover': {
+                transform: 'scale(1.1)',
+                boxShadow: '0 6px 20px rgba(var(--main-color-rgb), 0.5)',
+                animation: 'none',
+              },
+              '& .MuiChip-icon': {
+                color: 'var(--bg-color)',
+              },
+            }}
+          />
+        </Grow>
         <Tooltip title={t('account.title')}>
           <IconButton
             onClick={handleMenuOpen}
@@ -90,7 +132,13 @@ const LoginButton = memo(() => {
             aria-controls={open ? 'account-menu' : undefined}
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
-            sx={{ ml: 1 }}
+            sx={{ 
+              ml: 0,
+              transition: 'transform 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'scale(1.1)',
+              },
+            }}
           >
             <Avatar
               sx={{
@@ -100,6 +148,9 @@ const LoginButton = memo(() => {
                 color: 'var(--bg-color)',
                 fontWeight: 600,
                 fontSize: '1.1rem',
+                border: '2px solid var(--main-color)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s ease-in-out',
               }}
             >
               {userInfo?.firstName && userInfo?.lastName

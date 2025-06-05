@@ -53,6 +53,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
         email: userData.email ?? '',
         firstName: userData.firstName ?? '',
         lastName: userData.lastName ?? '',
+        totalPoints: userData.totalPoints ?? 0,
+        level: userData.level ?? 1,
       };
       setUserInfo(mappedUserInfo);
       setIsLoggedIn(true);
