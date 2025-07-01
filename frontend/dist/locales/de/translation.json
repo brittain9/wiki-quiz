@@ -10,16 +10,45 @@
     "title": "Wikipedia-Quiz-App"
   },
   "hero": {
-    "topics": ["Thema 1", "Thema 2", "Thema 3"],
+    "topics": [
+      "Musik",
+      "Reisen",
+      "Klima",
+      "Dinosaurier",
+      "Biografie",
+      "Revolution",
+      "Backen",
+      "Schaltkreise",
+      "Festival"
+    ],
     "generateQuiz": "Generiere ein Quiz über",
     "topicInfo": "Geben Sie ein beliebiges Thema ein, das Sie interessiert, und wir erstellen ein maßgeschneidertes Quiz nur für Sie.",
     "placeholder": "Ihr Quiz-Thema",
-    "generatingButtonText": "Wird generiert",
-    "startButtonText": "Jetzt starten"
+    "generate": "Generieren",
+    "generating": "Wird generiert..."
+  },
+  "login": {
+    "title": "Anmeldung erforderlich",
+    "loginWithGoogle": "Mit Google anmelden",
+    "loginButton": "Anmelden",
+    "dismiss": "Verwerfen",
+    "quizCreationMessage": "Bitte melden Sie sich an, um Quizze zu erstellen und zu bearbeiten.",
+    "viewSubmissionsMessage": "Bitte melden Sie sich an, um Ihren Quiz-Verlauf anzuzeigen."
+  },
+  "account": {
+    "title": "Mein Konto",
+    "viewProfile": "Profil anzeigen",
+    "logout": "Abmelden",
+    "loggingOut": "Abmelden...",
+    "usage": "Nutzung",
+    "profileMessage": "Dies ist Ihre Profilübersicht. Weitere Funktionen folgen in Kürze!"
+  },
+  "theme": {
+    "selector": "Theme ändern",
+    "title": "Theme auswählen"
   },
   "recentSubmissions": {
-    "title": "Letzte Einreichungen",
-    "noHistory": "Mach ein Quiz, um deine Geschichte zu sehen!"
+    "title": "Letzte Einreichungen"
   },
   "quizresultoverlay": {
     "title": "Quiz-Ergebnisse",
@@ -28,7 +57,7 @@
   },
   "highlights": {
     "title": "Höhepunkte",
-    "info": "Entdecken Sie, warum unser Produkt heraussticht: Anpassungsfähigkeit, Langlebigkeit, benutzerfreundliches Design und Innovation. Genießen Sie zuverlässigen Kundensupport und Präzision in jedem Detail.",
+    "info": "Entdecken Sie, was den Wikipedia Quiz Generator außergewöhnlich macht: dynamische Quiz-Erstellung, mehrsprachige Unterstützung, intelligente Suche, nahtlose KI-Integration und sorgfältiges Design. Erleben Sie zuverlässige Leistung und Präzision in jeder Funktion.",
     "items": {
       "dynamic_quiz": {
         "title": "Dynamische Quiz-Erstellung",
@@ -55,5 +84,21 @@
         "desc": "Vom Frontend mit React und TypeScript bis zum Backend mit .NET 8 und PostgreSQL – jede Komponente ist sorgfältig für optimale Leistung gestaltet."
       }
     }
+  },
+  "quizOptions": {
+    "questions": "Fragen",
+    "options": "Optionen",
+    "variety": "Vielfalt",
+    "aiService": "KI-Dienst",
+    "aiModel": "KI-Modell",
+    "showOptions": "Optionen anzeigen",
+    "hideOptions": "Optionen ausblenden",
+    "varietyLevels": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "veryHigh": "Sehr Hoch"
+    },
+    "noServicesAvailable": "Keine Dienste verfügbar"
   }
 }

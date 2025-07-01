@@ -10,16 +10,45 @@
     "title": "Aplicativo de Quiz da Wikipédia"
   },
   "hero": {
-    "topics": ["Tópico 1", "Tópico 2", "Tópico 3"],
+    "topics": [
+      "Música",
+      "Viagens",
+      "Clima",
+      "Dinossauros",
+      "Biografia",
+      "Revolução",
+      "Confeitaria",
+      "Circuitos",
+      "Festival"
+    ],
     "generateQuiz": "Gerar um quiz sobre",
     "topicInfo": "Digite qualquer tópico que você tenha curiosidade, e nós geraremos um quiz personalizado só para você.",
     "placeholder": "Seu tópico de quiz",
-    "generatingButtonText": "Gerando",
-    "startButtonText": "Começar agora"
+    "generate": "Gerar",
+    "generating": "Gerando..."
+  },
+  "login": {
+    "title": "Login Necessário",
+    "loginWithGoogle": "Entrar com Google",
+    "loginButton": "Entrar",
+    "dismiss": "Dispensar",
+    "quizCreationMessage": "Por favor, faça login para criar e responder a quizzes.",
+    "viewSubmissionsMessage": "Por favor, faça login para ver seu histórico de quizzes."
+  },
+  "account": {
+    "title": "Minha Conta",
+    "viewProfile": "Ver Perfil",
+    "logout": "Sair",
+    "loggingOut": "Saindo...",
+    "usage": "Uso",
+    "profileMessage": "Este é o resumo do seu perfil. Mais funcionalidades em breve!"
+  },
+  "theme": {
+    "selector": "Mudar tema",
+    "title": "Selecionar Tema"
   },
   "recentSubmissions": {
-    "title": "Submissões recentes",
-    "noHistory": "Faça um teste para ver a sua história!"
+    "title": "Submissões recentes"
   },
   "quizresultoverlay": {
     "title": "Resultados do Quiz",
@@ -28,7 +57,7 @@
   },
   "highlights": {
     "title": "Destaques",
-    "info": "Descubra por que nosso produto se destaca: adaptabilidade, durabilidade, design amigável e inovação. Desfrute de suporte ao cliente confiável e precisão em cada detalhe.",
+    "info": "Descubra o que torna o Gerador de Quizzes da Wikipédia excepcional: criação dinâmica de quizzes, suporte multilíngue, pesquisa inteligente, integração perfeita com IA e design meticuloso. Experimente um desempenho confiável e precisão em cada funcionalidade.",
     "items": {
       "dynamic_quiz": {
         "title": "Geração Dinâmica de Questionários",
@@ -55,5 +84,21 @@
         "desc": "Do frontend construído com React e TypeScript ao backend alimentado por .NET 8 e PostgreSQL, cada componente é meticulosamente projetado para desempenho ideal."
       }
     }
+  },
+  "quizOptions": {
+    "questions": "Perguntas",
+    "options": "Opções",
+    "variety": "Variedade",
+    "aiService": "Serviço de IA",
+    "aiModel": "Modelo de IA",
+    "showOptions": "Mostrar opções",
+    "hideOptions": "Ocultar opções",
+    "varietyLevels": {
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta",
+      "veryHigh": "Muito Alta"
+    },
+    "noServicesAvailable": "Nenhum serviço disponível"
   }
 }

@@ -25,11 +25,16 @@ import { useOverlay } from '../context/OverlayContext/OverlayContext';
 import { useQuizState } from '../context/QuizStateContext/QuizStateContext';
 import useAuthCheck from '../hooks/useAuthCheck';
 import { submissionApi } from '../services';
-import { SubmissionResponse, PaginatedResponse } from '../types/quizSubmission.types';
+import {
+  SubmissionResponse,
+  PaginatedResponse,
+} from '../types/quizSubmission.types';
 
 const SubmissionHistory: React.FC = React.memo(() => {
   const { submissionHistory: newSubmissions } = useQuizState();
-  const [paginatedData, setPaginatedData] = useState<PaginatedResponse<SubmissionResponse>>({
+  const [paginatedData, setPaginatedData] = useState<
+    PaginatedResponse<SubmissionResponse>
+  >({
     items: [],
     totalCount: 0,
     page: 1,
@@ -51,24 +56,30 @@ const SubmissionHistory: React.FC = React.memo(() => {
   });
 
   // Fetch paginated submissions from the backend
-  const fetchSubmissions = useCallback(async (page: number, size: number) => {
-    if (!isLoggedIn) {
-      setLoading(false);
-      return;
-    }
+  const fetchSubmissions = useCallback(
+    async (page: number, size: number) => {
+      if (!isLoggedIn) {
+        setLoading(false);
+        return;
+      }
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const response = await submissionApi.getMySubmissionsPaginated(page, size);
-      setPaginatedData(response);
-    } catch {
-      setError('Failed to fetch submissions. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  }, [isLoggedIn]);
+      try {
+        const response = await submissionApi.getMySubmissionsPaginated(
+          page,
+          size,
+        );
+        setPaginatedData(response);
+      } catch {
+        setError('Failed to fetch submissions. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isLoggedIn],
+  );
 
   // Fetch submissions when component mounts or when page/pageSize changes
   useEffect(() => {
@@ -79,10 +90,12 @@ const SubmissionHistory: React.FC = React.memo(() => {
   useEffect(() => {
     if (newSubmissions.length > 0 && currentPage === 1) {
       // Only update if we're on the first page to avoid confusion
-      setPaginatedData(prev => {
-        const existingIds = new Set(prev.items.map(item => item.id));
-        const newItems = newSubmissions.filter(item => !existingIds.has(item.id));
-        
+      setPaginatedData((prev) => {
+        const existingIds = new Set(prev.items.map((item) => item.id));
+        const newItems = newSubmissions.filter(
+          (item) => !existingIds.has(item.id),
+        );
+
         if (newItems.length === 0) return prev;
 
         const updatedItems = [...newItems, ...prev.items].slice(0, pageSize);
@@ -96,9 +109,12 @@ const SubmissionHistory: React.FC = React.memo(() => {
   }, [newSubmissions, currentPage, pageSize]);
 
   // Handle page change
-  const handlePageChange = useCallback((_: React.ChangeEvent<unknown>, page: number) => {
-    setCurrentPage(page);
-  }, []);
+  const handlePageChange = useCallback(
+    (_: React.ChangeEvent<unknown>, page: number) => {
+      setCurrentPage(page);
+    },
+    [],
+  );
 
   // Handle page size change
   const handlePageSizeChange = useCallback((event: any) => {
@@ -180,41 +196,6 @@ const SubmissionHistory: React.FC = React.memo(() => {
     );
   }
 
-  // If not logged in, show message to log in
-  if (!isLoggedIn) {
-    return (
-      <Paper
-        elevation={3}
-        sx={{
-          padding: 4,
-          maxWidth: 800,
-          margin: 'auto',
-          mt: 5,
-          mb: 5,
-          backgroundColor: 'var(--bg-color)',
-          color: 'var(--text-color)',
-          border: '1px solid var(--sub-alt-color)',
-          borderRadius: 2,
-        }}
-      >
-        <Typography
-          variant="h5"
-          gutterBottom
-          align="center"
-          sx={{ color: 'var(--text-color)' }}
-        >
-          {t('recentSubmissions.title')}
-        </Typography>
-        <Typography align="center" sx={{ mb: 2, color: 'var(--sub-color)' }}>
-          {t('recentSubmissions.loginRequired')}
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          {loginButton}
-        </Box>
-      </Paper>
-    );
-  }
-
   return (
     <>
       <Box
@@ -261,18 +242,24 @@ const SubmissionHistory: React.FC = React.memo(() => {
           </Typography>
 
           {/* Page size selector */}
-          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box
+            sx={{
+              mb: 2,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
             <Typography variant="body2" sx={{ color: 'var(--sub-color)' }}>
-              {paginatedData.totalCount > 0 
-                ? `Showing ${((currentPage - 1) * pageSize) + 1}-${Math.min(currentPage * pageSize, paginatedData.totalCount)} of ${paginatedData.totalCount} submissions`
-                : 'No submissions found'
-              }
+              {paginatedData.totalCount > 0
+                ? `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, paginatedData.totalCount)} of ${paginatedData.totalCount} submissions`
+                : 'No submissions found'}
             </Typography>
             <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel 
-                sx={{ 
+              <InputLabel
+                sx={{
                   color: 'var(--sub-color)',
-                  '&.Mui-focused': { color: 'var(--main-color)' }
+                  '&.Mui-focused': { color: 'var(--main-color)' },
                 }}
               >
                 Per Page
@@ -298,8 +285,8 @@ const SubmissionHistory: React.FC = React.memo(() => {
                 }}
               >
                 {pageSizeOptions.map((option) => (
-                  <MenuItem 
-                    key={option} 
+                  <MenuItem
+                    key={option}
                     value={option}
                     sx={{
                       color: 'var(--text-color)',
@@ -390,7 +377,10 @@ const SubmissionHistory: React.FC = React.memo(() => {
                             sx={{ color: 'var(--sub-color)' }}
                           >
                             {submission.submissionTime
-                              ? format(new Date(submission.submissionTime), 'PPp')
+                              ? format(
+                                  new Date(submission.submissionTime),
+                                  'PPp',
+                                )
                               : 'No date'}
                           </Typography>
                         }

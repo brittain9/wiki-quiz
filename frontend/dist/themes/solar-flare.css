@@ -1,0 +1,26 @@
+/* Solar Flare theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #1a1a1a; /* Very dark grey, almost black */
+  --bg-color-secondary: #101010;
+  --bg-color-tertiary: #282828;
+  --main-color: #ffa500; /* Bright Orange */
+  --caret-color: #ffa500;
+  --sub-color: #ffd700; /* Gold/Bright Yellow */
+  --sub-alt-color: #404040;
+  --text-color: #fff8dc; /* Cornsilk - warm off-white */
+  --error-color: #ff4500; /* OrangeRed */
+  --error-extra-color: #cc3700;
+  --success-color: #ffd700; /* Gold for success */
+  --warning-color: #ffa500; /* Orange for warning */
+
+  /* Colors with transparency */
+  --main-color-10: rgba(255, 165, 0, 0.1);
+  --main-color-20: rgba(255, 165, 0, 0.2);
+  --success-color-10: rgba(255, 215, 0, 0.1);
+  --error-color-10: rgba(255, 69, 0, 0.1);
+}

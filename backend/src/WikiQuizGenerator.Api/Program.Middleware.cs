@@ -12,9 +12,7 @@ public partial class Program
 
         app.UseForwardedHeaders(new ForwardedHeadersOptions
         {
-            // Trust the X-Forwarded-Proto header to determine the request scheme (http/https)
-            // Trust X-Forwarded-For to determine client IP
-            // Trust X-Forwarded-Host to determine the original host requested by the client
+            // TODO: See if this is even needed
             ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost,
             KnownNetworks = { },
             KnownProxies = { }

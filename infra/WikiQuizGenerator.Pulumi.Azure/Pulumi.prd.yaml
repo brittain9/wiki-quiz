@@ -1,0 +1,12 @@
+config:
+  # Environment settings
+  wikiquiz:environment: prd
+  wikiquiz:location: East US
+  wikiquiz:githubUsername: brittain9
+
+  # Secrets - set these with: pulumi config set --secret [key] [value]
+  # wikiquiz:postgresPassword: <set-me>
+  # wikiquiz:openAiApiKey: <set-me>
+  # wikiquiz:googleClientId: <set-me>
+  # wikiquiz:googleClientSecret: <set-me>
+  # wikiquiz:jwtSecret: <set-me>

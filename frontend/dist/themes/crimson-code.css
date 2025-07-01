@@ -1,0 +1,26 @@
+/* Crimson Code theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #3d0000; /* Darkest Red */
+  --bg-color-secondary: #2a0000;
+  --bg-color-tertiary: #500000;
+  --main-color: #ff4136; /* Bright Red */
+  --caret-color: #ff4136;
+  --sub-color: #b22222; /* Firebrick */
+  --sub-alt-color: #660000; /* Darker Red */
+  --text-color: #ffd1d1; /* Light Pinkish Red */
+  --error-color: #ff6b6b; /* Lighter Red for errors */
+  --error-extra-color: #e00000;
+  --success-color: #ffaaaa; /* Light red for success to fit theme */
+  --warning-color: #ff8c8c; /* Light red for warning */
+
+  /* Colors with transparency */
+  --main-color-10: rgba(255, 65, 54, 0.1);
+  --main-color-20: rgba(255, 65, 54, 0.2);
+  --success-color-10: rgba(255, 170, 170, 0.1);
+  --error-color-10: rgba(255, 107, 107, 0.1);
+}

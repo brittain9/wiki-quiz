@@ -10,6 +10,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { motion } from 'framer-motion';
 import * as React from 'react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,71 +26,83 @@ const HighlightItem = React.memo(
   ({ item, index }: { item: HighlightItem; index: number }) => {
     return (
       <Grid item xs={12} sm={6} md={4} key={index}>
-        <Stack
-          direction="column"
-          component={Card}
-          spacing={2}
-          useFlexGap
-          sx={{
-            color: 'var(--text-color)',
-            p: 3,
-            height: '100%',
-            border: '1px solid var(--sub-alt-color)',
-            backgroundColor: 'var(--bg-color)',
-            boxShadow: 'none',
-            borderRadius: 2,
-            position: 'relative',
-            overflow: 'hidden',
-            '&:hover': {
-              borderColor: 'var(--main-color)',
-              transform: 'translateY(-4px)',
-              boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
-              '& .highlight-icon': {
-                color: 'var(--main-color)',
-                opacity: 0.9,
-              },
-            },
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '4px',
-              height: '100%',
-              backgroundColor: 'var(--main-color)',
-              opacity: 0.6,
-            },
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.3,
+            delay: 0.1 + index * 0.05,
+            ease: 'easeOut',
           }}
+          sx={{ height: '100%' }}
         >
-          <Box
-            className="highlight-icon"
+          <Stack
+            direction="column"
+            component={Card}
+            spacing={2}
+            useFlexGap
             sx={{
-              color: 'var(--main-color)',
-              opacity: 0.7,
-              fontSize: '2rem',
-              '& svg': {
-                fontSize: '2rem',
+              color: 'var(--text-color)',
+              p: 3,
+              height: '100%',
+              border: '1px solid var(--sub-alt-color)',
+              backgroundColor: 'var(--bg-color)',
+              boxShadow: 'none',
+              borderRadius: 2,
+              position: 'relative',
+              overflow: 'hidden',
+              '&:hover': {
+                borderColor: 'var(--main-color)',
+                transform: 'translateY(-4px)',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
+                '& .highlight-icon': {
+                  color: 'var(--main-color)',
+                  opacity: 0.9,
+                },
+              },
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '4px',
+                height: '100%',
+                backgroundColor: 'var(--main-color)',
+                opacity: 0.6,
               },
             }}
           >
-            {item.icon}
-          </Box>
-          <div>
-            <Typography
-              gutterBottom
+            <Box
+              className="highlight-icon"
               sx={{
-                fontWeight: 600,
-                color: 'var(--text-color)',
-                fontSize: '1.1rem',
+                color: 'var(--main-color)',
+                opacity: 0.7,
+                fontSize: '2rem',
+                '& svg': {
+                  fontSize: '2rem',
+                },
               }}
             >
-              {item.title}
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'var(--sub-color)' }}>
-              {item.description}
-            </Typography>
-          </div>
-        </Stack>
+              {item.icon}
+            </Box>
+            <div>
+              <Typography
+                gutterBottom
+                sx={{
+                  fontWeight: 600,
+                  color: 'var(--text-color)',
+                  fontSize: '1.1rem',
+                }}
+              >
+                {item.title}
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'var(--sub-color)' }}>
+                {item.description}
+              </Typography>
+            </div>
+          </Stack>
+        </Box>
       </Grid>
     );
   },
@@ -140,6 +153,10 @@ const Highlights = React.memo(() => {
   return (
     <Box
       id="highlights"
+      component={motion.div}
+      initial={{ opacity: 0.3 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
       sx={{
         pt: { xs: 4, sm: 8 },
         pb: { xs: 6, sm: 10 },
@@ -159,6 +176,10 @@ const Highlights = React.memo(() => {
         }}
       >
         <Box
+          component={motion.div}
+          initial={{ opacity: 0.3, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
           sx={{
             width: { sm: '100%', md: '60%' },
             textAlign: { sm: 'left', md: 'center' },

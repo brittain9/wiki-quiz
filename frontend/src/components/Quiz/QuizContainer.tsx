@@ -2,7 +2,13 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 
 import QuizQuestion from './QuizQuestion';
 import QuizResult from './QuizResult';
@@ -19,6 +25,8 @@ const QuizContainer: React.FC = React.memo(() => {
     addSubmissionToHistory,
   } = useQuizState();
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<QuestionAnswer[]>([]);
@@ -28,8 +36,12 @@ const QuizContainer: React.FC = React.memo(() => {
   const [showResult, setShowResult] = useState(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [currentQuestionPoints, setCurrentQuestionPoints] = useState(0);
-  const [correctAnswer, setCorrectAnswer] = useState<number | undefined>(undefined);
-  const [correctAnswerText, setCorrectAnswerText] = useState<string | undefined>(undefined);
+  const [correctAnswer, setCorrectAnswer] = useState<number | undefined>(
+    undefined,
+  );
+  const [correctAnswerText, setCorrectAnswerText] = useState<
+    string | undefined
+  >(undefined);
 
   // Computed values
   const flatQuestions = useMemo(
@@ -77,10 +89,10 @@ const QuizContainer: React.FC = React.memo(() => {
         }
 
         const result = await response.json();
-        
+
         setSelectedOption(selectedOptionNumber);
         setCurrentQuestionPoints(result.pointsEarned);
-        setTotalPoints(prev => prev + result.pointsEarned);
+        setTotalPoints((prev) => prev + result.pointsEarned);
         setCorrectAnswer(result.correctOptionNumber);
         setCorrectAnswerText(result.correctAnswerText);
         setShowResult(true);
@@ -94,7 +106,7 @@ const QuizContainer: React.FC = React.memo(() => {
             questionId: currentQuestion.id,
             selectedOptionNumber,
           };
-          
+
           if (existingAnswerIndex > -1) {
             const newAnswers = [...prev];
             newAnswers[existingAnswerIndex] = newAnswer;
@@ -107,7 +119,7 @@ const QuizContainer: React.FC = React.memo(() => {
         // Auto-advance to next question after showing result
         setTimeout(() => {
           if (currentQuestionIndex < totalQuestions - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
+            setCurrentQuestionIndex((prev) => prev + 1);
             setShowResult(false);
             setSelectedOption(null);
             setCurrentQuestionPoints(0);
@@ -173,6 +185,7 @@ const QuizContainer: React.FC = React.memo(() => {
 
   return (
     <Box
+      ref={containerRef}
       sx={{
         maxWidth: 800,
         mx: 'auto',
@@ -219,7 +232,7 @@ const QuizContainer: React.FC = React.memo(() => {
                 Total Points: {totalPoints.toLocaleString()}
               </Typography>
             </Box>
-            
+
             <QuizQuestion
               currentQuestion={currentQuestion}
               currentQuestionIndex={currentQuestionIndex}

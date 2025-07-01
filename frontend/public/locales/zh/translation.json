@@ -10,16 +10,45 @@
     "title": "维基百科问答应用"
   },
   "hero": {
-    "topics": ["主题1", "主题2", "主题3"],
-    "generateQuiz": "生成关于以下内容的问答",
+    "topics": [
+      "音乐",
+      "旅行",
+      "气候",
+      "恐龙",
+      "传记",
+      "革命",
+      "烘焙",
+      "电路",
+      "节日"
+    ],
+    "generateQuiz": "生成关于",
     "topicInfo": "输入任何你感兴趣的主题，我们将为你生成一个定制的问答。",
     "placeholder": "你的问答主题",
-    "generatingButtonText": "正在生成",
-    "startButtonText": "立即开始"
+    "generate": "生成",
+    "generating": "正在生成..."
+  },
+  "login": {
+    "title": "需要登录",
+    "loginWithGoogle": "使用Google登录",
+    "loginButton": "登录",
+    "dismiss": "关闭",
+    "quizCreationMessage": "请登录以创建和参与测验。",
+    "viewSubmissionsMessage": "请登录以查看您的测验历史。"
+  },
+  "account": {
+    "title": "我的账户",
+    "viewProfile": "查看个人资料",
+    "logout": "退出登录",
+    "loggingOut": "正在退出...",
+    "usage": "使用情况",
+    "profileMessage": "这是您的个人资料概览。更多功能即将推出！"
+  },
+  "theme": {
+    "selector": "更改主题",
+    "title": "选择主题"
   },
   "recentSubmissions": {
-    "title": "最近提交的内容",
-    "noHistory": "做个测验来了解你的历史！"
+    "title": "最近提交的内容"
   },
   "quizresultoverlay": {
     "title": "测验结果",
@@ -28,7 +57,7 @@
   },
   "highlights": {
     "title": "亮点",
-    "info": "探索我们产品的突出之处：适应性、耐用性、用户友好的设计和创新。享受可靠的客户支持和每一个细节的精准。",
+    "info": "探索维基百科测验生成器的卓越之处：动态测验创建、多语言支持、智能搜索、无缝AI集成以及精心设计。在每个功能中体验可靠的性能和精确度。",
     "items": {
       "dynamic_quiz": {
         "title": "动态测验生成",
@@ -55,5 +84,21 @@
         "desc": "从使用React和TypeScript构建的前端到由.NET 8和PostgreSQL驱动的后端，每个组件都经过精心设计以实现最佳性能。"
       }
     }
+  },
+  "quizOptions": {
+    "questions": "问题数量",
+    "options": "选项",
+    "variety": "多样性",
+    "aiService": "AI服务",
+    "aiModel": "AI模型",
+    "showOptions": "显示选项",
+    "hideOptions": "隐藏选项",
+    "varietyLevels": {
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "veryHigh": "非常高"
+    },
+    "noServicesAvailable": "无可用服务"
   }
 }

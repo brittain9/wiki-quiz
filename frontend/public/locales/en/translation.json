@@ -4,12 +4,7 @@
   },
   "appBar": {
     "title": "Wiki Quiz App",
-    "highlights": "Highlights",
-    "home": "Home",
-    "myQuizzes": "My Quizzes",
-    "createQuiz": "Create Quiz",
-    "login": "Login",
-    "logout": "Logout"
+    "highlights": "Highlights"
   },
   "footer": {
     "title": "Wikipedia Quiz App"
@@ -30,42 +25,30 @@
     "topicInfo": "Enter any topic you're curious about, and we'll generate a custom quiz just for you.",
     "placeholder": "Your quiz topic",
     "generate": "Generate",
-    "generating": "Generating...",
-    "generatingButtonText": "Generating",
-    "startButtonText": "Start now"
+    "generating": "Generating..."
   },
   "login": {
     "title": "Login Required",
-    "subtitle": "You need to be logged in to create quizzes and view your submission history.",
     "loginWithGoogle": "Sign in with Google",
     "loginButton": "Sign in",
     "dismiss": "Dismiss",
     "quizCreationMessage": "Please log in to create and take quizzes",
-    "viewSubmissionsMessage": "Please log in to view your quiz history",
-    "loginToView": "Log in to view your submissions"
+    "viewSubmissionsMessage": "Please log in to view your quiz history"
   },
   "account": {
     "title": "My Account",
     "viewProfile": "View Profile",
-    "myQuizzes": "My Quizzes",
-    "quizHistory": "Quiz History",
-    "settings": "Settings",
     "logout": "Logout",
     "loggingOut": "Logging out...",
-    "editProfile": "Edit Profile",
+    "usage": "Usage",
     "profileMessage": "This is your profile overview. More features coming soon!"
   },
   "theme": {
     "selector": "Change theme",
-    "title": "Select Theme",
-    "current": "Current",
-    "description": "Choose your preferred appearance",
-    "systemPreference": "System Preference"
+    "title": "Select Theme"
   },
   "recentSubmissions": {
-    "title": "Recent Submissions",
-    "noHistory": "Take a quiz to see your history!",
-    "loginRequired": "You need to be logged in to view your submission history."
+    "title": "Recent Submissions"
   },
   "quizresultoverlay": {
     "title": "Quiz Results",
@@ -101,5 +84,21 @@
         "desc": "From the frontend built with React and TypeScript to the backend powered by .NET 8 and PostgreSQL, every component is meticulously crafted for optimal performance."
       }
     }
+  },
+  "quizOptions": {
+    "questions": "Questions",
+    "options": "Options",
+    "variety": "Variety",
+    "aiService": "AI Service",
+    "aiModel": "AI Model",
+    "showOptions": "Show options",
+    "hideOptions": "Hide options",
+    "varietyLevels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "veryHigh": "Very High"
+    },
+    "noServicesAvailable": "No services available"
   }
 }

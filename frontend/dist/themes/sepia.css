@@ -1,0 +1,26 @@
+/* Sepia theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #f4e8d1; /* Sepia light background */
+  --bg-color-secondary: #e8dacc;
+  --bg-color-tertiary: #faefe0;
+  --main-color: #70542d; /* Sepia dark accent */
+  --caret-color: #70542d;
+  --sub-color: #a08c6d;
+  --sub-alt-color: #bfb095;
+  --text-color: #43341b; /* Sepia text */
+  --error-color: #c06e5f;
+  --error-extra-color: #a04e3f;
+  --success-color: #7c8c5a;
+  --warning-color: #b8860b; /* DarkGoldenrod */
+
+  /* Colors with transparency */
+  --main-color-10: rgba(112, 84, 45, 0.1);
+  --main-color-20: rgba(112, 84, 45, 0.2);
+  --success-color-10: rgba(124, 140, 90, 0.1);
+  --error-color-10: rgba(192, 110, 95, 0.1);
+}

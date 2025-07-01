@@ -107,6 +107,18 @@
       "name": "Nord",
       "file": "nord.css",
       "colors": ["#2e3440", "#88c0d0", "#d8dee9"]
+    },
+    {
+      "id": "solar-flare",
+      "name": "Solar Flare",
+      "file": "solar-flare.css",
+      "colors": ["#1A1A1A", "#FFA500", "#FFF8DC"]
+    },
+    {
+      "id": "volcanic-ash",
+      "name": "Volcanic Ash",
+      "file": "volcanic-ash.css",
+      "colors": ["#1F1F1F", "#FF4500", "#E0E0E0"]
     }
   ]
 }

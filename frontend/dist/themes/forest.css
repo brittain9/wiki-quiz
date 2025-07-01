@@ -1,0 +1,26 @@
+/* Forest theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors */
+  --bg-color: #1b2e1b;
+  --bg-color-secondary: #162316;
+  --bg-color-tertiary: #213921;
+  --main-color: #668f60;
+  --caret-color: #668f60;
+  --sub-color: #4d7247;
+  --sub-alt-color: #2a462a;
+  --text-color: #e8f4ea;
+  --error-color: #ca4754;
+  --error-extra-color: #a53640;
+  --success-color: #8fb287;
+  --warning-color: #d9bf77;
+
+  /* Colors with transparency */
+  --main-color-10: rgba(102, 143, 96, 0.1); /* 10% opacity */
+  --main-color-20: rgba(102, 143, 96, 0.2); /* 20% opacity */
+  --success-color-10: rgba(143, 178, 135, 0.1); /* 10% opacity */
+  --error-color-10: rgba(202, 71, 84, 0.1); /* 10% opacity */
+}

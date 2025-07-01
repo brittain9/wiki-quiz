@@ -1,6 +1,6 @@
 import LanguageIcon from '@mui/icons-material/Language';
-import { IconButton, Menu, MenuItem } from '@mui/material';
-import React from 'react';
+import { IconButton, Menu, MenuItem, Grow } from '@mui/material';
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useQuizOptions } from '../../context';
@@ -12,6 +12,7 @@ const LanguageToggle: React.FC = () => {
   const [previewLanguage, setPreviewLanguage] = React.useState<string | null>(
     null,
   );
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -23,14 +24,24 @@ const LanguageToggle: React.FC = () => {
   };
 
   // The context class will handle the change in i18n
-  const changeLanguage = (lang: string) => {
-    setLanguage(lang);
-    handleClose();
-  };
+  const changeLanguage = useCallback(
+    (lang: string) => {
+      setIsTransitioning(true);
+      setLanguage(lang);
+
+      // Reset transitioning state after animation completes
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 350); // Slightly longer than the CSS transition
+
+      handleClose();
+    },
+    [setLanguage],
+  );
 
   // Preview language on hover
   const handleLanguageHover = (lang: string) => {
-    if (lang !== previewLanguage) {
+    if (lang !== previewLanguage && !isTransitioning) {
       setPreviewLanguage(lang);
       i18n.changeLanguage(lang);
     }
@@ -38,7 +49,11 @@ const LanguageToggle: React.FC = () => {
 
   // Revert to selected language when mouse leaves
   const handleMenuMouseLeave = () => {
-    if (previewLanguage !== null && previewLanguage !== quizOptions.language) {
+    if (
+      previewLanguage !== null &&
+      previewLanguage !== quizOptions.language &&
+      !isTransitioning
+    ) {
       setPreviewLanguage(null);
       i18n.changeLanguage(quizOptions.language);
     }
@@ -49,12 +64,13 @@ const LanguageToggle: React.FC = () => {
     if (
       !anchorEl &&
       previewLanguage !== null &&
-      previewLanguage !== quizOptions.language
+      previewLanguage !== quizOptions.language &&
+      !isTransitioning
     ) {
       setPreviewLanguage(null);
       i18n.changeLanguage(quizOptions.language);
     }
-  }, [anchorEl, previewLanguage, quizOptions.language, i18n]);
+  }, [anchorEl, previewLanguage, quizOptions.language, i18n, isTransitioning]);
 
   return (
     <>
@@ -63,6 +79,7 @@ const LanguageToggle: React.FC = () => {
         aria-label="change language"
         onClick={handleClick}
         size="small"
+        disabled={isTransitioning}
       >
         <LanguageIcon fontSize="small" />
       </IconButton>
@@ -71,10 +88,21 @@ const LanguageToggle: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleClose}
         onMouseLeave={handleMenuMouseLeave}
+        TransitionComponent={Grow}
+        TransitionProps={{
+          timeout: 250,
+        }}
         PaperProps={{
           style: {
             maxHeight: 48 * 4.5,
             width: '120px',
+          },
+          elevation: 6,
+          sx: {
+            backgroundColor: 'var(--bg-color)',
+            color: 'var(--text-color)',
+            borderRadius: 1,
+            border: '1px solid var(--sub-alt-color)',
           },
         }}
       >
@@ -82,6 +110,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('en')}
           onMouseEnter={() => handleLanguageHover('en')}
           selected={quizOptions.language === 'en'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'en'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           English
         </MenuItem>
@@ -89,6 +127,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('de')}
           onMouseEnter={() => handleLanguageHover('de')}
           selected={quizOptions.language === 'de'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'de'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           Deutsch
         </MenuItem>
@@ -96,6 +144,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('es')}
           onMouseEnter={() => handleLanguageHover('es')}
           selected={quizOptions.language === 'es'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'es'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           Español
         </MenuItem>
@@ -103,6 +161,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('zh')}
           onMouseEnter={() => handleLanguageHover('zh')}
           selected={quizOptions.language === 'zh'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'zh'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           中文
         </MenuItem>
@@ -110,6 +178,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('ja')}
           onMouseEnter={() => handleLanguageHover('ja')}
           selected={quizOptions.language === 'ja'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'ja'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           日本語
         </MenuItem>
@@ -117,6 +195,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('ru')}
           onMouseEnter={() => handleLanguageHover('ru')}
           selected={quizOptions.language === 'ru'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'ru'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           Русский
         </MenuItem>
@@ -124,6 +212,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('fr')}
           onMouseEnter={() => handleLanguageHover('fr')}
           selected={quizOptions.language === 'fr'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'fr'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           Français
         </MenuItem>
@@ -131,6 +229,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('it')}
           onMouseEnter={() => handleLanguageHover('it')}
           selected={quizOptions.language === 'it'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'it'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           Italiano
         </MenuItem>
@@ -138,6 +246,16 @@ const LanguageToggle: React.FC = () => {
           onClick={() => changeLanguage('pt')}
           onMouseEnter={() => handleLanguageHover('pt')}
           selected={quizOptions.language === 'pt'}
+          disabled={isTransitioning}
+          sx={{
+            backgroundColor:
+              quizOptions.language === 'pt'
+                ? 'var(--main-color-10)'
+                : 'transparent',
+            '&:hover': {
+              backgroundColor: 'var(--bg-color-secondary)',
+            },
+          }}
         >
           Português
         </MenuItem>

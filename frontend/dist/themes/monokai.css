@@ -1,0 +1,26 @@
+/* Monokai theme */
+:root {
+  /* Font families */
+  --font-family-main: 'Roboto Mono', monospace;
+  --font-family-alt: 'Lexend Deca', sans-serif;
+
+  /* Fixed colors (Monokai-inspired) */
+  --bg-color: #272822; /* Background */
+  --bg-color-secondary: #1e1f1a;
+  --bg-color-tertiary: #383932;
+  --main-color: #fd971f; /* Orange */
+  --caret-color: #fd971f; /* Orange */
+  --sub-color: #75715e; /* Grey */
+  --sub-alt-color: #49483e;
+  --text-color: #f8f8f2; /* Light Foreground */
+  --error-color: #fd971f; /* Orange for errors */
+  --error-extra-color: #c41a5a; /* Original pink error extra, can be adjusted if needed */
+  --success-color: #a6e22e; /* Green */
+  --warning-color: #e6db74; /* Yellow */
+
+  /* Colors with transparency */
+  --main-color-10: rgba(253, 151, 31, 0.1);
+  --main-color-20: rgba(253, 151, 31, 0.2);
+  --success-color-10: rgba(166, 226, 46, 0.1);
+  --error-color-10: rgba(253, 151, 31, 0.1);
+}

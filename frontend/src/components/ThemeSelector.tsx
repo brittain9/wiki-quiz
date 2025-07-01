@@ -15,8 +15,9 @@ import {
   Divider,
 } from '@mui/material';
 import React, { useRef, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import * as ThemeController from '../services/themeService';
+import * as ThemeService from '../theme/themeService';
 
 interface Theme {
   id: string;
@@ -27,6 +28,7 @@ interface Theme {
 
 // Main theme selector component with floating button and dropdown
 const ThemeSelector: React.FC = () => {
+  const { t } = useTranslation();
   const [themes, setThemes] = useState<Theme[]>([]);
   const [currentTheme, setCurrentTheme] = useState<string>(
     localStorage.getItem('theme') || 'dark',
@@ -78,7 +80,7 @@ const ThemeSelector: React.FC = () => {
 
   const handleThemeChange = async (themeId: string) => {
     setLoading(true);
-    await ThemeController.setTheme(themeId);
+    await ThemeService.setTheme(themeId);
     setCurrentTheme(themeId);
     setPreviewingTheme(null);
     setLoading(false);
@@ -93,7 +95,7 @@ const ThemeSelector: React.FC = () => {
 
     // Set a timer to preview the theme after 250ms
     previewTimerRef.current = setTimeout(() => {
-      ThemeController.preview(themeId);
+      ThemeService.preview(themeId);
       setPreviewingTheme(themeId);
     }, 250);
   };
@@ -105,7 +107,7 @@ const ThemeSelector: React.FC = () => {
       previewTimerRef.current = null;
     }
 
-    ThemeController.clearPreview();
+    ThemeService.clearPreview();
     setPreviewingTheme(null);
   };
 
@@ -122,7 +124,7 @@ const ThemeSelector: React.FC = () => {
     >
       <Fab
         color="primary"
-        aria-label="theme"
+        aria-label={t('theme.selector')}
         onClick={handleToggleMenu}
         aria-haspopup="true"
         aria-controls={open ? 'theme-menu' : undefined}
@@ -180,7 +182,7 @@ const ThemeSelector: React.FC = () => {
                     borderBottom: '1px solid var(--sub-alt-color)',
                   }}
                 >
-                  Select Theme
+                  {t('theme.title')}
                 </Typography>
                 <List sx={{ pt: 0 }}>
                   {themes.map((theme, index) => (
