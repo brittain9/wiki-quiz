@@ -9,6 +9,10 @@ public class MyStack : Stack
     [Output] public Output<string> ApiUrl { get; private set; }
     [Output] public Output<string> FrontendUrl { get; private set; }
     [Output] public Output<string> DatabaseHost { get; private set; }
+    
+    // Frontend environment variables as outputs
+    [Output] public Output<string> ViteApiBaseUrl { get; private set; }
+    [Output] public Output<string> ViteAppBaseUrl { get; private set; }
 
     public MyStack()
     {
@@ -18,6 +22,10 @@ public class MyStack : Stack
         var environment = config.Get("environment") ?? "dev";
         var location = config.Get("location") ?? "East US";
         var githubUsername = config.Require("githubUsername"); // Your GitHub username
+        
+        // Custom domain configuration
+        var customApiDomain = config.Get("customApiDomain"); // e.g., "devapi.yourdomain.com" or "api.yourdomain.com"
+        var customAppDomain = config.Get("customAppDomain"); // e.g., "devquiz.yourdomain.com" or "quiz.yourdomain.com"
         
         // Get required secrets
         var postgresPassword = config.RequireSecret("postgresPassword");
@@ -100,7 +108,7 @@ public class MyStack : Stack
             },
             BuildProperties = new StaticSiteBuildPropertiesArgs
             {
-                AppLocation = "/",
+                AppLocation = "/frontend",
                 OutputLocation = "dist",
             },
         });
@@ -148,7 +156,7 @@ public class MyStack : Stack
                         new EnvironmentVariableArgs { Name = "GoogleAuth__ClientId", SecureValue = googleClientId },
                         new EnvironmentVariableArgs { Name = "GoogleAuth__ClientSecret", SecureValue = googleClientSecret },
                         new EnvironmentVariableArgs { Name = "JwtOptions__Secret", SecureValue = jwtSecret },
-                        new EnvironmentVariableArgs { Name = "WikiQuizApp__FrontendUri", Value = staticWebApp.DefaultHostname.Apply(h => $"https://{h}") },
+                        new EnvironmentVariableArgs { Name = "WikiQuizApp__FrontendUri", Value = !string.IsNullOrEmpty(customAppDomain) ? $"https://{customAppDomain}" : staticWebApp.DefaultHostname.Apply(h => $"https://{h}") },
                         new EnvironmentVariableArgs { Name = "FORWARDEDHEADERS_ENABLED", Value = "true" }
                     }
                 }
@@ -162,5 +170,13 @@ public class MyStack : Stack
         ApiUrl = containerGroup.IpAddress.Apply(ip => $"http://{ip.Ip}");
         FrontendUrl = staticWebApp.DefaultHostname.Apply(h => $"https://{h}");
         DatabaseHost = postgresServer.FullyQualifiedDomainName;
+        
+        // Frontend environment variables as outputs (using custom domains if provided)
+        ViteApiBaseUrl = !string.IsNullOrEmpty(customApiDomain) 
+            ? Output.Create($"https://{customApiDomain}")
+            : containerGroup.IpAddress.Apply(ip => $"http://{ip.Ip}");
+        ViteAppBaseUrl = !string.IsNullOrEmpty(customAppDomain)
+            ? Output.Create($"https://{customAppDomain}")
+            : staticWebApp.DefaultHostname.Apply(h => $"https://{h}");
     }
 }
