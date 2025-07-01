@@ -49,6 +49,19 @@ public static class QuizEndpoints
              .ProducesProblem(StatusCodes.Status504GatewayTimeout)
              .ProducesProblem(StatusCodes.Status500InternalServerError)
              .RequireAuthorization();
+
+        group.MapPost("/validateanswer", HandleValidateAnswer)
+             .WithName("ValidateAnswer")
+             .WithOpenApi(operation => new(operation)
+             {
+                 Summary = "Validate a single answer",
+                 Description = "Validates a single question answer and returns immediate feedback with points earned"
+             })
+             .Produces<AnswerValidationResponseDto>(StatusCodes.Status200OK)
+             .ProducesProblem(StatusCodes.Status404NotFound) // If questionId doesn't exist
+             .ProducesProblem(StatusCodes.Status400BadRequest) // For invalid answer data
+             .ProducesProblem(StatusCodes.Status500InternalServerError)
+             .RequireAuthorization();
     }
 
     private static async Task<IResult> HandleGetBasicQuiz(
@@ -168,6 +181,61 @@ public static class QuizEndpoints
 
         var submissionUri = $"/api/quiz-submissions/{submission.Id}";
         return TypedResults.Created(submissionUri, resultDto);
+    }
+
+    private static async Task<IResult> HandleValidateAnswer(
+        AnswerValidationDto answerValidation,
+        IQuizRepository quizRepository,
+        ClaimsPrincipal claimsPrincipal,
+        CancellationToken cancellationToken)
+    {
+        if (answerValidation == null || answerValidation.QuestionId <= 0)
+        {
+            return TypedResults.BadRequest("Invalid answer validation data provided.");
+        }
+
+        var userId = GetUserIdFromClaims(claimsPrincipal);
+        if (userId == Guid.Empty)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        // Find the question by ID
+        var question = await quizRepository.GetQuestionByIdAsync(answerValidation.QuestionId, cancellationToken);
+        if (question == null)
+        {
+            return TypedResults.NotFound($"Question with ID {answerValidation.QuestionId} not found.");
+        }
+
+        // Validate the answer
+        var isCorrect = answerValidation.SelectedOptionNumber == question.CorrectOptionNumber;
+        var pointsEarned = isCorrect ? question.PointValue : 0;
+
+        // Get the correct answer text
+        var correctAnswerText = GetOptionText(question, question.CorrectOptionNumber);
+
+        var response = new AnswerValidationResponseDto
+        {
+            IsCorrect = isCorrect,
+            CorrectOptionNumber = question.CorrectOptionNumber,
+            PointsEarned = pointsEarned,
+            CorrectAnswerText = correctAnswerText
+        };
+
+        return TypedResults.Ok(response);
+    }
+
+    private static string GetOptionText(Question question, int optionNumber)
+    {
+        return optionNumber switch
+        {
+            1 => question.Option1,
+            2 => question.Option2,
+            3 => question.Option3 ?? "",
+            4 => question.Option4 ?? "",
+            5 => question.Option5 ?? "",
+            _ => ""
+        };
     }
 
     private static Guid GetUserIdFromClaims(ClaimsPrincipal claimsPrincipal)

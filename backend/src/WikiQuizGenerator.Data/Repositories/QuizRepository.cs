@@ -143,6 +143,12 @@ public class QuizRepository : IQuizRepository
             .FirstOrDefaultAsync(s => s.QuizId == quizId && s.UserId == userId);
     }
 
+    public async Task<Question?> GetQuestionByIdAsync(int questionId, CancellationToken cancellationToken)
+    {
+        return await _context.Set<Question>()
+            .FirstOrDefaultAsync(q => q.Id == questionId, cancellationToken);
+    }
+
     public async Task<ModelConfig?> GetModelConfigByIdAsync(int modelConfigId)
     {
         return await _context.ModelConfigs

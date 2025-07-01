@@ -24,6 +24,12 @@ const QuizContainer: React.FC = React.memo(() => {
   const [userAnswers, setUserAnswers] = useState<QuestionAnswer[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [currentQuestionPoints, setCurrentQuestionPoints] = useState(0);
+  const [correctAnswer, setCorrectAnswer] = useState<number | undefined>(undefined);
+  const [correctAnswerText, setCorrectAnswerText] = useState<string | undefined>(undefined);
 
   // Computed values
   const flatQuestions = useMemo(
@@ -42,34 +48,83 @@ const QuizContainer: React.FC = React.memo(() => {
       setCurrentQuestionIndex(0);
       setQuizSubmitted(false);
       setScore(null);
+      setTotalPoints(0);
+      setShowResult(false);
+      setSelectedOption(null);
+      setCurrentQuestionPoints(0);
     }
   }, [currentQuiz]);
 
-  // Handlers
-  const handleAnswerChange = useCallback(
-    (questionId: number, selectedOptionNumber: number) => {
-      setUserAnswers((prev) => {
-        const existingAnswerIndex = prev.findIndex(
-          (a) => a.questionId === questionId,
-        );
-        if (existingAnswerIndex > -1) {
-          const newAnswers = [...prev];
-          newAnswers[existingAnswerIndex] = {
-            questionId,
+  // Handle answer selection
+  const handleAnswerSelected = useCallback(
+    async (selectedOptionNumber: number) => {
+      try {
+        // Call the backend to validate the answer
+        const response = await fetch('/api/quiz/validateanswer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Add authorization header if needed
+          },
+          body: JSON.stringify({
+            questionId: currentQuestion.id,
+            selectedOptionNumber,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to validate answer');
+        }
+
+        const result = await response.json();
+        
+        setSelectedOption(selectedOptionNumber);
+        setCurrentQuestionPoints(result.pointsEarned);
+        setTotalPoints(prev => prev + result.pointsEarned);
+        setCorrectAnswer(result.correctOptionNumber);
+        setCorrectAnswerText(result.correctAnswerText);
+        setShowResult(true);
+
+        // Add to user answers
+        setUserAnswers((prev) => {
+          const existingAnswerIndex = prev.findIndex(
+            (a) => a.questionId === currentQuestion.id,
+          );
+          const newAnswer = {
+            questionId: currentQuestion.id,
             selectedOptionNumber,
           };
-          return newAnswers;
-        } else {
-          return [...prev, { questionId, selectedOptionNumber }];
-        }
-      });
-    },
-    [],
-  );
+          
+          if (existingAnswerIndex > -1) {
+            const newAnswers = [...prev];
+            newAnswers[existingAnswerIndex] = newAnswer;
+            return newAnswers;
+          } else {
+            return [...prev, newAnswer];
+          }
+        });
 
-  const handlePrevious = useCallback(() => {
-    setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
-  }, []);
+        // Auto-advance to next question after showing result
+        setTimeout(() => {
+          if (currentQuestionIndex < totalQuestions - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
+            setShowResult(false);
+            setSelectedOption(null);
+            setCurrentQuestionPoints(0);
+            setCorrectAnswer(undefined);
+            setCorrectAnswerText(undefined);
+          } else {
+            // Last question - submit quiz
+            handleSubmit();
+          }
+        }, 3000); // Show result for 3 seconds
+      } catch (error) {
+        console.error('Error validating answer:', error);
+        // Handle error - maybe show a fallback or retry
+      }
+    },
+    [currentQuestion, currentQuestionIndex, totalQuestions],
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!currentQuiz) return;
@@ -88,14 +143,6 @@ const QuizContainer: React.FC = React.memo(() => {
       console.error('Failed to submit quiz:', error);
     }
   }, [currentQuiz, userAnswers, setCurrentSubmission, addSubmissionToHistory]);
-
-  const handleNextQuestion = useCallback(() => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-    } else {
-      handleSubmit();
-    }
-  }, [currentQuestionIndex, totalQuestions, handleSubmit]);
 
   // Loading state
   if (isGenerating) {
@@ -123,12 +170,6 @@ const QuizContainer: React.FC = React.memo(() => {
   }
 
   if (!currentQuiz) return null;
-
-  // Find current answer
-  const currentAnswer = userAnswers.find(
-    (a) => a.questionId === currentQuestion?.id,
-  );
-  const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
   return (
     <Box
@@ -158,16 +199,39 @@ const QuizContainer: React.FC = React.memo(() => {
             totalQuestions={totalQuestions}
           />
         ) : (
-          <QuizQuestion
-            currentQuestion={currentQuestion}
-            currentQuestionIndex={currentQuestionIndex}
-            totalQuestions={totalQuestions}
-            currentAnswer={currentAnswer}
-            isLastQuestion={isLastQuestion}
-            onAnswerChange={handleAnswerChange}
-            onPrevious={handlePrevious}
-            onNext={handleNextQuestion}
-          />
+          <>
+            {/* Points Display */}
+            <Box
+              sx={{
+                p: 2,
+                backgroundColor: 'var(--bg-color-secondary)',
+                borderBottom: '1px solid var(--sub-alt-color)',
+                textAlign: 'center',
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'var(--main-color)',
+                  fontWeight: 'bold',
+                }}
+              >
+                Total Points: {totalPoints.toLocaleString()}
+              </Typography>
+            </Box>
+            
+            <QuizQuestion
+              currentQuestion={currentQuestion}
+              currentQuestionIndex={currentQuestionIndex}
+              totalQuestions={totalQuestions}
+              onAnswerSelected={handleAnswerSelected}
+              showResult={showResult}
+              selectedOption={selectedOption}
+              pointsEarned={currentQuestionPoints}
+              correctAnswer={correctAnswer}
+              correctAnswerText={correctAnswerText}
+            />
+          </>
         )}
       </Paper>
     </Box>
