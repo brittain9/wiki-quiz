@@ -1,7 +1,0 @@
-name: WikiQuizGenerator.Pulumi
-description: IaC for wikiquiz app
-runtime: dotnet
-config:
-  pulumi:tags:
-    value:
-      pulumi:template: azure-csharp

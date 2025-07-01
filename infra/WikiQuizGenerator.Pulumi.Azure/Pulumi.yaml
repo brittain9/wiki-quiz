@@ -1,0 +1,13 @@
+name: wikiquiz
+runtime: dotnet
+description: Simple WikiQuiz infrastructure - minimal cost setup
+
+config:
+  environment:
+    description: Environment name (dev/prd)
+    default: dev
+  location:
+    description: Azure region
+    default: East US
+  githubUsername:
+    description: Your GitHub username (for container registry ghcr.io/username/wikiquiz-api)

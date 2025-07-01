@@ -1,12 +1,17 @@
 config:
-  WikiQuizGenerator.Pulumi:projectName: wikiquiz
-  WikiQuizGenerator.Pulumi:postgresAdminPassword:
+  # Environment settings
+  wikiquiz:environment: dev
+  wikiquiz:location: East US
+  wikiquiz:githubUsername: your-github-username # CHANGE THIS!
+
+  # Encrypted secrets (already configured)
+  wikiquiz:postgresPassword:
     secure: AAABANIB63qY5LeExNfkqEfWnT7SBs7MvHHmq/2i8EeQ0Xez7jDE51l+EOEMFgS0WWvbUi7S
-  WikiQuizGenerator.Pulumi:openAiApiKey:
+  wikiquiz:openAiApiKey:
     secure: AAABAD9AhWH72zjh7kGnxFngkMELsaMru5k/G1FYIgz9Wes9U3R9W7txpJkAOYD/NuWLYiSAcpZ0DwsAaenZ+hi6DsfPZQqQpaiD3uO3X26TSt6o5en0sH9jsVOyH/VTxrAUP4iJaGjhVp668WKezxcCWtueUUtWZO/uk1pIooAMRaVJnF6ZdsYp/aRtXyGJvpnlJVJNHBs2jbIl90jXpkBPYZD50E3EJDYoXEOto28NtudouxrJmlT21k0AJZuRNfAF+Q==
-  WikiQuizGenerator.Pulumi:googleClientId:
+  wikiquiz:googleClientId:
     secure: AAABABnRqwO4DfJZWuFNus1NjCevYNbtdjV3t8EPRDOpi3rElKX+EAegJaW8Sdc+AgI6EWgYeZHSLgxItl0W4ewz8vscaWAi63s4U+tpDXTyMtAIa5JGX5wThbHHjsao/PSoOODMzHQ=
-  WikiQuizGenerator.Pulumi:googleClientSecret:
+  wikiquiz:googleClientSecret:
     secure: AAABAEx0R5LDzhxi+frIK7b6SGE3V4s+2ernBFWE4fn57Y7+s8quKvA2T8FQSuhHLsW1QTcD9tKpiR8TKDtwTrghmQ==
-  WikiQuizGenerator.Pulumi:jwtSecret:
+  wikiquiz:jwtSecret:
     secure: AAABAFiVFQWRaeftLF51rRAb5ZQaCl6pb5VRZdxh7qj39z1BwWAYkX5RuV5nBHLpA9OQspY7fKgAHmZizXIYWrOs9T9uQhRjphSlvg==
