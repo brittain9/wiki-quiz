@@ -19,61 +19,6 @@ try
     builder.Host.UseSerilog((context, services, configuration) => 
         configuration.ReadFrom.Configuration(context.Configuration));
 
-    // Check if we should skip App Configuration based on environment variable
-    // This allows testing with App Config in any environment
-    bool skipAppConfig = string.Equals(
-        Environment.GetEnvironmentVariable("SKIP_APP_CONFIG"), 
-        "true", 
-        StringComparison.OrdinalIgnoreCase);
-
-    if (!skipAppConfig)
-    {
-        Log.Information("Configuring Azure App Configuration");
-        try
-        {
-            string endpoint = Environment.GetEnvironmentVariable("AZURE_APP_CONFIG_ENDPOINT");
-            Log.Information("App Config Endpoint: {Endpoint}", endpoint ?? "NULL");
-            
-            if (string.IsNullOrEmpty(endpoint))
-            {
-                throw new InvalidOperationException("The environment variable `AZURE_APP_CONFIG_ENDPOINT` was not found.");
-            }
-
-            var managedIdentityClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
-
-            Log.Information("Attempting to connect to Azure App Configuration...");
-            builder.Configuration.AddAzureAppConfiguration(options =>
-            {
-                options.Connect(new Uri(endpoint), new DefaultAzureCredential(new DefaultAzureCredentialOptions
-                {
-                    ManagedIdentityClientId = managedIdentityClientId,
-                    Diagnostics = { LoggedHeaderNames = { "x-ms-request-id" }, LoggedQueryParameters = { "api-version" }, IsLoggingEnabled = true }
-                }))
-                .Select(KeyFilter.Any, LabelFilter.Null)
-                .Select(KeyFilter.Any, builder.Environment.EnvironmentName)  // Use the current environment as a label filter
-                .ConfigureKeyVault(kv =>
-                {
-                    Log.Information("Configuring Key Vault integration for App Configuration");
-                    kv.SetCredential(new DefaultAzureCredential(new DefaultAzureCredentialOptions 
-                    { 
-                        ManagedIdentityClientId = managedIdentityClientId 
-                    }));
-                });
-            });
-            
-            Log.Information("Successfully connected to Azure App Configuration");
-        }
-        catch (Exception ex)
-        {
-            // Log the error but continue - we'll use local configuration
-            Log.Error(ex, "Failed to connect to Azure App Configuration. Using local configuration instead.");
-        }
-    }
-    else
-    {
-        Log.Information("Skipping Azure App Configuration based on SKIP_APP_CONFIG environment variable");
-    }
-
     Log.Information("Configuring services");
     ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 

@@ -1,56 +1,48 @@
 using Pulumi;
 using Pulumi.AzureNative.Resources;
-using Pulumi.AzureNative.ContainerInstance;
-using Pulumi.AzureNative.ContainerInstance.Inputs;
-using Pulumi.AzureNative.Web;
-// Corrected: Removed ambiguous, unversioned using statements.
+using Pulumi.AzureNative.App;
+using Pulumi.AzureNative.App.Inputs;
 // We now EXCLUSIVELY use the V20221201 API version for all PostgreSQL resources.
 using Pulumi.AzureNative.DBforPostgreSQL.V20221201;
 using Pulumi.AzureNative.DBforPostgreSQL.V20221201.Inputs;
+using Pulumi.AzureNative.OperationalInsights;
 
-// The base class should be 'Stack'
 public class MyStack : Stack
 {
     [Output] public Output<string> ApiUrl { get; private set; }
     [Output] public Output<string> FrontendUrl { get; private set; }
     [Output] public Output<string> DatabaseHost { get; private set; }
     [Output] public Output<string> DatabaseConnectionString { get; private set; }
+    [Output] public Output<string> LogAnalyticsWorkspaceId { get; private set; }
 
     public MyStack()
     {
-        var config = new Config();
+        var config = new Config("wikiquiz");
         
-        // Get configuration
-        var environment = config.Get("environment") ?? "dev";
-        var location = config.Get("location") ?? "Central US";
+        var environment = config.Get("environment");
+        var location = config.Get("location");
         
-        // Get URL configurations
-        var frontendUri = config.Get("frontendUri") ?? "http://localhost:5173";
-        var jwtIssuer = config.Get("jwtIssuer") ?? "http://localhost:5543";
-        var jwtAudience = config.Get("jwtAudience") ?? "http://localhost:5173";
+        var frontendUri = config.Get("frontendUri");
+        var jwtIssuer = config.Get("jwtIssuer");
+        var jwtAudience = config.Get("jwtAudience");
         
-        // Get required secrets
         var postgresPassword = config.RequireSecret("postgresPassword");
         var openAiApiKey = config.RequireSecret("openAiApiKey");
         var googleClientId = config.RequireSecret("googleClientId");
         var googleClientSecret = config.RequireSecret("googleClientSecret");
         var jwtSecret = config.RequireSecret("jwtSecret");
 
-        // New: Get GitHub Container Registry credentials from config
         var ghcrUsername = config.Require("ghcrUsername");
-        var ghcrPassword = config.RequireSecret("ghcrPassword"); // This will be your GitHub PAT
+        var ghcrPassword = config.RequireSecret("ghcrPassword"); 
 
-        // Container image from GitHub Container Registry
         var containerImage = $"ghcr.io/brittain9/wiki-quiz:{environment}";
         
-        // Resource Group
         var resourceGroup = new ResourceGroup("rg", new ResourceGroupArgs
         {
             ResourceGroupName = $"rg-wikiquiz-{environment}",
             Location = location,
         });
 
-        // PostgreSQL Flexible Server - Cheapest Burstable tier
         var postgresServer = new Server("postgres", new ServerArgs
         {
             ServerName = $"wikiquiz-db-{environment}",
@@ -85,7 +77,6 @@ public class MyStack : Stack
             }
         });
 
-        // Re-added FirewallRule as a separate resource, using the versioned class.
         var firewallRuleAzure = new FirewallRule("allow-azure", new FirewallRuleArgs
         {
             FirewallRuleName = "AllowAzureServices",
@@ -104,7 +95,6 @@ public class MyStack : Stack
             EndIpAddress = "255.255.255.255"
         });
 
-        // Database resource, also using the versioned provider
         var database = new Database("database", new DatabaseArgs
         {
             DatabaseName = "wikiquiz",
@@ -114,108 +104,153 @@ public class MyStack : Stack
             Collation = "en_US.utf8"
         });
 
-        // Build connection string
         var connectionString = Output.Tuple(postgresServer.FullyQualifiedDomainName, postgresPassword)
             .Apply(t => $"Server={t.Item1};Database=wikiquiz;Username=wikiquizadmin;Password={t.Item2};SSL Mode=Require;");
 
-        // Static Web App for Frontend - Free tier
-        var staticWebApp = new StaticSite("frontend", new StaticSiteArgs
+        // Create Log Analytics Workspace for Container Apps logging (optimized for cost)
+        var logAnalyticsWorkspace = new Workspace("log-analytics", new WorkspaceArgs
         {
-            Name = $"wikiquiz-frontend-{environment}",
+            WorkspaceName = $"wikiquiz-logs-{environment}",
             ResourceGroupName = resourceGroup.Name,
-            Location = "Central US",
-            Sku = new Pulumi.AzureNative.Web.Inputs.SkuDescriptionArgs
+            Location = resourceGroup.Location,
+            Sku = new Pulumi.AzureNative.OperationalInsights.Inputs.WorkspaceSkuArgs
             {
-                Name = "Free",
-                Tier = "Free"
+                Name = "PerGB2018" // Most cost-effective for low volume
             },
-            BuildProperties = new Pulumi.AzureNative.Web.Inputs.StaticSiteBuildPropertiesArgs
+            RetentionInDays = 30, // Minimum retention for PerGB2018 SKU
+            Tags = 
             {
-                AppLocation = "/frontend",
-                OutputLocation = "dist",
+                { "Environment", environment },
+                { "Project", "WikiQuiz" },
+                { "CostCenter", "Development" }
+            }
+        });
+
+        // Get the shared keys for the Log Analytics workspace
+        var workspaceKeys = Pulumi.AzureNative.OperationalInsights.GetSharedKeys.Invoke(new Pulumi.AzureNative.OperationalInsights.GetSharedKeysInvokeArgs
+        {
+            ResourceGroupName = resourceGroup.Name,
+            WorkspaceName = logAnalyticsWorkspace.Name
+        });
+
+        // Create Container Apps Environment
+        var containerEnvironment = new ManagedEnvironment("env", new ManagedEnvironmentArgs
+        {
+            EnvironmentName = $"wikiquiz-env-{environment}",
+            ResourceGroupName = resourceGroup.Name,
+            Location = resourceGroup.Location,
+            AppLogsConfiguration = new AppLogsConfigurationArgs
+            {
+                Destination = "log-analytics",
+                LogAnalyticsConfiguration = new LogAnalyticsConfigurationArgs
+                {
+                    CustomerId = logAnalyticsWorkspace.CustomerId,
+                    SharedKey = workspaceKeys.Apply(keys => keys.PrimarySharedKey)
+                }
             },
             Tags = 
             {
                 { "Environment", environment },
-                { "Project", "WikiQuiz" }
+                { "Project", "WikiQuiz" },
+                { "CostCenter", "Development" }
             }
         });
 
-        // Container Group - Optimized for cost and basic scaling
-        var containerGroup = new ContainerGroup("api", new ContainerGroupArgs
+        // Create Container App
+        var containerApp = new ContainerApp("api", new ContainerAppArgs
         {
-            ContainerGroupName = $"wikiquiz-api-{environment}",
+            ContainerAppName = $"wikiquiz-api-{environment}",
             ResourceGroupName = resourceGroup.Name,
             Location = resourceGroup.Location,
-            OsType = "Linux",
-            RestartPolicy = "Always",
-            IpAddress = new IpAddressArgs
+            ManagedEnvironmentId = containerEnvironment.Id,
+            Configuration = new Pulumi.AzureNative.App.Inputs.ConfigurationArgs
             {
-                Type = "Public",
-                Ports = new[]
+                Ingress = new IngressArgs
                 {
-                    new PortArgs { Port = 80, Protocol = "TCP" }
-                }
-            },
-            // New: Provide credentials to pull the image from the private registry
-            ImageRegistryCredentials = 
-            {
-                new ImageRegistryCredentialArgs
-                {
-                    Server = "ghcr.io",
-                    Username = ghcrUsername,
-                    Password = ghcrPassword
-                }
-            },
-            Containers = new[]
-            {
-                new ContainerArgs
-                {
-                    Name = "wiki-quiz",
-                    Image = containerImage,
-                    Resources = new ResourceRequirementsArgs
+                    External = true,
+                    TargetPort = 80,
+                    Transport = IngressTransportMethod.Http,
+                    CorsPolicy = new CorsPolicyArgs
                     {
-                        Requests = new ResourceRequestsArgs
+                        AllowCredentials = true,
+                        AllowedOrigins = new[] { frontendUri },
+                        AllowedMethods = new[] { "GET", "POST", "PUT", "DELETE", "OPTIONS" },
+                        AllowedHeaders = new[] { "*" },
+                        MaxAge = 3600
+                    },
+                    Traffic = new[]
+                    {
+                        new TrafficWeightArgs
                         {
-                            Cpu = 1.0, 
-                            MemoryInGB = 2.0
-                        },
-                        Limits = new ResourceLimitsArgs
-                        {
-                            Cpu = 1.0,
-                            MemoryInGB = 2.0
+                            Weight = 100,
+                            LatestRevision = true
                         }
-                    },
-                    Ports = new[]
+                    }
+                },
+                Registries = new[]
+                {
+                    new RegistryCredentialsArgs
                     {
-                        new ContainerPortArgs { Port = 80, Protocol = "TCP" }
-                    },
-                    LivenessProbe = new ContainerProbeArgs
+                        Server = "ghcr.io",
+                        Username = ghcrUsername,
+                        PasswordSecretRef = "ghcr-password"
+                    }
+                },
+                Secrets = new[]
+                {
+                    new SecretArgs { Name = "ghcr-password", Value = ghcrPassword },
+                    new SecretArgs { Name = "connection-string", Value = connectionString },
+                    new SecretArgs { Name = "openai-key", Value = openAiApiKey },
+                    new SecretArgs { Name = "google-client-id", Value = googleClientId },
+                    new SecretArgs { Name = "google-client-secret", Value = googleClientSecret },
+                    new SecretArgs { Name = "jwt-secret", Value = jwtSecret }
+                }
+            },
+            Template = new TemplateArgs
+            {
+                Scale = new ScaleArgs
+                {
+                    MinReplicas = 0,
+                    MaxReplicas = 10,
+                    Rules = new[]
                     {
-                        HttpGet = new ContainerHttpGetArgs
+                        new ScaleRuleArgs
                         {
-                            Path = "/health",
-                            Port = 80,
-                            Scheme = "Http"
-                        },
-                        InitialDelaySeconds = 30,
-                        PeriodSeconds = 10,
-                        TimeoutSeconds = 5,
-                        FailureThreshold = 3
-                    },
-                    EnvironmentVariables = new[]
+                            Name = "http-rule",
+                            Http = new HttpScaleRuleArgs
+                            {
+                                Metadata = 
+                                {
+                                    { "concurrentRequests", "50" }
+                                }
+                            }
+                        }
+                    }
+                },
+                Containers = new[]
+                {
+                    new ContainerArgs
                     {
-                        new EnvironmentVariableArgs { Name = "ASPNETCORE_ENVIRONMENT", Value = environment },
-                        new EnvironmentVariableArgs { Name = "SKIP_APP_CONFIG", Value = "true" },
-                        new EnvironmentVariableArgs { Name = "ConnectionStrings__DefaultConnection", SecureValue = connectionString },
-                        new EnvironmentVariableArgs { Name = "OpenAI__ApiKey", SecureValue = openAiApiKey },
-                        new EnvironmentVariableArgs { Name = "GoogleAuth__ClientId", SecureValue = googleClientId },
-                        new EnvironmentVariableArgs { Name = "GoogleAuth__ClientSecret", SecureValue = googleClientSecret },
-                        new EnvironmentVariableArgs { Name = "JwtOptions__Secret", SecureValue = jwtSecret },
-                        new EnvironmentVariableArgs { Name = "JwtOptions__Issuer", Value = jwtIssuer },
-                        new EnvironmentVariableArgs { Name = "JwtOptions__Audience", Value = jwtAudience },
-                        new EnvironmentVariableArgs { Name = "WikiQuizApp__FrontendUri", Value = frontendUri },
-                        new EnvironmentVariableArgs { Name = "FORWARDEDHEADERS_ENABLED", Value = "true" }
+                        Name = "wiki-quiz",
+                        Image = containerImage,
+                        Resources = new ContainerResourcesArgs
+                        {
+                            Cpu = 0.5,
+                            Memory = "1Gi"
+                        },
+                        Env = new[]
+                        {
+                            new EnvironmentVarArgs { Name = "ConnectionStrings__DefaultConnection", SecretRef = "connection-string" },
+                            new EnvironmentVarArgs { Name = "OpenAI__ApiKey", SecretRef = "openai-key" },
+                            new EnvironmentVarArgs { Name = "GoogleAuth__ClientId", SecretRef = "google-client-id" },
+                            new EnvironmentVarArgs { Name = "GoogleAuth__ClientSecret", SecretRef = "google-client-secret" },
+                            new EnvironmentVarArgs { Name = "JwtOptions__Secret", SecretRef = "jwt-secret" },
+                            new EnvironmentVarArgs { Name = "JwtOptions__Issuer", Value = jwtIssuer },
+                            new EnvironmentVarArgs { Name = "JwtOptions__Audience", Value = jwtAudience },
+                            new EnvironmentVarArgs { Name = "WikiQuizApp__FrontendUri", Value = frontendUri },
+                            new EnvironmentVarArgs { Name = "ASPNETCORE_ENVIRONMENT", Value = environment == "dev" ? "Development" : "Production" },
+                            new EnvironmentVarArgs { Name = "ASPNETCORE_HTTP_PORTS", Value = "80" }
+                        }
                     }
                 }
             },
@@ -227,10 +262,10 @@ public class MyStack : Stack
             }
         });
 
-        // Outputs
-        ApiUrl = containerGroup.IpAddress.Apply(ip => $"http://{ip!.Ip}");
-        FrontendUrl = staticWebApp.DefaultHostname.Apply(h => $"https://{h}");
+        ApiUrl = containerApp.Configuration.Apply(config => $"https://{config!.Ingress!.Fqdn}");
+        FrontendUrl = Output.Create("https://frontend-placeholder.com"); // Placeholder until Static Web App is configured
         DatabaseHost = postgresServer.FullyQualifiedDomainName;
         DatabaseConnectionString = connectionString;
+        LogAnalyticsWorkspaceId = logAnalyticsWorkspace.Id;
     }
 }

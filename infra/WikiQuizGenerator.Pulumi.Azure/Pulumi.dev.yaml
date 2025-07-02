@@ -2,10 +2,14 @@ config:
   # Environment settings
   wikiquiz:environment: dev
   wikiquiz:location: Central US
-  # Non-secret URLs and configuration
   wikiquiz:frontendUri: http://localhost:5173
   wikiquiz:jwtIssuer: http://localhost:5543
   wikiquiz:jwtAudience: http://localhost:5173
+  wikiquiz:ghcrUsername: brittain9
+
+  jwtOptions:issuer: http://localhost:5543
+  jwtOptions:audience: http://localhost:5173
+
   wikiquiz:postgresPassword:
     secure: AAABAMhcSrkd8xFEOMoA4/kDozerrLQ4TStPlv1MSus9vgy91Okb62SblPj0HELUPqeNkIE=
   wikiquiz:openAiApiKey:
@@ -18,4 +22,3 @@ config:
     secure: AAABAHcaSRTHGYlk3H/k1dfU2TlfpUeV8nT0DnLH5cRT9fDAMzQEPVwcvoPZdl2EDxCPy6z6dqKuDezjWD4K0VOP2Og04S8FAm9n4Q==
   wikiquiz:ghcrPassword:
     secure: AAABAKiiVwUzTW8Za//H/Hq0rahqcLVSkiVyJanIq9mSLqHONj8JGmGfLNvpgrd5g6ESM9asQeKav7IPSApyNUlEP0wYRVEh
-  wikiquiz:ghcrUsername: brittain9
