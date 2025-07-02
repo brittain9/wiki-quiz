@@ -1,0 +1,49 @@
+name: Trigger auto deployment for wikiquiz-api-dev
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ dev ]
+    paths:
+    - '**'
+    - '.github/workflows/wikiquiz-api-dev-AutoDeployTrigger-2ad4e5bc-f02c-4f38-934b-308eff4bf481.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.WIKIQUIZAPIDEV_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.WIKIQUIZAPIDEV_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.WIKIQUIZAPIDEV_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/backend/src/WikiQuizGenerator.Api
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: ghcr.io
+          registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_PASSWORD }}
+          containerAppName: wikiquiz-api-dev
+          resourceGroup: rg-wikiquiz-dev
+          imageToBuild: ghcr.io/wikiquiz-api-dev:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
