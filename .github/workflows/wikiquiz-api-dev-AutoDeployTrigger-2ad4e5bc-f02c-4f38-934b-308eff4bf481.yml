@@ -26,8 +26,8 @@ env:
   RESOURCE_GROUP: rg-wikiquiz-dev
   CONTAINER_APP_NAME: wikiquiz-api-dev
   CONTAINER_REGISTRY: ghcr.io
-  IMAGE_NAME: wikiquiz-api-dev # Note: This is often ${{ github.repository }} but using your provided name.
-  DOCKERFILE_PATH: backend/src/WikiQuizGenerator.Api/Dockerfile
+  IMAGE_NAME: brittain9/wiki-quiz # Changed to match desired image name
+  DOCKERFILE_PATH: src/WikiQuizGenerator.Api/Dockerfile # Relative to backend directory
   CONTEXT_PATH: backend
 
 #
@@ -66,11 +66,11 @@ jobs:
           containerAppName: ${{ env.CONTAINER_APP_NAME }}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           registryUrl: ${{ env.CONTAINER_REGISTRY }}
-          imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-          # --- Build Context and Dockerfile Location ---
+          # --- Application Source and Build Configuration ---
+          appSourcePath: ${{ env.CONTEXT_PATH }}
           dockerfilePath: ${{ env.DOCKERFILE_PATH }}
-          contextPath: ${{ env.CONTEXT_PATH }}
+          imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:dev
 
           # --- Registry Credentials ---
           registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
