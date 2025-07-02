@@ -82,6 +82,8 @@ For production or cloud deployment, use the Pulumi infrastructure-as-code projec
 
 Create static web app for frontend
 Set up custom domains
+Update pulumi config to use custom domains
+Add secrets for the frontend workflow env variables
 
 ### Managing Environments
 
