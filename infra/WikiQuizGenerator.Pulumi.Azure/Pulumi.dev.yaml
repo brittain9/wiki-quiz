@@ -2,13 +2,10 @@ config:
   # Environment settings
   wikiquiz:environment: dev
   wikiquiz:location: Central US
-  wikiquiz:frontendUri: http://localhost:5173
-  wikiquiz:jwtIssuer: http://localhost:5543
-  wikiquiz:jwtAudience: http://localhost:5173
+  wikiquiz:frontendUri: https://devquiz.alexanderbrittain.com
+  wikiquiz:jwtIssuer: https://devquizapi.alexanderbrittain.com
+  wikiquiz:jwtAudience: https://devquiz.alexanderbrittain.com
   wikiquiz:ghcrUsername: brittain9
-
-  jwtOptions:issuer: http://localhost:5543
-  jwtOptions:audience: http://localhost:5173
 
   wikiquiz:postgresPassword:
     secure: AAABAMhcSrkd8xFEOMoA4/kDozerrLQ4TStPlv1MSus9vgy91Okb62SblPj0HELUPqeNkIE=

@@ -80,6 +80,9 @@ For production or cloud deployment, use the Pulumi infrastructure-as-code projec
    pulumi stack output
    ```
 
+Create static web app for frontend
+Set up custom domains
+
 ### Managing Environments
 
 - Use separate Pulumi stacks for dev, test, and prod.
