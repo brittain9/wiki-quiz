@@ -168,7 +168,7 @@ public class MyStack : Stack
                 Ingress = new IngressArgs
                 {
                     External = true,
-                    TargetPort = 80,
+                    TargetPort = 8080,
                     Transport = IngressTransportMethod.Http,
                     CorsPolicy = new CorsPolicyArgs
                     {
@@ -240,16 +240,16 @@ public class MyStack : Stack
                         },
                         Env = new[]
                         {
-                            new EnvironmentVarArgs { Name = "ConnectionStrings__DefaultConnection", SecretRef = "connection-string" },
-                            new EnvironmentVarArgs { Name = "OpenAI__ApiKey", SecretRef = "openai-key" },
-                            new EnvironmentVarArgs { Name = "GoogleAuth__ClientId", SecretRef = "google-client-id" },
-                            new EnvironmentVarArgs { Name = "GoogleAuth__ClientSecret", SecretRef = "google-client-secret" },
+                            new EnvironmentVarArgs { Name = "wikiquizapp__ConnectionString", SecretRef = "connection-string" },
+                            new EnvironmentVarArgs { Name = "wikiquizapp__FrontendUri", Value = frontendUri },
+                            new EnvironmentVarArgs { Name = "wikiquizapp__OpenAIApiKey", SecretRef = "openai-key" },
+                            new EnvironmentVarArgs { Name = "wikiquizapp__AuthGoogleClientID", SecretRef = "google-client-id" },
+                            new EnvironmentVarArgs { Name = "wikiquizapp__AuthGoogleClientSecret", SecretRef = "google-client-secret" },
                             new EnvironmentVarArgs { Name = "JwtOptions__Secret", SecretRef = "jwt-secret" },
                             new EnvironmentVarArgs { Name = "JwtOptions__Issuer", Value = jwtIssuer },
                             new EnvironmentVarArgs { Name = "JwtOptions__Audience", Value = jwtAudience },
-                            new EnvironmentVarArgs { Name = "WikiQuizApp__FrontendUri", Value = frontendUri },
                             new EnvironmentVarArgs { Name = "ASPNETCORE_ENVIRONMENT", Value = environment == "dev" ? "Development" : "Production" },
-                            new EnvironmentVarArgs { Name = "ASPNETCORE_HTTP_PORTS", Value = "80" }
+                            new EnvironmentVarArgs { Name = "ASPNETCORE_HTTP_PORTS", Value = "8080" }
                         }
                     }
                 }
