@@ -1,17 +1,21 @@
 config:
   # Environment settings
   wikiquiz:environment: dev
-  wikiquiz:location: East US
-  wikiquiz:githubUsername: brittain9
-
-  # Encrypted secrets (already configured)
+  wikiquiz:location: Central US
+  # Non-secret URLs and configuration
+  wikiquiz:frontendUri: http://localhost:5173
+  wikiquiz:jwtIssuer: http://localhost:5543
+  wikiquiz:jwtAudience: http://localhost:5173
   wikiquiz:postgresPassword:
-    secure: AAABANIB63qY5LeExNfkqEfWnT7SBs7MvHHmq/2i8EeQ0Xez7jDE51l+EOEMFgS0WWvbUi7S
+    secure: AAABAMhcSrkd8xFEOMoA4/kDozerrLQ4TStPlv1MSus9vgy91Okb62SblPj0HELUPqeNkIE=
   wikiquiz:openAiApiKey:
-    secure: AAABAD9AhWH72zjh7kGnxFngkMELsaMru5k/G1FYIgz9Wes9U3R9W7txpJkAOYD/NuWLYiSAcpZ0DwsAaenZ+hi6DsfPZQqQpaiD3uO3X26TSt6o5en0sH9jsVOyH/VTxrAUP4iJaGjhVp668WKezxcCWtueUUtWZO/uk1pIooAMRaVJnF6ZdsYp/aRtXyGJvpnlJVJNHBs2jbIl90jXpkBPYZD50E3EJDYoXEOto28NtudouxrJmlT21k0AJZuRNfAF+Q==
+    secure: AAABAJQ8P6jfY2GVPt1csbpVtmZuZdYgjpj6WONDcSPL1Pq3XXYQLtIDrHsvtGM/FhsI9b4rpB+jfu5iAjo7q16oN9QfRBvCGXGD3UCrC+esoX4WVbAJdmmowdT3TqebxPgm/wdfteptm5+d/tECcpE2zAiUnJF1vUmfMW+r6n8N/S4m76hojp3b/8iLZJKKpf+7NdcWFKxUSyH5e5k7O69vXDlK2k2/1oJDzO5W8XxVmp4Goy+0dX41gBqFskbFO+dG/A==
   wikiquiz:googleClientId:
-    secure: AAABABnRqwO4DfJZWuFNus1NjCevYNbtdjV3t8EPRDOpi3rElKX+EAegJaW8Sdc+AgI6EWgYeZHSLgxItl0W4ewz8vscaWAi63s4U+tpDXTyMtAIa5JGX5wThbHHjsao/PSoOODMzHQ=
+    secure: AAABAK9ccxC8W1mcwH1q5Jwvxl6rmoqgu8xePBVshaZpjZl02gYjfDz5a56ulBMC1qxVKvb9s/Pmhi9jM0F/bYbqVnbhUezeeXL92xAY9zl48+6Xr6B41TOavcP3QhQzvM5AjgEPdK0=
   wikiquiz:googleClientSecret:
-    secure: AAABAEx0R5LDzhxi+frIK7b6SGE3V4s+2ernBFWE4fn57Y7+s8quKvA2T8FQSuhHLsW1QTcD9tKpiR8TKDtwTrghmQ==
+    secure: AAABAHZZdtef4vXrs805blX4SmM9N6cabGOlS3l42WVNo585sMKB0PQszTu2ahurKqfbPjJrGwaUluXLHoOD7FrK9g==
   wikiquiz:jwtSecret:
-    secure: AAABAFiVFQWRaeftLF51rRAb5ZQaCl6pb5VRZdxh7qj39z1BwWAYkX5RuV5nBHLpA9OQspY7fKgAHmZizXIYWrOs9T9uQhRjphSlvg==
+    secure: AAABAHcaSRTHGYlk3H/k1dfU2TlfpUeV8nT0DnLH5cRT9fDAMzQEPVwcvoPZdl2EDxCPy6z6dqKuDezjWD4K0VOP2Og04S8FAm9n4Q==
+  wikiquiz:ghcrPassword:
+    secure: AAABAKiiVwUzTW8Za//H/Hq0rahqcLVSkiVyJanIq9mSLqHONj8JGmGfLNvpgrd5g6ESM9asQeKav7IPSApyNUlEP0wYRVEh
+  wikiquiz:ghcrUsername: brittain9
