@@ -1,29 +1,54 @@
-name: Trigger auto deployment for wikiquiz-api-dev
+#
+# CI/CD Workflow for the WikiQuiz API Container App
+#
+name: Build and Deploy WikiQuiz API to Dev
 
-# When this action will be executed
+#
+# TRIGGERS: Controls when this workflow runs.
+#
 on:
-  # Automatically trigger it when detected changes in repo
+  # 1. Run on pushes to the 'dev' branch, but only if files change in the backend.
+  #    This prevents running the entire workflow for irrelevant changes (e.g., frontend or documentation).
   push:
-    branches: 
-      [ dev ]
+    branches: [dev]
     paths:
-    - '**'
-    - '.github/workflows/wikiquiz-api-dev-AutoDeployTrigger-2ad4e5bc-f02c-4f38-934b-308eff4bf481.yml'
+      - "backend/**"
+      - ".github/workflows/wikiquiz-api-dev-AutoDeployTrigger-2ad4e5bc-f02c-4f38-934b-308eff4bf481.yml"
 
-  # Allow manual trigger 
-  workflow_dispatch:      
+  # 2. Allows the workflow to be run manually from the GitHub Actions UI.
+  workflow_dispatch:
 
+#
+# ENVIRONMENT VARIABLES: Defines reusable values for this workflow.
+# This makes the steps below cleaner and easier to update in one place.
+#
+env:
+  RESOURCE_GROUP: rg-wikiquiz-dev
+  CONTAINER_APP_NAME: wikiquiz-api-dev
+  CONTAINER_REGISTRY: ghcr.io
+  IMAGE_NAME: wikiquiz-api-dev # Note: This is often ${{ github.repository }} but using your provided name.
+  DOCKERFILE_PATH: backend/src/WikiQuizGenerator.Api/Dockerfile
+  CONTEXT_PATH: backend
+
+#
+# JOBS: Defines the sequence of tasks to execute.
+#
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write #This is required for requesting the OIDC JWT Token
-      contents: read #Required when GH token is used to authenticate with private repo
+    # PERMISSIONS: Securely grant tokens needed for Azure login and code checkout.
+    permissions:
+      id-token: write # Required for secure, passwordless OIDC login to Azure.
+      contents: read # Required to check out the repository code.
 
     steps:
-      - name: Checkout to the branch
-        uses: actions/checkout@v2
+      # STEP 1: Check out the repository code.
+      # Using v4, the latest major version for security and feature updates.
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
+      # STEP 2: Log in to Azure using OpenID Connect (OIDC).
+      # This is the recommended, most secure method as it avoids storing long-lived secrets.
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -31,19 +56,22 @@ jobs:
           tenant-id: ${{ secrets.WIKIQUIZAPIDEV_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.WIKIQUIZAPIDEV_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
+      # STEP 3: Build the container image and deploy to Azure Container Apps.
+      # This single action handles Docker login, build, push, and container app update.
+      # It uses the environment variables defined above for a clean and maintainable configuration.
+      - name: Build and Deploy Container App
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/backend/src/WikiQuizGenerator.Api
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
-          registryUrl: ghcr.io
+          # --- Configuration from Environment Variables ---
+          containerAppName: ${{ env.CONTAINER_APP_NAME }}
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          registryUrl: ${{ env.CONTAINER_REGISTRY }}
+          imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+          # --- Build Context and Dockerfile Location ---
+          dockerfilePath: ${{ env.DOCKERFILE_PATH }}
+          contextPath: ${{ env.CONTEXT_PATH }}
+
+          # --- Registry Credentials ---
           registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_PASSWORD }}
-          containerAppName: wikiquiz-api-dev
-          resourceGroup: rg-wikiquiz-dev
-          imageToBuild: ghcr.io/wikiquiz-api-dev:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
-
-
