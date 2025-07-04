@@ -46,7 +46,7 @@ jobs:
           github_id_token: ${{ steps.idtoken.outputs.result }}
           ###### End of Repository/Build Configurations ######
         env:
-          VITE_API_BASE_URL: https://devquizapi.alexanderbrittain.com
+          VITE_API_BASE_URL: https://devquizapi.alexanderbrittain.com/api
           VITE_APP_BASE_URL: https://devquiz.alexanderbrittain.com
 
   close_pull_request_job:

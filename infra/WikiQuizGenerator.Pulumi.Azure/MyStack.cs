@@ -19,12 +19,13 @@ public class MyStack : Stack
     {
         var config = new Config("wikiquiz");
         
-        var environment = config.Get("environment");
-        var location = config.Get("location");
+        // Use config.Require for values that must be present
+        var environment = config.Require("environment");
+        var location = config.Require("location");
         
-        var frontendUri = config.Get("frontendUri");
-        var jwtIssuer = config.Get("jwtIssuer");
-        var jwtAudience = config.Get("jwtAudience");
+        var frontendUri = config.Require("frontendUri");
+        var jwtIssuer = config.Get("jwtIssuer"); // Can be null if not set
+        var jwtAudience = config.Get("jwtAudience"); // Can be null if not set
         
         var postgresPassword = config.RequireSecret("postgresPassword");
         var openAiApiKey = config.RequireSecret("openAiApiKey");
@@ -43,6 +44,10 @@ public class MyStack : Stack
             Location = location,
         });
 
+        // Configure Azure PostgreSQL Flexible Server for cost-effective scaling down
+        // The 'Burstable' tier (e.g., Standard_B1ms) is designed to scale down
+        // its effective compute usage and cost during idle periods.
+        // B1ms is one of the smallest available SKUs in the Burstable tier.
         var postgresServer = new Server("postgres", new ServerArgs
         {
             ServerName = $"wikiquiz-db-{environment}",
@@ -50,12 +55,18 @@ public class MyStack : Stack
             Location = resourceGroup.Location,
             Sku = new SkuArgs
             {
-                Name = "Standard_B1ms",
+                // Choose a Burstable tier SKU for cost-effective scaling down when idle.
+                // Standard_B1ms provides a small baseline CPU and can burst when needed.
+                Name = "Standard_B1ms", // Smallest burstable SKU
                 Tier = SkuTier.Burstable
             },
             Storage = new StorageArgs
             {
-                StorageSizeGB = 32
+                StorageSizeGB = 32,
+                // AutoGrow is not a direct property of StorageArgs in V20221201.
+                // Flexible Server storage auto-grow is typically enabled by default
+                // or configured at the server level via other means if needed.
+                // Removed: AutoGrow = "Enabled" 
             },
             Backup = new BackupArgs
             {
@@ -64,11 +75,12 @@ public class MyStack : Stack
             },
             HighAvailability = new HighAvailabilityArgs
             {
-                Mode = HighAvailabilityMode.Disabled
+                Mode = HighAvailabilityMode.Disabled // Disabled for cost optimization, but consider for production
             },
             AdministratorLogin = "wikiquizadmin",
             AdministratorLoginPassword = postgresPassword,
             Version = ServerVersion.ServerVersion_14,
+            CreateMode = CreateMode.Default,
             Tags =
             {
                 { "Environment", environment },
@@ -145,7 +157,8 @@ public class MyStack : Stack
                 LogAnalyticsConfiguration = new LogAnalyticsConfigurationArgs
                 {
                     CustomerId = logAnalyticsWorkspace.CustomerId,
-                    SharedKey = workspaceKeys.Apply(keys => keys.PrimarySharedKey)
+                    // Use null-forgiving operator as PrimarySharedKey is expected to be non-null
+                    SharedKey = workspaceKeys.Apply(keys => keys.PrimarySharedKey!) 
                 }
             },
             Tags = 
@@ -173,7 +186,8 @@ public class MyStack : Stack
                     CorsPolicy = new CorsPolicyArgs
                     {
                         AllowCredentials = true,
-                        AllowedOrigins = new[] { frontendUri },
+                        // Ensure frontendUri is non-nullable by using config.Require
+                        AllowedOrigins = new[] { frontendUri }, 
                         AllowedMethods = new[] { "GET", "POST", "PUT", "DELETE", "OPTIONS" },
                         AllowedHeaders = new[] { "*" },
                         MaxAge = 3600
@@ -246,8 +260,8 @@ public class MyStack : Stack
                             new EnvironmentVarArgs { Name = "wikiquizapp__AuthGoogleClientID", SecretRef = "google-client-id" },
                             new EnvironmentVarArgs { Name = "wikiquizapp__AuthGoogleClientSecret", SecretRef = "google-client-secret" },
                             new EnvironmentVarArgs { Name = "JwtOptions__Secret", SecretRef = "jwt-secret" },
-                            new EnvironmentVarArgs { Name = "JwtOptions__Issuer", Value = jwtIssuer },
-                            new EnvironmentVarArgs { Name = "JwtOptions__Audience", Value = jwtAudience },
+                            new EnvironmentVarArgs { Name = "JwtOptions__Issuer", Value = jwtIssuer ?? "" }, // Coalesce to empty string if jwtIssuer is null
+                            new EnvironmentVarArgs { Name = "JwtOptions__Audience", Value = jwtAudience ?? "" }, // Coalesce to empty string if jwtAudience is null
                             new EnvironmentVarArgs { Name = "ASPNETCORE_ENVIRONMENT", Value = environment == "dev" ? "Development" : "Production" },
                             new EnvironmentVarArgs { Name = "ASPNETCORE_HTTP_PORTS", Value = "8080" }
                         }
@@ -262,7 +276,8 @@ public class MyStack : Stack
             }
         });
 
-        ApiUrl = containerApp.Configuration.Apply(config => $"https://{config!.Ingress!.Fqdn}");
+        // Use null-forgiving operator as Fqdn is expected to be non-null when ingress is external
+        ApiUrl = containerApp.Configuration.Apply(config => $"https://{config!.Ingress!.Fqdn!}"); 
         FrontendUrl = Output.Create("https://frontend-placeholder.com"); // Placeholder until Static Web App is configured
         DatabaseHost = postgresServer.FullyQualifiedDomainName;
         DatabaseConnectionString = connectionString;
