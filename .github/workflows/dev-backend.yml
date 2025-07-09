@@ -58,21 +58,21 @@ jobs:
 
       # STEP 3: Build the container image and deploy to Azure Container Apps.
       - name: Build and Deploy Container App
-        uses: azure/container-apps-deploy-action@v2
-        with:
-          # --- Configuration from Environment Variables ---
-          containerAppName: ${{ env.CONTAINER_APP_NAME }}
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
-          registryUrl: ${{ env.CONTAINER_REGISTRY }}
+      uses: azure/container-apps-deploy-action@v2
+      with:
+        # --- Configuration from Environment Variables ---
+        containerAppName: ${{ env.CONTAINER_APP_NAME }}
+        resourceGroup: ${{ env.RESOURCE_GROUP }}
+        registryUrl: ${{ env.CONTAINER_REGISTRY }}
 
-          # --- Add this line ---
-          containerName: wiki-quiz
+        # --- Add this line ---
+        containerName: wiki-quiz
 
-          # --- Application Source and Build Configuration ---
-          appSourcePath: ${{ env.CONTEXT_PATH }}
-          dockerfilePath: ${{ env.DOCKERFILE_PATH }}
-          imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:dev
+        # --- Application Source and Build Configuration ---
+        appSourcePath: ${{ env.CONTEXT_PATH }}
+        dockerfilePath: ${{ env.DOCKERFILE_PATH }}
+        imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:dev
 
-          # --- Registry Credentials ---
-          registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_PASSWORD }}
+        # --- Registry Credentials ---
+        registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
+        registryPassword: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_PASSWORD }}
