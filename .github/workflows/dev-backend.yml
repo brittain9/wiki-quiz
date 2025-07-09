@@ -13,7 +13,7 @@ on:
     branches: [dev]
     paths:
       - "backend/**"
-      - ".github/workflows/wikiquiz-api-dev-AutoDeployTrigger-2ad4e5bc-f02c-4f38-934b-308eff4bf481.yml"
+      - ".github/workflows/dev-backend.yml"
 
   # 2. Allows the workflow to be run manually from the GitHub Actions UI.
   workflow_dispatch:

@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using WikiQuizGenerator.Data.Options;
 using WikiQuizGenerator.Data.Processors;
 using Serilog;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 public partial class Program
 {
@@ -199,6 +200,27 @@ public partial class Program
         
         services.AddAuthorization();
         services.AddHttpContextAccessor();
+        
+        // Add health check services
+        services.AddHealthChecks()
+            .AddCheck("self", () => HealthCheckResult.Healthy("API is running"), tags: new[] { "live" })
+            .AddNpgSql(connectionString, name: "database", tags: new[] { "database", "postgres", "ready" })
+            .AddCheck("openai-config", () => 
+            {
+                var openAiKey = configuration["wikiquizapp:OpenAIApiKey"];
+                if (string.IsNullOrWhiteSpace(openAiKey))
+                    return HealthCheckResult.Unhealthy("OpenAI API key is not configured");
+                
+                return HealthCheckResult.Healthy("OpenAI configuration is valid");
+            }, tags: new[] { "configuration", "external", "ready" })
+            .AddCheck("jwt-config", () => 
+            {
+                var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>();
+                if (jwtOptions == null || string.IsNullOrWhiteSpace(jwtOptions.Secret))
+                    return HealthCheckResult.Unhealthy("JWT configuration is invalid");
+                
+                return HealthCheckResult.Healthy("JWT configuration is valid");
+            }, tags: new[] { "configuration", "auth", "ready" });
     }
 
     private static string GetPartitionKeyFromUser(HttpContext httpContext)

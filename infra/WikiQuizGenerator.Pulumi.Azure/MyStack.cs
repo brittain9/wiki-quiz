@@ -252,6 +252,35 @@ public class MyStack : Stack
                             Cpu = 0.5,
                             Memory = "1Gi"
                         },
+                        Probes = new[]
+                        {
+                            new ContainerAppProbeArgs
+                            {
+                                Type = "Liveness",
+                                HttpGet = new ContainerAppHttpGetArgs
+                                {
+                                    Path = "/health/live",
+                                    Port = 8080
+                                },
+                                InitialDelaySeconds = 30,
+                                PeriodSeconds = 10,
+                                TimeoutSeconds = 5,
+                                FailureThreshold = 3
+                            },
+                            new ContainerAppProbeArgs
+                            {
+                                Type = "Readiness",
+                                HttpGet = new ContainerAppHttpGetArgs
+                                {
+                                    Path = "/health/ready",
+                                    Port = 8080
+                                },
+                                InitialDelaySeconds = 5,
+                                PeriodSeconds = 10,
+                                TimeoutSeconds = 5,
+                                FailureThreshold = 3
+                            }
+                        },
                         Env = new[]
                         {
                             new EnvironmentVarArgs { Name = "wikiquizapp__ConnectionString", SecretRef = "connection-string" },

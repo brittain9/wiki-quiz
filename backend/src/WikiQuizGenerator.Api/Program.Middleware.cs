@@ -3,6 +3,8 @@ using WikiQuizGenerator.Api.Endpoints;
 using WikiQuizGenerator.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
+using System.Text.Json;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 public partial class Program
 {
@@ -41,6 +43,39 @@ public partial class Program
         app.MapQuizEndpoints();
         app.MapAiEndpoints();
         app.MapSubmissionEndpoints();
+        
+        // Add health check endpoints
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            ResponseWriter = async (context, report) =>
+            {
+                context.Response.ContentType = "application/json";
+                
+                var result = new
+                {
+                    status = report.Status.ToString(),
+                    checks = report.Entries.Select(x => new
+                    {
+                        name = x.Key,
+                        status = x.Value.Status.ToString(),
+                        exception = x.Value.Exception?.Message,
+                        duration = x.Value.Duration.ToString()
+                    })
+                };
+                
+                await context.Response.WriteAsync(JsonSerializer.Serialize(result));
+            }
+        });
+        
+        app.MapHealthChecks("/health/ready", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("ready")
+        });
+        
+        app.MapHealthChecks("/health/live", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains("live") || check.Name == "self"
+        });
 
         // Check if Swagger should be enabled (either in Development or explicitly via env var)
         bool enableSwagger = app.Environment.IsDevelopment() || 
