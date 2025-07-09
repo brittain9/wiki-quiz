@@ -17,6 +17,12 @@ on:
 
   # 2. Allows the workflow to be run manually from the GitHub Actions UI.
   workflow_dispatch:
+    inputs:
+      container_name:
+        description: "Container name to deploy to (for multicontainer apps)"
+        required: false
+        default: "wiki-quiz"
+        type: string
 
 #
 # ENVIRONMENT VARIABLES: Defines reusable values for this workflow.
@@ -29,6 +35,8 @@ env:
   IMAGE_NAME: brittain9/wiki-quiz # Changed to match desired image name
   DOCKERFILE_PATH: src/WikiQuizGenerator.Api/Dockerfile # Relative to backend directory
   CONTEXT_PATH: backend
+  # Use input parameter if provided, otherwise use default
+  CONTAINER_NAME: ${{ github.event.inputs.container_name || 'wiki-quiz' }}
 
 #
 # JOBS: Defines the sequence of tasks to execute.
@@ -58,21 +66,21 @@ jobs:
 
       # STEP 3: Build the container image and deploy to Azure Container Apps.
       - name: Build and Deploy Container App
-      uses: azure/container-apps-deploy-action@v2
-      with:
-        # --- Configuration from Environment Variables ---
-        containerAppName: ${{ env.CONTAINER_APP_NAME }}
-        resourceGroup: ${{ env.RESOURCE_GROUP }}
-        registryUrl: ${{ env.CONTAINER_REGISTRY }}
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          # --- Configuration from Environment Variables ---
+          containerAppName: ${{ env.CONTAINER_APP_NAME }}
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          registryUrl: ${{ env.CONTAINER_REGISTRY }}
 
-        # --- Add this line ---
-        containerName: wiki-quiz
+          # --- Container name from input or default ---
+          containerName: ${{ env.CONTAINER_NAME }}
 
-        # --- Application Source and Build Configuration ---
-        appSourcePath: ${{ env.CONTEXT_PATH }}
-        dockerfilePath: ${{ env.DOCKERFILE_PATH }}
-        imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:dev
+          # --- Application Source and Build Configuration ---
+          appSourcePath: ${{ env.CONTEXT_PATH }}
+          dockerfilePath: ${{ env.DOCKERFILE_PATH }}
+          imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:dev
 
-        # --- Registry Credentials ---
-        registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
-        registryPassword: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_PASSWORD }}
+          # --- Registry Credentials ---
+          registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_PASSWORD }}
