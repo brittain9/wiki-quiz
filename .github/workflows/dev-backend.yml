@@ -98,7 +98,7 @@ jobs:
           template:
             containers:
               - name: ${{ env.CONTAINER_NAME }}
-                image: placeholder
+                image: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           EOF
 
       # STEP 4: Build the container image and deploy to Azure Container Apps.
