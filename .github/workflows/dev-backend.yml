@@ -1,7 +1,7 @@
 #
 # CI/CD Workflow for the WikiQuiz API Container App
 #
-name: WikiQuiz API Dev Deployment2
+name: WikiQuiz API Dev Deployment
 
 #
 # TRIGGERS: Controls when this workflow runs.
@@ -58,7 +58,6 @@ jobs:
 
     steps:
       # STEP 1: Check out the repository code.
-      # Using v4, the latest major version for security and feature updates.
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -73,7 +72,6 @@ jobs:
           echo "Force Rebuild: ${{ github.event.inputs.force_rebuild || 'false' }}"
 
       # STEP 2: Log in to Azure using OpenID Connect (OIDC).
-      # This is the recommended, most secure method as it avoids storing long-lived secrets.
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -93,6 +91,16 @@ jobs:
             echo "❌ Container app ${{ env.CONTAINER_APP_NAME }} does not exist"
           fi
 
+      # --- NEW STEP: Create the Container App config file in-line ---
+      - name: Create Container App YAML Config
+        run: |
+          cat <<EOF > container-app-config.yml
+          template:
+            containers:
+              - name: ${{ env.CONTAINER_NAME }}
+                image: placeholder
+          EOF
+
       # STEP 4: Build the container image and deploy to Azure Container Apps.
       - name: Build and Deploy Container App
         uses: azure/container-apps-deploy-action@v2
@@ -102,8 +110,8 @@ jobs:
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           registryUrl: ${{ env.CONTAINER_REGISTRY }}
 
-          # --- Container name from input or default ---
-          containerName: ${{ env.CONTAINER_NAME }}
+          # --- Use the config file we just created in the previous step ---
+          yamlConfigPath: ./container-app-config.yml
 
           # --- Application Source and Build Configuration ---
           appSourcePath: ${{ env.CONTEXT_PATH }}
@@ -118,29 +126,18 @@ jobs:
       - name: Verify Deployment
         run: |
           echo "🔍 Verifying dev deployment..."
-
-          # Wait a moment for the app to start
-          sleep 30
-
-          # Get the app URL
+          sleep 30 # Wait a moment for the new revision to be provisioned
           APP_URL=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
-
           if [ -n "$APP_URL" ]; then
             echo "🌐 Dev Application URL: https://$APP_URL"
-            
-            # Try to reach the health endpoint
-            if curl -f "https://$APP_URL/health" >/dev/null 2>&1; then
+            if curl -f --retry 5 --retry-delay 10 "https://$APP_URL/health" >/dev/null 2>&1; then
               echo "✅ Health check passed!"
             else
-              echo "⚠️ Health check failed, but deployment completed. App may still be starting up."
+              echo "⚠️ Health check failed. The app might still be starting or has an issue. Please check the logs."
             fi
           else
-            echo "❌ Could not retrieve application URL"
+            echo "❌ Could not retrieve application URL."
           fi
-
-          # Show recent logs
-          echo "📋 Recent application logs:"
-          az containerapp logs show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --tail 10
 
       # STEP 6: Deployment summary
       - name: Deployment Summary
