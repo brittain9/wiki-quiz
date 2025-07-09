@@ -1,7 +1,7 @@
 #
 # CI/CD Workflow for the WikiQuiz API Container App
 #
-name: WikiQuiz API Dev Deployment
+name: WikiQuiz API Dev Deployment2
 
 #
 # TRIGGERS: Controls when this workflow runs.
