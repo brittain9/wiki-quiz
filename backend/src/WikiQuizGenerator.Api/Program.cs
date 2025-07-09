@@ -47,7 +47,6 @@ try
     }
     Log.Information("Configuring the pipeline");
     ConfigurePipeline(app);
-    app
 
     Log.Information("Running the application");
     app.Run();
