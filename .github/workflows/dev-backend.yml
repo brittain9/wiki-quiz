@@ -17,12 +17,6 @@ on:
 
   # 2. Allows the workflow to be run manually from the GitHub Actions UI.
   workflow_dispatch:
-    inputs:
-      container_name:
-        description: "Container name to deploy to (for multicontainer apps)"
-        required: false
-        default: "wiki-quiz"
-        type: string
 
 #
 # ENVIRONMENT VARIABLES: Defines reusable values for this workflow.
@@ -35,8 +29,6 @@ env:
   IMAGE_NAME: brittain9/wiki-quiz # Changed to match desired image name
   DOCKERFILE_PATH: src/WikiQuizGenerator.Api/Dockerfile # Relative to backend directory
   CONTEXT_PATH: backend
-  # Use input parameter if provided, otherwise use default
-  CONTAINER_NAME: ${{ github.event.inputs.container_name || 'wiki-quiz' }}
 
 #
 # JOBS: Defines the sequence of tasks to execute.
@@ -73,8 +65,8 @@ jobs:
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           registryUrl: ${{ env.CONTAINER_REGISTRY }}
 
-          # --- Container name from input or default ---
-          containerName: ${{ env.CONTAINER_NAME }}
+          # --- Add this line ---
+          containerName: wiki-quiz
 
           # --- Application Source and Build Configuration ---
           appSourcePath: ${{ env.CONTEXT_PATH }}
