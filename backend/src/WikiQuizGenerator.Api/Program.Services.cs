@@ -121,9 +121,21 @@ public partial class Program
             };
         });
 
-        string connectionString = configuration["wikiquizapp:ConnectionString"];
-        if (string.IsNullOrWhiteSpace(connectionString))
-            throw new ArgumentNullException(nameof(connectionString), "ConnectionString is not configured.");
+        // Database configuration - build connection string from components for containerized PostgreSQL
+        var dbHost = configuration["wikiquizapp:DatabaseHost"] ?? "localhost";
+        var dbName = configuration["wikiquizapp:DatabaseName"] ?? "wikiquiz";
+        var dbUser = configuration["wikiquizapp:DatabaseUser"] ?? "wikiquizadmin";
+        var dbPassword = configuration["wikiquizapp:DatabasePassword"];
+        var dbPort = configuration["wikiquizapp:DatabasePort"] ?? "5432";
+        
+        var connectionString = string.IsNullOrEmpty(dbPassword) 
+            ? configuration["wikiquizapp:ConnectionString"] // Fallback to full connection string if available
+            : $"Server={dbHost};Database={dbName};Username={dbUser};Password={dbPassword};Port={dbPort};";
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("Database connection string is not configured. Please provide either a full connection string or individual database components.");
+        }
         services.AddDataServices(connectionString);
         
         services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
@@ -204,7 +216,7 @@ public partial class Program
         // Add health check services
         services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy("API is running"), tags: new[] { "live" })
-            .AddNpgSql(connectionString, name: "database", tags: new[] { "database", "postgres", "ready" })
+            .AddNpgSql(connectionString, name: "database", tags: new[] { "ready", "database", "postgres" })
             .AddCheck("openai-config", () => 
             {
                 var openAiKey = configuration["wikiquizapp:OpenAIApiKey"];
@@ -212,7 +224,7 @@ public partial class Program
                     return HealthCheckResult.Unhealthy("OpenAI API key is not configured");
                 
                 return HealthCheckResult.Healthy("OpenAI configuration is valid");
-            }, tags: new[] { "configuration", "external", "ready" })
+            }, tags: new[] { "ready", "configuration", "external" })
             .AddCheck("jwt-config", () => 
             {
                 var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>();
@@ -220,7 +232,7 @@ public partial class Program
                     return HealthCheckResult.Unhealthy("JWT configuration is invalid");
                 
                 return HealthCheckResult.Healthy("JWT configuration is valid");
-            }, tags: new[] { "configuration", "auth", "ready" });
+            }, tags: new[] { "ready", "configuration" });
     }
 
     private static string GetPartitionKeyFromUser(HttpContext httpContext)

@@ -11,8 +11,10 @@ public static class DataServiceExtensions
     public static IServiceCollection AddDataServices(this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<WikiQuizDbContext>(options =>
+        {
             options.UseNpgsql(connectionString,
-                npgsqlOptions => npgsqlOptions.UseNodaTime()));
+                npgsqlOptions => npgsqlOptions.UseNodaTime());
+        });
 
         // Register repositories 
         services.AddScoped<IQuizRepository, QuizRepository>();

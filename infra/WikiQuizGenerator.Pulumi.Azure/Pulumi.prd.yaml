@@ -2,16 +2,3 @@ config:
   # Environment settings
   wikiquiz:environment: prd
   wikiquiz:location: Central US
-  wikiquiz:githubUsername: brittain9
-
-  # Non-secret URLs and configuration - update these with your actual domain URLs
-  wikiquiz:frontendUri: https://your-frontend-domain.com
-  wikiquiz:jwtIssuer: https://your-api-domain.com
-  wikiquiz:jwtAudience: https://your-frontend-domain.com
-
-  # Secrets - set these with: pulumi config set --secret [key] [value]
-  # wikiquiz:postgresPassword: <set-me>
-  # wikiquiz:openAiApiKey: <set-me>
-  # wikiquiz:googleClientId: <set-me>
-  # wikiquiz:googleClientSecret: <set-me>
-  # wikiquiz:jwtSecret: <set-me>

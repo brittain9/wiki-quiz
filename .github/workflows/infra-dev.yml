@@ -1,0 +1,88 @@
+name: Deploy Infrastructure to Dev
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "infra/**"
+      - ".github/workflows/infra-dev.yml"
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - prd
+
+env:
+  PULUMI_STACK: dev
+  PULUMI_WORK_DIR: infra/WikiQuizGenerator.Pulumi.Azure
+
+jobs:
+  deploy-infrastructure:
+    runs-on: ubuntu-latest
+    name: Deploy Infrastructure
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Install Pulumi CLI
+        uses: pulumi/actions@v5
+        with:
+          pulumi-version: latest
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.WIKIQUIZINFRA_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.WIKIQUIZINFRA_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.WIKIQUIZINFRA_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure Pulumi
+        run: |
+          pulumi login
+          pulumi stack select ${{ env.PULUMI_STACK }}
+        working-directory: ${{ env.PULUMI_WORK_DIR }}
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Deploy Infrastructure
+        run: |
+          pulumi preview
+          pulumi up --yes --suppress-outputs
+        working-directory: ${{ env.PULUMI_WORK_DIR }}
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Export Stack Outputs
+        run: |
+          echo "## Infrastructure Deployment Complete 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "### Stack Outputs:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pulumi stack output --show-secrets
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        working-directory: ${{ env.PULUMI_WORK_DIR }}
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+      - name: Check if Application Restart Needed
+        run: |
+          # Check if changes affect running applications
+          if git diff --name-only HEAD~1 | grep -E "(MyStack.cs|health|probe|environment)" > /dev/null; then
+            echo "⚠️ Infrastructure changes may require application restart" >> $GITHUB_STEP_SUMMARY
+            echo "Consider manually triggering application workflows if needed" >> $GITHUB_STEP_SUMMARY
+          fi
