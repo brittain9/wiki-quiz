@@ -17,6 +17,22 @@ on:
 
   # 2. Allows the workflow to be run manually from the GitHub Actions UI.
   workflow_dispatch:
+    inputs:
+      container_name:
+        description: "Container name to deploy to (for multicontainer apps)"
+        required: false
+        default: "wiki-quiz"
+        type: string
+      force_rebuild:
+        description: "Force rebuild of container image"
+        required: false
+        default: false
+        type: boolean
+      skip_tests:
+        description: "Skip running tests before deployment"
+        required: false
+        default: false
+        type: boolean
 
 #
 # ENVIRONMENT VARIABLES: Defines reusable values for this workflow.
@@ -26,9 +42,13 @@ env:
   RESOURCE_GROUP: rg-wikiquiz-dev
   CONTAINER_APP_NAME: wikiquiz-api-dev
   CONTAINER_REGISTRY: ghcr.io
-  IMAGE_NAME: brittain9/wiki-quiz # Changed to match desired image name
+  IMAGE_NAME: brittain9/wiki-quiz
   DOCKERFILE_PATH: src/WikiQuizGenerator.Api/Dockerfile # Relative to backend directory
   CONTEXT_PATH: backend
+  # Use input parameter if provided, otherwise use default
+  CONTAINER_NAME: ${{ github.event.inputs.container_name || 'wiki-quiz' }}
+  # Always use dev tag for this workflow
+  IMAGE_TAG: dev
 
 #
 # JOBS: Defines the sequence of tasks to execute.
@@ -47,7 +67,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # STEP 2: Log in to Azure using OpenID Connect (OIDC).
+      # STEP 1.5: Display deployment information
+      - name: Display Deployment Info
+        run: |
+          echo "🚀 Dev Deployment Information:"
+          echo "Resource Group: ${{ env.RESOURCE_GROUP }}"
+          echo "Container App: ${{ env.CONTAINER_APP_NAME }}"
+          echo "Container Name: ${{ env.CONTAINER_NAME }}"
+          echo "Image: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+          echo "Force Rebuild: ${{ github.event.inputs.force_rebuild || 'false' }}"
+          echo "Skip Tests: ${{ github.event.inputs.skip_tests || 'false' }}"
+
+      # STEP 2: Run tests (unless skipped)
+      - name: Run Backend Tests
+        if: github.event.inputs.skip_tests != 'true'
+        run: |
+          cd backend
+          dotnet test --configuration Release --logger trx --results-directory TestResults/
+
+      # STEP 3: Log in to Azure using OpenID Connect (OIDC).
       # This is the recommended, most secure method as it avoids storing long-lived secrets.
       - name: Azure Login
         uses: azure/login@v2
@@ -56,7 +94,19 @@ jobs:
           tenant-id: ${{ secrets.WIKIQUIZAPIDEV_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.WIKIQUIZAPIDEV_AZURE_SUBSCRIPTION_ID }}
 
-      # STEP 3: Build the container image and deploy to Azure Container Apps.
+      # STEP 4: Check if container app exists
+      - name: Check Container App Status
+        id: check_app
+        run: |
+          if az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} >/dev/null 2>&1; then
+            echo "app_exists=true" >> $GITHUB_OUTPUT
+            echo "✅ Container app ${{ env.CONTAINER_APP_NAME }} exists"
+          else
+            echo "app_exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Container app ${{ env.CONTAINER_APP_NAME }} does not exist"
+          fi
+
+      # STEP 5: Build the container image and deploy to Azure Container Apps.
       - name: Build and Deploy Container App
         uses: azure/container-apps-deploy-action@v2
         with:
@@ -65,14 +115,52 @@ jobs:
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           registryUrl: ${{ env.CONTAINER_REGISTRY }}
 
-          # --- Add this line ---
-          containerName: wiki-quiz
+          # --- Container name from input or default ---
+          containerName: ${{ env.CONTAINER_NAME }}
 
           # --- Application Source and Build Configuration ---
           appSourcePath: ${{ env.CONTEXT_PATH }}
           dockerfilePath: ${{ env.DOCKERFILE_PATH }}
-          imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:dev
+          imageToBuild: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
           # --- Registry Credentials ---
           registryUsername: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.WIKIQUIZAPIDEV_REGISTRY_PASSWORD }}
+
+      # STEP 6: Post-deployment verification
+      - name: Verify Deployment
+        run: |
+          echo "🔍 Verifying dev deployment..."
+
+          # Wait a moment for the app to start
+          sleep 30
+
+          # Get the app URL
+          APP_URL=$(az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query properties.configuration.ingress.fqdn -o tsv)
+
+          if [ -n "$APP_URL" ]; then
+            echo "🌐 Dev Application URL: https://$APP_URL"
+
+            # Try to reach the health endpoint
+            if curl -f "https://$APP_URL/health" >/dev/null 2>&1; then
+              echo "✅ Health check passed!"
+            else
+              echo "⚠️ Health check failed, but deployment completed. App may still be starting up."
+            fi
+          else
+            echo "❌ Could not retrieve application URL"
+          fi
+
+          # Show recent logs
+          echo "📋 Recent application logs:"
+          az containerapp logs show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --tail 10
+
+      # STEP 7: Deployment summary
+      - name: Deployment Summary
+        if: always()
+        run: |
+          echo "📊 Dev Deployment Summary:"
+          echo "Status: ${{ job.status }}"
+          echo "Image: ${{ env.CONTAINER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+          echo "Container App: ${{ env.CONTAINER_APP_NAME }}"
+          echo "Resource Group: ${{ env.RESOURCE_GROUP }}"
