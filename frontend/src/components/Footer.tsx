@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 const Footer = React.memo(() => {
   const { t } = useTranslation();
-
+  // dummy change to test the pipeline
   return (
     <Box
       component="footer"

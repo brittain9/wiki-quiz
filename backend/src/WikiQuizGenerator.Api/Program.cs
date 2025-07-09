@@ -12,7 +12,7 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     Log.Information("Starting up WikiQuizGenerator.Api");
-    
+    // dummy change to test the pipeline
     var builder = WebApplication.CreateBuilder(args);
 
     // Configure Serilog from configuration
