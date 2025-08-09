@@ -1,8 +1,7 @@
 using Azure.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Serilog;
-using WikiQuizGenerator.Data;
+using WikiQuizGenerator.Data.Cosmos;
 
 // Configure Serilog first, before any other code runs
 Log.Logger = new LoggerConfiguration()
@@ -23,27 +22,22 @@ try
 
     var app = builder.Build();
 
-
     using (var scope = app.Services.CreateScope())
     {
         try
         {
-            // Database migration
-            Log.Information("Running database migrations");
-            var dbContext = scope.ServiceProvider.GetRequiredService<WikiQuizDbContext>();
-            dbContext.Database.Migrate();
-
-            // Seed ModelConfig data
-            Log.Information("Seeding model configurations");
-            var configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "aiservices.json");
-            await dbContext.SeedModelConfigsAsync(configPath);
+            // Initialize Cosmos DB containers
+            Log.Information("Ensuring Cosmos DB containers exist");
+            var cosmosDbContext = scope.ServiceProvider.GetRequiredService<CosmosDbContext>();
+            await cosmosDbContext.EnsureContainersExistAsync();
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "An error occurred during startup");
+            Log.Error(ex, "An error occurred during Cosmos DB initialization");
             throw;
         }
     }
+    
     Log.Information("Configuring the pipeline");
     ConfigurePipeline(app);
 

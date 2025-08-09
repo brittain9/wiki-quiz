@@ -12,18 +12,10 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
-    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="8.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.OpenAPI" Version="9.0.3" />
     <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="8.1.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.3" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.44.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Serilog" Version="4.0.0" />
@@ -34,7 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj" />
-    <ProjectReference Include="..\WikiQuizGenerator.Data\WikiQuizGenerator.Data.csproj" />
+    <ProjectReference Include="..\WikiQuizGenerator.Data.Cosmos\WikiQuizGenerator.Data.Cosmos.csproj" />
     <ProjectReference Include="..\WikiQuizGenerator.LLM\WikiQuizGenerator.LLM.csproj" />
   </ItemGroup>
 

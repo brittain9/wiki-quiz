@@ -7,26 +7,21 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using WikiQuizGenerator.Core.Interfaces;
 
-public class WikipediaContentProvider : IWikipediaContentProvider
+namespace WikiQuizGenerator.Core;
+
+public class WikipediaContentProvider : IWikipediaContentProvider, IDisposable
 {
-    private HttpClient _client;
-    private readonly IWikipediaPageRepository _pageRepository;
+    private readonly HttpClient _client;
     private readonly ILogger<WikipediaContentProvider> _logger;
 
-    public string ApiEndpoint
-    { 
-        get { return $"https://{Language.GetWikipediaLanguageCode()}.wikipedia.org/w/api.php"; } 
-    }
     public Languages Language { get; set; }
 
-    public string QueryApiEndpoint 
-    {
-        get { return $"{ApiEndpoint}?action=query&format=json&prop=extracts|info|links|categories&redirects=1&inprop=url|displaytitle&pllimit=100&titles="; } // + the query topic
-    }
+    public string ApiEndpoint => $"https://{Language.GetWikipediaLanguageCode()}.wikipedia.org/w/api.php";
 
-    public WikipediaContentProvider(IWikipediaPageRepository wikipediaPageRepository, ILogger<WikipediaContentProvider> logger)
+    public string QueryApiEndpoint => $"{ApiEndpoint}?action=query&format=json&prop=extracts|info|links|categories&redirects=1&inprop=url|displaytitle&pllimit=100&titles=";
+
+    public WikipediaContentProvider(ILogger<WikipediaContentProvider> logger)
     {
-        _pageRepository = wikipediaPageRepository;
         _logger = logger;
         _client = new HttpClient();
         Language = Languages.English;
@@ -34,43 +29,40 @@ public class WikipediaContentProvider : IWikipediaContentProvider
 
     /// <summary>
     /// Fetches the content of a Wikipedia article based on the given topic.
+    /// This method no longer stores pages in database - it fetches fresh data each time.
     /// </summary>
     /// <param name="topic">The topic to search for on Wikipedia.</param>
-    /// <returns>A WikipediaArticle object containing the article information.</returns>
+    /// <param name="language">The language to fetch the content in.</param>
+    /// <param name="cancellationToken">Cancellation token for the request.</param>
+    /// <returns>A WikipediaPage object containing the article information.</returns>
     public async Task<WikipediaPage> GetWikipediaPage(string topic, Languages language, CancellationToken cancellationToken)
     {
-        _logger.LogTrace($"Getting wikipedia page content on topic '{topic}' in '{language.GetWikipediaLanguageCode()}'.");
+        _logger.LogTrace("Getting wikipedia page content on topic '{Topic}' in '{Language}'.", topic, language.GetWikipediaLanguageCode());
 
         if (Language != language) 
             Language = language;
 
         var query = HttpUtility.UrlEncode(topic);
-
-        Stopwatch sw = Stopwatch.StartNew();
+        var sw = Stopwatch.StartNew();
 
         // Get the exact wikipedia page title using the wikipedia api search
         var exactTitle = await GetWikipediaExactTitle(query);
         if (string.IsNullOrEmpty(exactTitle))
         {
-            throw new ArgumentException($"No Wikipedia page found for the given query.", nameof(query));
+            throw new ArgumentException($"No Wikipedia page found for the given query.", nameof(topic));
         }
 
-        _logger.LogInformation($"Got exact article name '{exactTitle}' from user entered topic '{topic}' in {sw.ElapsedMilliseconds} milliseconds.");
+        _logger.LogInformation("Got exact article name '{ExactTitle}' from user entered topic '{Topic}' in {ElapsedMilliseconds} milliseconds.", 
+            exactTitle, topic, sw.ElapsedMilliseconds);
+        
         sw.Restart();
-
-        // Check if we already have this page.
-        if (await _pageRepository.ExistsByTitleAsync(exactTitle, language))
-        {
-            _logger.LogInformation($"Got page '{exactTitle}' in language '{language.GetWikipediaLanguageCode()}' from the database in {sw.ElapsedMilliseconds} milliseconds");
-            return await _pageRepository.GetByTitleAsync(exactTitle, language);
-        }
 
         var exactQuery = HttpUtility.UrlEncode(exactTitle);
         var url = QueryApiEndpoint + exactQuery;
 
         try
         {
-            var response = await _client.GetStringAsync(url);
+            var response = await _client.GetStringAsync(url, cancellationToken);
             var jsonDoc = JsonDocument.Parse(response);
             var pages = jsonDoc.RootElement.GetProperty("query").GetProperty("pages");
 
@@ -80,11 +72,11 @@ public class WikipediaContentProvider : IWikipediaContentProvider
                 var wikiPage = new WikipediaPage
                 {
                     WikipediaId = page.Value.GetProperty("pageid").GetInt32(),
-                    Title = page.Value.GetProperty("title").GetString(),
-                    Language = page.Value.GetProperty("pagelanguage").GetString(),
+                    Title = page.Value.GetProperty("title").GetString() ?? string.Empty,
+                    Language = page.Value.GetProperty("pagelanguage").GetString() ?? language.GetWikipediaLanguageCode(),
                     Extract = RemoveFormatting(page.Value.GetProperty("extract").GetString()),
                     LastModified = DateTime.Parse(page.Value.GetProperty("touched").GetString()).ToUniversalTime(),
-                    Url = page.Value.GetProperty("fullurl").GetString(),
+                    Url = page.Value.GetProperty("fullurl").GetString() ?? string.Empty,
                     Length = page.Value.GetProperty("length").GetInt32(),
                     Links = new List<string>(),
                     Categories = new List<WikipediaCategory>()
@@ -94,7 +86,11 @@ public class WikipediaContentProvider : IWikipediaContentProvider
                 {
                     foreach (var link in links.EnumerateArray())
                     {
-                        wikiPage.Links.Add(link.GetProperty("title").GetString()); // just add the link title string to the links list
+                        var linkTitle = link.GetProperty("title").GetString();
+                        if (!string.IsNullOrEmpty(linkTitle))
+                        {
+                            wikiPage.Links.Add(linkTitle);
+                        }
                     }
                 }
 
@@ -104,42 +100,46 @@ public class WikipediaContentProvider : IWikipediaContentProvider
                     {
                         var categoryName = category.GetProperty("title").GetString();
 
-                        // Remove "Category:" prefix if present
-                        if (categoryName.StartsWith("Category:"))
+                        if (!string.IsNullOrEmpty(categoryName))
                         {
-                            categoryName = categoryName.Substring("Category:".Length);
+                            // Remove "Category:" prefix if present
+                            if (categoryName.StartsWith("Category:"))
+                            {
+                                categoryName = categoryName.Substring("Category:".Length);
+                            }
+                            
+                            wikiPage.Categories.Add(new WikipediaCategory
+                            {
+                                Name = categoryName
+                            });
                         }
-                        wikiPage.Categories.Add(new WikipediaCategory
-                        {
-                            Name = categoryName
-                        });
                     }
                 }
 
                 sw.Stop();
-                wikiPage = await _pageRepository.AddAsync(wikiPage);
-                _logger.LogInformation($"Added Wikipedia page '{wikiPage.Title}' with language '{language.GetWikipediaLanguageCode()}' to database in {sw.ElapsedMilliseconds} milliseconds.");
+                _logger.LogInformation("Fetched Wikipedia page '{Title}' with language '{Language}' from API in {ElapsedMilliseconds} milliseconds.", 
+                    wikiPage.Title, language.GetWikipediaLanguageCode(), sw.ElapsedMilliseconds);
+                
                 return wikiPage;
             }
 
-            return null;
+            throw new InvalidOperationException($"No valid page found in Wikipedia API response for topic: {topic}");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!(ex is ArgumentException || ex is InvalidOperationException))
         {
-            sw.Reset();
-            _logger.LogError($"An error occurred: {ex.Message}");
-            throw;
+            _logger.LogError(ex, "An error occurred while fetching Wikipedia page for topic '{Topic}'", topic);
+            throw new InvalidOperationException($"Failed to fetch Wikipedia page for topic: {topic}", ex);
         }
     }
 
     public async Task<string> GetWikipediaExactTitle(string query)
     {
-        _logger.LogTrace($"Getting exact wikipedia title from user topic '{query}'.");
+        _logger.LogTrace("Getting exact wikipedia title from user topic '{Query}'.", query);
 
         string searchUrl = $"{ApiEndpoint}?action=opensearch&search={query}&limit=1&format=json";
         try
         {
-            var searchResponse = await _client.GetStringAsync(searchUrl); // the wikipedia api may not like vpns
+            var searchResponse = await _client.GetStringAsync(searchUrl);
             var searchResults = JsonDocument.Parse(searchResponse);
 
             if (searchResults.RootElement.GetArrayLength() < 2 || !searchResults.RootElement[1].EnumerateArray().MoveNext())
@@ -147,20 +147,25 @@ public class WikipediaContentProvider : IWikipediaContentProvider
                 return string.Empty;
             }
 
-            return searchResults.RootElement[1][0].GetString();
+            return searchResults.RootElement[1][0].GetString() ?? string.Empty;
         }
-        catch (HttpRequestException e)
+        catch (HttpRequestException ex)
         {
-            Console.WriteLine($"Request error: {e.Message}");
+            _logger.LogError(ex, "Request error while getting Wikipedia title for query '{Query}'", query);
+            return string.Empty;
         }
-        return string.Empty;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while getting Wikipedia title for query '{Query}'", query);
+            return string.Empty;
+        }
     }
 
-    public static string RemoveFormatting(string input)
+    public static string RemoveFormatting(string? input)
     {
         if (string.IsNullOrEmpty(input))
         {
-            return input;
+            return string.Empty;
         }
 
         // Remove all HTML tags
@@ -173,5 +178,10 @@ public class WikipediaContentProvider : IWikipediaContentProvider
         input = System.Net.WebUtility.HtmlDecode(input);
 
         return input.Trim();
+    }
+
+    public void Dispose()
+    {
+        _client?.Dispose();
     }
 }

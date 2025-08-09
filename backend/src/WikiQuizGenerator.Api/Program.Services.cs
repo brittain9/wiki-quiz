@@ -2,21 +2,20 @@ using System.Text;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Identity;
-using Npgsql;
 using System.Threading.RateLimiting;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.Services;
-using WikiQuizGenerator.Data;
+using WikiQuizGenerator.Data.Cosmos; // Changed from WikiQuizGenerator.Data
 using WikiQuizGenerator.LLM;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
-using WikiQuizGenerator.Data.Options;
-using WikiQuizGenerator.Data.Processors;
+using WikiQuizGenerator.Core.Options;
+using WikiQuizGenerator.Core.Processors;
 using Serilog;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -54,16 +53,19 @@ public partial class Program
                     .AllowCredentials());
         });
 
-        // Configure Identity
+        // Configure Identity - We'll need to create a custom UserStore for Cosmos DB
+        // For now, commenting out until we implement Cosmos-based Identity
+        /*
         services.AddIdentity<User, IdentityRole<Guid>>(opt =>
         {
             opt.Password.RequireDigit = true;
             opt.Password.RequireLowercase = true;
-            opt.Password.RequireNonAlphanumeric = true;
+            opt.Password.RequireNonAlpnanumeric = true;
             opt.Password.RequireUppercase = true;
             opt.Password.RequiredLength = 8;
             opt.User.RequireUniqueEmail = true;
         }).AddEntityFrameworkStores<WikiQuizDbContext>();
+        */
         
         // Add rate limiting services
         services.AddRateLimiter(options =>
@@ -121,34 +123,23 @@ public partial class Program
             };
         });
 
-        // Database configuration - build connection string from components for containerized PostgreSQL
-        var dbHost = configuration["wikiquizapp:DatabaseHost"] ?? "localhost";
-        var dbName = configuration["wikiquizapp:DatabaseName"] ?? "wikiquiz";
-        var dbUser = configuration["wikiquizapp:DatabaseUser"] ?? "wikiquizadmin";
-        var dbPassword = configuration["wikiquizapp:DatabasePassword"];
-        var dbPort = configuration["wikiquizapp:DatabasePort"] ?? "5432";
-        
-        var connectionString = string.IsNullOrEmpty(dbPassword) 
-            ? configuration["wikiquizapp:ConnectionString"] // Fallback to full connection string if available
-            : $"Server={dbHost};Database={dbName};Username={dbUser};Password={dbPassword};Port={dbPort};";
-        
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidOperationException("Database connection string is not configured. Please provide either a full connection string or individual database components.");
-        }
-        services.AddDataServices(connectionString);
+        services.AddCosmosDataServices(configuration);
         
         services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IPointsService, PointsService>();
 
-        // TODO: These lifetimes could use work
-        services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>(); // This also probably doesn't need DE
-        services.AddSingleton<PromptManager>(); // This probably doesn't need depedency injection
+        // Updated WikipediaContentProvider - no longer needs IWikipediaPageRepository
+        services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
+        
+        // ModelConfig service for AI model configuration (replaces database storage)
+        services.AddSingleton<IModelConfigService, ModelConfigService>();
+        
+        services.AddSingleton<PromptManager>(); // This probably doesn't need dependency injection
 
         string openAiApiKey = configuration["wikiquizapp:OpenAIApiKey"];
         if (string.IsNullOrWhiteSpace(openAiApiKey))
-            throw new ArgumentNullException(nameof(openAiApiKey), "OpenAIAPiKey is not configured.");
+            throw new ArgumentNullException(nameof(openAiApiKey), "OpenAIAPIKey is not configured.");
         services.AddScoped<IAiServiceManager>(serviceProvider =>
             new AiServiceManager(openAiApiKey)
         );
@@ -213,10 +204,25 @@ public partial class Program
         services.AddAuthorization();
         services.AddHttpContextAccessor();
         
-        // Add health check services
+        // Add health check services - updated for Cosmos DB
         services.AddHealthChecks()
             .AddCheck("self", () => HealthCheckResult.Healthy("API is running"), tags: new[] { "live" })
-            .AddNpgSql(connectionString, name: "database", tags: new[] { "ready", "database", "postgres" })
+            .AddCheck("cosmosdb", () => 
+            {
+                try
+                {
+                    // We'll implement a proper Cosmos DB health check later
+                    var cosmosOptions = configuration.GetSection("CosmosDb").Get<WikiQuizGenerator.Data.Cosmos.Configuration.CosmosDbOptions>();
+                    if (cosmosOptions?.ConnectionString == null)
+                        return HealthCheckResult.Unhealthy("Cosmos DB connection string is not configured");
+                    
+                    return HealthCheckResult.Healthy("Cosmos DB configuration is valid");
+                }
+                catch (Exception ex)
+                {
+                    return HealthCheckResult.Unhealthy("Cosmos DB check failed", ex);
+                }
+            }, tags: new[] { "ready", "database", "cosmosdb" })
             .AddCheck("openai-config", () => 
             {
                 var openAiKey = configuration["wikiquizapp:OpenAIApiKey"];

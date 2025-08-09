@@ -1,4 +1,4 @@
-namespace WikiQuizGenerator.Data.Options;
+namespace WikiQuizGenerator.Core.Options;
 
 public class JwtOptions
 {

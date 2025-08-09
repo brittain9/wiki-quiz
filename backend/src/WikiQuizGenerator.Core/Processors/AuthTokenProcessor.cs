@@ -5,11 +5,11 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using WikiQuizGenerator.Data.Options;
+using WikiQuizGenerator.Core.Options;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 
-namespace WikiQuizGenerator.Data.Processors;
+namespace WikiQuizGenerator.Core.Processors;
 
 public class AuthTokenProcessor : IAuthTokenProcessor
 {

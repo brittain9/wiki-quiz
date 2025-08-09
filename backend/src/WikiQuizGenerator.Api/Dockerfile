@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends unzip \
 # Copy only .csproj files to leverage Docker layer caching
 COPY src/WikiQuizGenerator.Api/WikiQuizGenerator.Api.csproj ./WikiQuizGenerator.Api/
 COPY src/WikiQuizGenerator.Core/WikiQuizGenerator.Core.csproj ./WikiQuizGenerator.Core/
-COPY src/WikiQuizGenerator.Data/WikiQuizGenerator.Data.csproj ./WikiQuizGenerator.Data/
+COPY src/WikiQuizGenerator.Data.Cosmos/WikiQuizGenerator.Data.Cosmos.csproj ./WikiQuizGenerator.Data.Cosmos/
 COPY src/WikiQuizGenerator.LLM/WikiQuizGenerator.LLM.csproj ./WikiQuizGenerator.LLM/
 
 # Restore dependencies
