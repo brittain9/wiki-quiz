@@ -1,13 +1,12 @@
 using System.Text;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Http.Timeouts;
-using Microsoft.AspNetCore.Identity;
 using System.Threading.RateLimiting;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.Services;
-using WikiQuizGenerator.Data.Cosmos; // Changed from WikiQuizGenerator.Data
+using WikiQuizGenerator.Data.Cosmos;
 using WikiQuizGenerator.LLM;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -52,20 +51,6 @@ public partial class Program
                     .AllowAnyHeader()
                     .AllowCredentials());
         });
-
-        // Configure Identity - We'll need to create a custom UserStore for Cosmos DB
-        // For now, commenting out until we implement Cosmos-based Identity
-        /*
-        services.AddIdentity<User, IdentityRole<Guid>>(opt =>
-        {
-            opt.Password.RequireDigit = true;
-            opt.Password.RequireLowercase = true;
-            opt.Password.RequireNonAlpnanumeric = true;
-            opt.Password.RequireUppercase = true;
-            opt.Password.RequiredLength = 8;
-            opt.User.RequireUniqueEmail = true;
-        }).AddEntityFrameworkStores<WikiQuizDbContext>();
-        */
         
         // Add rate limiting services
         services.AddRateLimiter(options =>
@@ -126,16 +111,14 @@ public partial class Program
         services.AddCosmosDataServices(configuration);
         
         services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
-        services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<IPointsService, PointsService>();
 
-        // Updated WikipediaContentProvider - no longer needs IWikipediaPageRepository
         services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
         
-        // ModelConfig service for AI model configuration (replaces database storage)
         services.AddSingleton<IModelConfigService, ModelConfigService>();
         
-        services.AddSingleton<PromptManager>(); // This probably doesn't need dependency injection
+        // TODO: Optimize the prompt manager
+        services.AddSingleton<PromptManager>();
 
         string openAiApiKey = configuration["wikiquizapp:OpenAIApiKey"];
         if (string.IsNullOrWhiteSpace(openAiApiKey))

@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.Requests;
 using System.Security.Claims;
 
@@ -47,7 +45,7 @@ public static class AuthEndpoints
             .AllowAnonymous();
 
         group.MapGet("/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator,
-                SignInManager<User> signInManager, HttpContext context, ILogger<Program> logger) =>
+                HttpContext context, ILogger<Program> logger) =>
             {
                 // Get the callback path
                 var callbackPath = linkGenerator.GetPathByName(context, "GoogleLoginCallback");
@@ -58,14 +56,17 @@ public static class AuthEndpoints
                 var callbackUrl = $"{scheme}://{host}{callbackPath}?returnUrl={returnUrl}";
                 logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
                 
-                var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", callbackUrl);
+                var properties = new AuthenticationProperties
+                {
+                    RedirectUri = callbackUrl
+                };
 
                 return Results.Challenge(properties, ["Google"]);
             })
             .AllowAnonymous();
 
         group.MapGet("/login/google/callback", async ([FromQuery] string returnUrl,
-                HttpContext context, IAccountService accountService, SignInManager<User> signInManager) =>
+                HttpContext context, IAccountService accountService) =>
             {
                 var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 

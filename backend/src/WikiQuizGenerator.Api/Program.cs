@@ -1,9 +1,8 @@
-using Azure.Identity;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using DotNetEnv;
+using DotNetEnv.Configuration;
 using Serilog;
 using WikiQuizGenerator.Data.Cosmos;
 
-// Configure Serilog first, before any other code runs
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -13,8 +12,13 @@ try
     Log.Information("Starting up WikiQuizGenerator.Api");
     var builder = WebApplication.CreateBuilder(args);
 
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Configuration.AddDotNetEnv(".env", LoadOptions.TraversePath());
+    }
+
     // Configure Serilog from configuration
-    builder.Host.UseSerilog((context, services, configuration) => 
+    builder.Host.UseSerilog((context, services, configuration) =>
         configuration.ReadFrom.Configuration(context.Configuration));
 
     Log.Information("Configuring services");
@@ -26,10 +30,10 @@ try
     {
         try
         {
-            // Initialize Cosmos DB containers
             Log.Information("Ensuring Cosmos DB containers exist");
-            var cosmosDbContext = scope.ServiceProvider.GetRequiredService<CosmosDbContext>();
-            await cosmosDbContext.EnsureContainersExistAsync();
+            await scope.ServiceProvider
+                .GetRequiredService<CosmosDbContext>()
+                .EnsureContainersExistAsync();
         }
         catch (Exception ex)
         {
@@ -37,7 +41,7 @@ try
             throw;
         }
     }
-    
+
     Log.Information("Configuring the pipeline");
     ConfigurePipeline(app);
 
