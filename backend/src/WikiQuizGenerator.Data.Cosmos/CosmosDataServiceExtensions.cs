@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Data.Cosmos.Configuration;
 using WikiQuizGenerator.Data.Cosmos.Repositories;
+using WikiQuizGenerator.Data.Cosmos.Services;
 
 namespace WikiQuizGenerator.Data.Cosmos;
 
@@ -30,7 +31,11 @@ public static class CosmosDataServiceExtensions
 
         // Register repositories - these replace the EF Core ones
         services.AddScoped<IQuizRepository, CosmosQuizRepository>();
-        services.AddScoped<IUserRepository, CosmosUserRepository>();
+        services.AddScoped<CosmosUserRepository>(); // Register the concrete class for dependency injection
+        services.AddScoped<IUserRepository>(provider => provider.GetRequiredService<CosmosUserRepository>());
+        
+        // Register Cosmos-based Account Service
+        services.AddScoped<IAccountService, CosmosAccountService>();
         
         // Note: IWikipediaPageRepository is no longer needed since we don't store Wikipedia pages
 

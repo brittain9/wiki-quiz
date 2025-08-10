@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WikiQuizGenerator.Core.Models;
+﻿using WikiQuizGenerator.Core.Services;
+using WikiQuizGenerator.Core.Utilities;
 
 namespace WikiQuizGenerator.Core.Interfaces;
 
-public interface IWikipediaContentProvider
+public interface IWikipediaContentService
 {
-    Task<WikipediaPage> GetWikipediaPage(string topic, Languages language, CancellationToken cancellationToken);
+    Task<WikipediaContentResult> GetWikipediaContentAsync(string topic, Languages language, int extractLength, CancellationToken cancellationToken);
     Task<string> GetWikipediaExactTitle(string query);
 }

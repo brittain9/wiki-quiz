@@ -2,10 +2,11 @@
 using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Mappers;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using WikiQuizGenerator.Core.Utilities;
 
 namespace WikiQuizGenerator.Api.Endpoints;
 
@@ -94,9 +95,9 @@ public static class QuizEndpoints
             return costCheckResult; // Return the error if user exceeded limit
         }
 
-        var lang = LanguagesExtensions.GetLanguageFromCode(language);
+        var lang = LanguagesUtils.GetLanguageFromCode(language);
 
-        var quiz = await quizGenerator.GenerateBasicQuizAsync(
+        var quiz = await quizGenerator.GenerateQuizAsync(
             topic,
             lang,
             aiService,
@@ -167,7 +168,6 @@ public static class QuizEndpoints
         var newLevel = pointsService.CalculateLevel(newTotalPoints);
 
         var submission = SubmissionMapper.ToModel(submissionDto);
-        submission.Quiz = quiz; // Link to the fetched quiz
         submission.UserId = userId;
         submission.Score = CalculateScore(submissionDto, quiz);
         submission.PointsEarned = pointsEarned;

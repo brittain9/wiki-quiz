@@ -1,27 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
+using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.Utilities;
 
 namespace WikiQuizGenerator.Core;
 
-public class QuizGenerator : IQuizGenerator
+public class QuizGenerator(
+        IQuestionGeneratorFactory questionGeneratorFactory,
+        IWikipediaContentService wikipediaContentService,
+        IAiServiceManager aiServiceManager,
+        ILogger<QuizGenerator> logger,
+        IQuizRepository quizRepository) : IQuizGenerator
 {
-    private IWikipediaContentProvider _wikipediaContentProvider;
-    private readonly IQuizRepository _quizRepository;
-    private readonly IAiServiceManager _aiServiceManager;
-    private readonly IQuestionGeneratorFactory _questionGeneratorFactory;
-    private readonly ILogger<QuizGenerator> _logger;
-
-    public QuizGenerator(IQuestionGeneratorFactory questionGeneratorFactory, IWikipediaContentProvider wikipediaContentProvider, IAiServiceManager aiServiceManager, ILogger<QuizGenerator> logger, IQuizRepository quizRepository)
-    {
-        _wikipediaContentProvider = wikipediaContentProvider;
-        _questionGeneratorFactory = questionGeneratorFactory;
-        _aiServiceManager = aiServiceManager;
-        _logger = logger;
-        _quizRepository = quizRepository;
-    }
-
-    public async Task<Quiz> GenerateBasicQuizAsync(
+    public async Task<Quiz> GenerateQuizAsync(
         string topic,
         Languages language,
         string aiService,
@@ -32,27 +23,37 @@ public class QuizGenerator : IQuizGenerator
         Guid createdBy,
         CancellationToken cancellationToken)
     {
-        _logger.LogTrace($"Generating a basic quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
+        logger.LogTrace($"Generating a quiz on '{topic}' in '{language.GetWikipediaLanguageCode()}' with {numQuestions} questions, {numOptions} options, and {extractLength} extract length.");
 
-        WikipediaPage page = await _wikipediaContentProvider.GetWikipediaPage(topic, language, cancellationToken); // throws error and returns result in middleware if page doesn't exist
+        var contentResult = await wikipediaContentService.GetWikipediaContentAsync(topic, language, extractLength, cancellationToken);
 
-        var content = RandomContentSections.GetRandomContentSections(page.Extract, extractLength);
+        var questionGenerator = questionGeneratorFactory.Create(aiServiceManager, aiService, model);
 
-        var questionGenerator = _questionGeneratorFactory.Create(_aiServiceManager, aiService, model);
+        var generationResult = await questionGenerator.GenerateQuestionsAsync(contentResult.ProcessedContent, language, numQuestions, numOptions, cancellationToken);
+        
+        if (generationResult == null || generationResult.Questions.Count == 0)
+            throw new InvalidOperationException("Failed to generate quiz questions");
 
-        var aiResponse = await questionGenerator.GenerateQuestionsAsync(page, content, language, numQuestions, numOptions, cancellationToken);
-        if (aiResponse == null)
-            return null;
+        // Log generation metrics for monitoring/cost tracking
+        if (generationResult.InputTokenCount.HasValue && generationResult.OutputTokenCount.HasValue)
+        {
+            logger.LogInformation("Generated quiz with {QuestionCount} questions using {InputTokens} input tokens and {OutputTokens} output tokens in {ResponseTime}ms",
+                generationResult.Questions.Count,
+                generationResult.InputTokenCount.Value,
+                generationResult.OutputTokenCount.Value,
+                generationResult.ResponseTimeMs);
+        }
 
         Quiz quiz = new Quiz()
         {
-            Title = page.Title,
+            Title = contentResult.WikipediaReference.Title,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy,
-            AIResponses = new List<AIResponse> { aiResponse }
+            Questions = generationResult.Questions,
+            WikipediaReference = contentResult.WikipediaReference
         };
 
-        var result = await _quizRepository.AddAsync(quiz);
+        var result = await quizRepository.AddAsync(quiz);
         return result;
     }
 }

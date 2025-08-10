@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 
 namespace WikiQuizGenerator.Core.Services;
 

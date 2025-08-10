@@ -113,7 +113,7 @@ public partial class Program
         services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
         services.AddScoped<IPointsService, PointsService>();
 
-        services.AddScoped<IWikipediaContentProvider, WikipediaContentProvider>();
+        services.AddScoped<IWikipediaContentProvider, WikipediaContentService>();
         
         services.AddSingleton<IModelConfigService, ModelConfigService>();
         

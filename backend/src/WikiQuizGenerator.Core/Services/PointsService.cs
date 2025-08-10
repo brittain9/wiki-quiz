@@ -1,4 +1,4 @@
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.DTOs;
 
 namespace WikiQuizGenerator.Core.Services;

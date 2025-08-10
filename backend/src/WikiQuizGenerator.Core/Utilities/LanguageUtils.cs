@@ -1,6 +1,22 @@
 ﻿using WikiQuizGenerator.Core;
 
-public static class LanguagesExtensions
+namespace WikiQuizGenerator.Core.Utilities;
+
+public enum Languages
+{
+    English,
+    German,
+    Spanish,
+    Chinese,
+    // Farci, // This seems too difficult to support as it is read from right to left.
+    Japanese,
+    Russian,
+    French,
+    Italian,
+    Portuguese
+}
+
+public static class LanguagesUtils
 {
     private static readonly Dictionary<Languages, string> LanguageCodeMap = new()
     {

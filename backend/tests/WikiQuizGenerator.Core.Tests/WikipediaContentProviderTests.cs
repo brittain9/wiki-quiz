@@ -2,50 +2,24 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 using Moq;
-
-using WikiQuizGenerator.Core.Models;
-using System.Diagnostics;
-using WikiQuizGenerator.Core;
 using Microsoft.Extensions.Logging;
 using WikiQuizGenerator.Core.Interfaces;
+using WikiQuizGenerator.Core.Utilities;
+using WikiQuizGenerator.Core.Services;
 
 public class WikipediaContentProviderTests
 {
-    private readonly Mock<ILogger<WikipediaContentProvider>> _mockLogger;
-    private readonly WikipediaContentProvider _contentProvider;
+    private readonly Mock<ILogger<WikipediaContentService>> _mockLogger;
+    private readonly WikipediaContentService _contentProvider;
 
     public WikipediaContentProviderTests()
     {
         // Setup mocks
-        _mockLogger = new Mock<ILogger<WikipediaContentProvider>>();
+        _mockLogger = new Mock<ILogger<WikipediaContentService>>();
 
-        // Create the instance to test - no longer needs IWikipediaPageRepository
-        _contentProvider = new WikipediaContentProvider(_mockLogger.Object);
+        // Create the instance to test
+        _contentProvider = new WikipediaContentService(_mockLogger.Object);
     }
-
-    //[Theory]
-    //[InlineData("George Washington", "Washington", "en")]
-    //[InlineData("C++", "C plus plus", "en")]
-    //[InlineData("Mars ocean theory", "Mars", "en")]
-    //[InlineData("Informática", "Informática", "es")]
-    //[InlineData("Informatique", "Informatique", "fr")]
-    //public async Task GetWikipediaArticle_ReturnsValidArticle(string topic, string expectedWord, string language)
-    //{
-    //    // Arrange
-    //    Languages lang = LanguagesExtensions.GetLanguageFromCode(language);
-
-    //    // Act - Now always fetches from Wikipedia API
-    //    WikipediaPage page = await _contentProvider.GetWikipediaPage(topic, lang, CancellationToken.None);
-
-    //    // Assert
-    //    Assert.NotNull(page);
-
-    //    Assert.Equal(lang.GetWikipediaLanguageCode(), page.Language);
-    //    Assert.Contains(expectedWord, page.Extract, StringComparison.OrdinalIgnoreCase);
-    //    Assert.NotEmpty(page.Url);
-    //    Assert.NotEmpty(page.Links);
-    //    Assert.NotEmpty(page.Categories);
-    //}
 
     [Theory]
     [InlineData("invasion of ygoslavia", "Invasion of Yugoslavia")]
@@ -55,11 +29,11 @@ public class WikipediaContentProviderTests
     {
         string title = await _contentProvider.GetWikipediaExactTitle(input);
 
-        Assert.Equal(title, expectedTitle);
+        Assert.Equal(expectedTitle, title);
     }
 
     [Fact]
-    public async Task GetWikipediaExactTitle_InvalidTopic_ReturnsNull()
+    public async Task GetWikipediaExactTitle_InvalidTopic_ReturnsEmpty()
     {
         string invalidTopic = "ThisIsAnInvalidWikipediaTopicThatShouldNotExist12345";
 
@@ -74,8 +48,29 @@ public class WikipediaContentProviderTests
         string input = "<this will be removed> this will stay </this will be removed>";
         string expected = "this will stay";
 
-        string result = WikipediaContentProvider.RemoveFormatting(input);
+        string result = WikipediaContentService.RemoveFormatting(input);
 
         Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData("George Washington", "Washington", "en", 1000)]
+    [InlineData("Mars ocean theory", "Mars", "en", 1500)]
+    public async Task GetWikipediaContentAsync_ReturnsValidContent(string topic, string expectedWord, string language, int extractLength)
+    {
+        // Arrange
+        Languages lang = LanguagesExtensions.GetLanguageFromCode(language);
+
+        // Act
+        var result = await _contentProvider.GetWikipediaContentAsync(topic, lang, extractLength, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.WikipediaReference);
+        Assert.NotEmpty(result.ProcessedContent);
+        Assert.Contains(expectedWord, result.ProcessedContent, StringComparison.OrdinalIgnoreCase);
+        Assert.NotEmpty(result.WikipediaReference.Title);
+        Assert.NotEmpty(result.WikipediaReference.Url);
+        Assert.Equal(lang.GetWikipediaLanguageCode(), result.WikipediaReference.Language);
     }
 }

@@ -19,4 +19,8 @@
     <ProjectReference Include="..\WikiQuizGenerator.Core\WikiQuizGenerator.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Entities\" />
+  </ItemGroup>
+
 </Project>

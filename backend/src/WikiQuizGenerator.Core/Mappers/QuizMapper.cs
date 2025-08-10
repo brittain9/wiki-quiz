@@ -1,5 +1,5 @@
 ﻿using WikiQuizGenerator.Core.DTOs;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 
 namespace WikiQuizGenerator.Core.Mappers;
 
@@ -7,58 +7,31 @@ public static class QuizMapper
 {
     public static QuizDto ToDto(this Quiz quiz)
     {
-        var aiResponseDtos = new List<AIResponseDto>();
-        foreach (var response in quiz.AIResponses)
+        // Create a single AIResponse DTO from the simplified quiz structure
+        var aiResponseDto = new AIResponseDto
         {
-            aiResponseDtos.Add(response.ToDto());
-        }
+            Id = 1, // Simple ID since we have one response per quiz
+            ResponseTopic = quiz.WikipediaReference?.Title ?? string.Empty,
+            TopicUrl = quiz.WikipediaReference?.Url ?? string.Empty,
+            Questions = quiz.Questions.Select((question, index) => question.ToDto(index + 1)).ToList()
+        };
 
         return new QuizDto
         {
-            Id = quiz.Id,
+            Id = 1, // Simplified ID
             Title = quiz.Title,
             CreatedAt = quiz.CreatedAt,
-            AIResponses = aiResponseDtos,
+            AIResponses = new List<AIResponseDto> { aiResponseDto }
         };
     }
 
-    public static AIResponseDto ToDto(this AIResponse aiResponse)
+    public static QuestionDto ToDto(this Question question, int id)
     {
-        var questionsDtos = new List<QuestionDto>();
-        foreach (var question in aiResponse.Questions)
-        {
-            questionsDtos.Add(question.ToDto());
-        }
-
-        return new AIResponseDto
-        {
-            Id = aiResponse.Id,
-            ResponseTopic = aiResponse.WikipediaPage.Title,
-            TopicUrl = aiResponse.WikipediaPage.Url,
-            Questions = questionsDtos
-        };
-    }
-
-    public static QuestionDto ToDto(this Question question)
-    {
-        var options = new List<string>
-        {
-            question.Option1,
-            question.Option2
-        };
-
-        if (!string.IsNullOrEmpty(question.Option3))
-            options.Add(question.Option3);
-        if (!string.IsNullOrEmpty(question.Option4))
-            options.Add(question.Option4);
-        if (!string.IsNullOrEmpty(question.Option5))
-            options.Add(question.Option5);
-
         return new QuestionDto
         {
-            Id = question.Id,
+            Id = id,
             Text = question.Text,
-            Options = options
+            Options = question.Options
         };
     }
 }

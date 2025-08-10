@@ -1,10 +1,10 @@
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using WikiQuizGenerator.Core.Interfaces;
+using WikiQuizGenerator.Core.DomainObjects;
 using CosmosQuiz = WikiQuizGenerator.Data.Cosmos.Models.Quiz;
-using CoreQuiz = WikiQuizGenerator.Core.Models.Quiz;
-using CoreSubmission = WikiQuizGenerator.Core.Models.Submission;
-using CoreQuestion = WikiQuizGenerator.Core.Models.Question;
+using CosmosSubmission = WikiQuizGenerator.Data.Cosmos.Models.Submission;
+using CosmosQuestion = WikiQuizGenerator.Data.Cosmos.Models.Question;
 
 namespace WikiQuizGenerator.Data.Cosmos.Repositories;
 
@@ -17,7 +17,7 @@ public class CosmosQuizRepository : IQuizRepository
         _context = context;
     }
 
-    public async Task<CoreQuiz> AddAsync(CoreQuiz coreQuiz)
+    public async Task<Quiz> AddAsync(Quiz coreQuiz)
     {
         var cosmosQuiz = MapToCosmos(coreQuiz);
         cosmosQuiz.PartitionKey = coreQuiz.CreatedBy.ToString();
@@ -27,7 +27,7 @@ public class CosmosQuizRepository : IQuizRepository
         return MapFromCosmos(response.Resource);
     }
 
-    public async Task<CoreQuiz?> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<Quiz?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
         try
         {
@@ -47,13 +47,13 @@ public class CosmosQuizRepository : IQuizRepository
         }
     }
 
-    public async Task<IEnumerable<CoreQuiz>> GetAllAsync()
+    public async Task<IEnumerable<Quiz>> GetAllAsync()
     {
         var iterator = _context.QuizContainer
             .GetItemLinqQueryable<CosmosQuiz>()
             .ToFeedIterator();
 
-        var quizzes = new List<CoreQuiz>();
+        var quizzes = new List<Quiz>();
         while (iterator.HasMoreResults)
         {
             var response = await iterator.ReadNextAsync();
@@ -64,7 +64,7 @@ public class CosmosQuizRepository : IQuizRepository
         return quizzes;
     }
 
-    public async Task<IEnumerable<CoreSubmission>> GetRecentQuizSubmissionsAsync(int count = 10)
+    public async Task<IEnumerable<Submission>> GetRecentQuizSubmissionsAsync(int count = 10)
     {
         var iterator = _context.QuizContainer
             .GetItemLinqQueryable<CosmosQuiz>()
@@ -73,7 +73,7 @@ public class CosmosQuizRepository : IQuizRepository
             .Take(count)
             .ToFeedIterator();
 
-        var submissions = new List<CoreSubmission>();
+        var submissions = new List<Submission>();
         while (iterator.HasMoreResults)
         {
             var response = await iterator.ReadNextAsync();
@@ -101,7 +101,7 @@ public class CosmosQuizRepository : IQuizRepository
         }
     }
 
-    public async Task<CoreSubmission?> AddSubmissionAsync(CoreSubmission submission, CancellationToken cancellationToken)
+    public async Task<Submission?> AddSubmissionAsync(Submission submission, CancellationToken cancellationToken)
     {
         // Find the quiz and add the submission to it
         var quiz = await GetByIdAsync(submission.QuizId, cancellationToken);
@@ -120,20 +120,20 @@ public class CosmosQuizRepository : IQuizRepository
     }
 
     // Simple mapping methods - no more Wikipedia page repository dependency
-    private CosmosQuiz MapToCosmos(CoreQuiz core)
+    private CosmosQuiz MapToCosmos(Quiz core)
     {
         // Get Wikipedia reference from the first AIResponse
         var firstAIResponse = core.AIResponses.FirstOrDefault();
         var wikipediaSource = new Models.WikipediaReference();
         
-        if (firstAIResponse?.WikipediaPage != null)
+        if (firstAIResponse?.WikipediaReference != null)
         {
             wikipediaSource = new Models.WikipediaReference
             {
-                PageId = firstAIResponse.WikipediaPage.WikipediaId, // Use WikipediaId instead of database Id
-                Title = firstAIResponse.WikipediaPage.Title,
-                Url = firstAIResponse.WikipediaPage.Url,
-                Language = firstAIResponse.WikipediaPage.Language
+                PageId = firstAIResponse.WikipediaReference.PageId,
+                Title = firstAIResponse.WikipediaReference.Title,
+                Url = firstAIResponse.WikipediaReference.Url,
+                Language = firstAIResponse.WikipediaReference.Language
             };
         }
 
@@ -149,7 +149,7 @@ public class CosmosQuizRepository : IQuizRepository
         };
     }
 
-    private Models.AIResponse MapAIResponseToCosmos(Core.Models.AIResponse core)
+    private Models.AIResponse MapAIResponseToCosmos(AIResponse core)
     {
         return new Models.AIResponse
         {
@@ -162,7 +162,7 @@ public class CosmosQuizRepository : IQuizRepository
         };
     }
 
-    private Models.Question MapQuestionToCosmos(Core.Models.Question core)
+    private Models.Question MapQuestionToCosmos(Question core)
     {
         var options = new List<string> { core.Option1, core.Option2 };
         if (!string.IsNullOrEmpty(core.Option3)) options.Add(core.Option3);
@@ -179,7 +179,7 @@ public class CosmosQuizRepository : IQuizRepository
         };
     }
 
-    private Models.Submission MapSubmissionToCosmos(Core.Models.Submission core)
+    private Models.Submission MapSubmissionToCosmos(Submission core)
     {
         return new Models.Submission
         {
@@ -197,64 +197,57 @@ public class CosmosQuizRepository : IQuizRepository
         };
     }
 
-    // Reverse mapping methods - creates WikipediaPage from stored reference (no DB lookup)
-    private CoreQuiz MapFromCosmos(CosmosQuiz cosmos)
+    // Reverse mapping methods - creates WikipediaReference from stored reference
+    private Quiz MapFromCosmos(CosmosQuiz cosmos)
     {
-        // Create a lightweight WikipediaPage from the stored reference
-        Core.Models.WikipediaPage? wikipediaPage = null;
+        // Create a WikipediaReference from stored data
+        WikipediaReference? wikipediaReference = null;
         if (cosmos.WikipediaSource.PageId > 0)
         {
-            wikipediaPage = new Core.Models.WikipediaPage
+            wikipediaReference = new WikipediaReference
             {
-                WikipediaId = cosmos.WikipediaSource.PageId,
+                PageId = cosmos.WikipediaSource.PageId,
                 Title = cosmos.WikipediaSource.Title,
                 Url = cosmos.WikipediaSource.Url,
-                Language = cosmos.WikipediaSource.Language,
-                // These fields won't be available from the reference, 
-                // but they're not needed for quiz functionality
-                Extract = string.Empty,
-                LastModified = DateTime.MinValue,
-                Length = 0,
-                Links = new List<string>(),
-                Categories = new List<Core.Models.WikipediaCategory>()
+                Language = cosmos.WikipediaSource.Language
             };
         }
 
-        var coreQuiz = new CoreQuiz
+        var coreQuiz = new Quiz
         {
             Id = int.Parse(cosmos.Id),
             Title = cosmos.Title,
             CreatedAt = cosmos.CreatedAt,
             CreatedBy = cosmos.CreatedBy,
-            AIResponses = cosmos.AIResponses.Select(ai => MapAIResponseFromCosmos(ai, wikipediaPage)).ToList()
+            AIResponses = cosmos.AIResponses.Select(ai => MapAIResponseFromCosmos(ai, wikipediaReference)).ToList()
         };
 
         // Add submission if it exists
         if (cosmos.Submission != null)
         {
-            coreQuiz.QuizSubmissions = new List<Core.Models.Submission> { MapSubmissionFromCosmos(cosmos.Submission) };
+            coreQuiz.QuizSubmissions = new List<Submission> { MapSubmissionFromCosmos(cosmos.Submission) };
         }
 
         return coreQuiz;
     }
 
-    private Core.Models.AIResponse MapAIResponseFromCosmos(Models.AIResponse cosmos, Core.Models.WikipediaPage? wikipediaPage)
+    private AIResponse MapAIResponseFromCosmos(Models.AIResponse cosmos, WikipediaReference? wikipediaReference)
     {
-        return new Core.Models.AIResponse
+        return new AIResponse
         {
             Id = cosmos.Id,
             ResponseTime = cosmos.ResponseTime,
             InputTokenCount = cosmos.InputTokenCount,
             OutputTokenCount = cosmos.OutputTokenCount,
             ModelConfigId = cosmos.ModelConfigId,
-            WikipediaPage = wikipediaPage, // Use the lightweight reference
+            WikipediaReference = wikipediaReference,
             Questions = cosmos.Questions.Select(MapQuestionFromCosmos).ToList()
         };
     }
 
-    private Core.Models.Question MapQuestionFromCosmos(Models.Question cosmos)
+    private Question MapQuestionFromCosmos(Models.Question cosmos)
     {
-        return new Core.Models.Question
+        return new Question
         {
             Id = cosmos.Id,
             Text = cosmos.Text,
@@ -268,16 +261,16 @@ public class CosmosQuizRepository : IQuizRepository
         };
     }
 
-    private Core.Models.Submission MapSubmissionFromCosmos(Models.Submission cosmos)
+    private Submission MapSubmissionFromCosmos(Models.Submission cosmos)
     {
-        return new Core.Models.Submission
+        return new Submission
         {
             Id = cosmos.Id,
             UserId = cosmos.UserId,
             SubmissionTime = cosmos.SubmissionTime,
             Score = cosmos.Score,
             PointsEarned = cosmos.PointsEarned,
-            Answers = cosmos.Answers.Select(a => new Core.Models.QuestionAnswer
+            Answers = cosmos.Answers.Select(a => new QuestionAnswer
             {
                 Id = a.Id,
                 QuestionId = a.QuestionId,
@@ -288,11 +281,11 @@ public class CosmosQuizRepository : IQuizRepository
 
     // Implement remaining interface methods with NotImplementedException for now
     public Task DeleteSubmissionAsync(int submissionId) => throw new NotImplementedException();
-    public Task<CoreSubmission> GetSubmissionByIdAsync(int submissionId) => throw new NotImplementedException();
-    public Task<IEnumerable<CoreSubmission>> GetAllSubmissionsAsync() => throw new NotImplementedException();
-    public Task<IEnumerable<CoreSubmission>> GetSubmissionsByUserIdAsync(Guid userId) => throw new NotImplementedException();
-    public Task<(IEnumerable<CoreSubmission> submissions, int totalCount)> GetSubmissionsByUserIdPaginatedAsync(Guid userId, int page, int pageSize) => throw new NotImplementedException();
-    public Task<CoreSubmission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId) => throw new NotImplementedException();
-    public Task<CoreSubmission?> GetUserSubmissionByQuizIdAsync(int quizId, Guid userId, CancellationToken cancellationToken) => throw new NotImplementedException();
-    public Task<CoreQuestion?> GetQuestionByIdAsync(int questionId, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task<Submission> GetSubmissionByIdAsync(int submissionId) => throw new NotImplementedException();
+    public Task<IEnumerable<Submission>> GetAllSubmissionsAsync() => throw new NotImplementedException();
+    public Task<IEnumerable<Submission>> GetSubmissionsByUserIdAsync(Guid userId) => throw new NotImplementedException();
+    public Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsByUserIdPaginatedAsync(Guid userId, int page, int pageSize) => throw new NotImplementedException();
+    public Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId) => throw new NotImplementedException();
+    public Task<Submission?> GetUserSubmissionByQuizIdAsync(int quizId, Guid userId, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task<Question?> GetQuestionByIdAsync(int questionId, CancellationToken cancellationToken) => throw new NotImplementedException();
 }

@@ -1,39 +1,37 @@
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.DTOs;
 namespace WikiQuizGenerator.Core.Mappers;
 
-// This is the resoponse for when the the user requests detailed information about the quiz
+// This is the response for when the user requests detailed information about the quiz
 public static class QuizResultMapper
 {
-    public static QuizResultDto ToDto(Submission submission)
+    public static QuizResultDto ToDto(Submission submission, Quiz quiz)
     {
         return new QuizResultDto()
         {
-            Quiz = submission.Quiz.ToDto(),
+            Quiz = quiz.ToDto(),
             Score = submission.Score,
             SubmissionTime = submission.SubmissionTime,
             UserId = submission.UserId,
-            Answers = GetResultOptions(submission)
+            Answers = GetResultOptions(submission, quiz)
         };
     }
 
-    private static List<ResultOptionDto> GetResultOptions(Submission submission)
+    private static List<ResultOptionDto> GetResultOptions(Submission submission, Quiz quiz)
     {
         var resultOptions = new List<ResultOptionDto>();
 
-        foreach (var aiResponse in submission.Quiz.AIResponses)
+        for (int i = 0; i < quiz.Questions.Count; i++)
         {
-            foreach (var question in aiResponse.Questions)
-            {
-                var selectedAnswer = submission.Answers.FirstOrDefault(a => a.QuestionId == question.Id);
+            var question = quiz.Questions[i];
+            var selectedAnswer = i < submission.Answers.Count ? submission.Answers[i] : -1;
 
-                resultOptions.Add(new ResultOptionDto
-                {
-                    QuestionId = question.Id,
-                    CorrectAnswerChoice = question.CorrectOptionNumber,
-                    SelectedAnswerChoice = selectedAnswer?.SelectedOptionNumber ?? 0
-                });
-            }
+            resultOptions.Add(new ResultOptionDto
+            {
+                QuestionId = i + 1, // 1-based ID for DTOs
+                CorrectAnswerChoice = question.CorrectAnswerIndex,
+                SelectedAnswerChoice = selectedAnswer
+            });
         }
 
         return resultOptions;
