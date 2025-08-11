@@ -172,6 +172,9 @@ public static class QuizEndpoints
         await userRepository.UpdateUserPointsAndLevelAsync(userId, pointsEarned, newLevel);
 
         var resultDto = SubmissionMapper.ToDto(submission);
+        // Use quiz id as submission id for retrieval, and attach quiz title for UI
+        resultDto.Id = quiz.Id;
+        resultDto.Title = quiz.Title;
 
         return TypedResults.Created((string?)null, resultDto);
     }
@@ -182,7 +185,7 @@ public static class QuizEndpoints
         ClaimsPrincipal claimsPrincipal,
         CancellationToken cancellationToken)
     {
-        if (answerValidation == null || answerValidation.QuestionId <= 0)
+        if (answerValidation == null || answerValidation.QuizId <= 0 || answerValidation.QuestionId <= 0)
         {
             return TypedResults.BadRequest("Invalid answer validation data provided.");
         }
@@ -193,10 +196,34 @@ public static class QuizEndpoints
             return TypedResults.Unauthorized();
         }
 
-        // This endpoint requires a way to locate a question; not supported with current domain (no question IDs).
-        return TypedResults.BadRequest("Per-question validation is not supported in the current model.");
+        // Load quiz and question
+        var quiz = await quizRepository.GetByIdAsync(answerValidation.QuizId, cancellationToken);
+        if (quiz is null)
+        {
+            return TypedResults.NotFound($"Quiz with ID {answerValidation.QuizId} not found.");
+        }
 
-        // Unreachable with current model constraints; kept here for future support
+        var questionIndex = answerValidation.QuestionId - 1; // frontend uses 1-based ids
+        if (questionIndex < 0 || questionIndex >= quiz.Questions.Count)
+        {
+            return TypedResults.NotFound($"Question with ID {answerValidation.QuestionId} not found.");
+        }
+
+        var question = quiz.Questions[questionIndex];
+        var isCorrect = (answerValidation.SelectedOptionNumber - 1) == question.CorrectAnswerIndex;
+        var pointsEarned = isCorrect ? 1 : 0; // simple rule: 1 point per correct answer
+
+        var response = new AnswerValidationResponseDto
+        {
+            IsCorrect = isCorrect,
+            CorrectOptionNumber = question.CorrectAnswerIndex + 1,
+            PointsEarned = isCorrect ? 1000 : 0,
+            CorrectAnswerText = (question.CorrectAnswerIndex >= 0 && question.CorrectAnswerIndex < question.Options.Count)
+                ? question.Options[question.CorrectAnswerIndex]
+                : null
+        };
+
+        return TypedResults.Ok(response);
     }
 
     
