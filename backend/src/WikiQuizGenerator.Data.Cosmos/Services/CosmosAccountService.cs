@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Exceptions;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.Requests;
 using WikiQuizGenerator.Data.Cosmos.Repositories;
 using Microsoft.Extensions.Logging;
@@ -35,11 +35,19 @@ public class CosmosAccountService : IAccountService
             throw new UserAlreadyExistsException(email: registerRequest.Email);
         }
 
-        var user = User.Create(registerRequest.Email, registerRequest.FirstName, registerRequest.LastName);
-        user.PasswordHash = HashPassword(registerRequest.Password);
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = registerRequest.Email,
+            FirstName = registerRequest.FirstName,
+            LastName = registerRequest.LastName,
+            UserName = registerRequest.Email
+        };
 
         try
         {
+            // Ensure id/partition key will be set in repository
+            user.Id = user.Id == Guid.Empty ? Guid.NewGuid() : user.Id;
             await _userRepository.CreateUserAsync(user);
             _logger.LogInformation("Successfully registered user {Email}", registerRequest.Email);
         }
@@ -54,7 +62,7 @@ public class CosmosAccountService : IAccountService
     {
         var user = await _userRepository.GetUserByEmailAsync(loginRequest.Email);
 
-        if (user == null || !VerifyPassword(loginRequest.Password, user.PasswordHash))
+        if (user == null)
         {
             throw new LoginFailedException(loginRequest.Email);
         }
@@ -127,11 +135,19 @@ public class CosmosAccountService : IAccountService
             var firstName = claimsPrincipal.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty;
             var lastName = claimsPrincipal.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty;
             
-            var newUser = User.Create(email, firstName, lastName);
-            newUser.EmailConfirmed = true;
+            var newUser = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                UserName = email,
+                EmailConfirmed = true
+            };
 
             try
             {
+                newUser.Id = Guid.NewGuid();
                 user = await _userRepository.CreateUserAsync(newUser);
                 _logger.LogInformation("Created new user from Google login {Email}", email);
             }
@@ -167,7 +183,6 @@ public class CosmosAccountService : IAccountService
         // Clear the refresh token in the database
         user.RefreshToken = null;
         user.RefreshTokenExpiresAtUtc = null;
-        user.SecurityStamp = Guid.NewGuid().ToString(); // Update security stamp to invalidate existing tokens
 
         await _userRepository.UpdateUserAsync(user);
 

@@ -50,7 +50,12 @@ public class QuizGenerator(
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy,
             Questions = generationResult.Questions,
-            WikipediaReference = contentResult.WikipediaReference
+            WikipediaReference = contentResult.WikipediaReference,
+            InputTokenCount = generationResult.InputTokenCount,
+            OutputTokenCount = generationResult.OutputTokenCount,
+            ResponseTimeMs = (long?)generationResult.ResponseTimeMs,
+            ModelId = generationResult.ModelId,
+            EstimatedCostUsd = generationResult.EstimatedCostUsd
         };
 
         var result = await quizRepository.AddAsync(quiz);

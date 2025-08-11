@@ -1,17 +1,17 @@
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 
 namespace WikiQuizGenerator.Core.Interfaces;
 
 public interface IQuizRepository
 {
-    Task<Quiz> GetByIdAsync(int id, CancellationToken cancellationToken);
+    Task<Quiz?> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<IEnumerable<Quiz>> GetAllAsync();
     Task<IEnumerable<Submission>> GetRecentQuizSubmissionsAsync(int count = 10);
 
     Task<Quiz> AddAsync(Quiz quiz);
     Task DeleteAsync(int id);
 
-    Task<Submission?> AddSubmissionAsync(Submission submission, CancellationToken cancellationToken);
+    Task<Submission?> AddSubmissionAsync(int quizId, Submission submission, CancellationToken cancellationToken);
     Task DeleteSubmissionAsync(int submissionId);
     Task<Submission> GetSubmissionByIdAsync(int submissionId);
     Task<IEnumerable<Submission>> GetAllSubmissionsAsync();

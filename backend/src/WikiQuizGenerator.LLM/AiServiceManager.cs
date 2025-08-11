@@ -1,5 +1,5 @@
 using System.Text.Json;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.Interfaces;
 
 namespace WikiQuizGenerator.LLM;

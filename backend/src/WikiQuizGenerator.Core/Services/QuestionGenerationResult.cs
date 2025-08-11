@@ -12,5 +12,6 @@ public class QuestionGenerationResult
     public int? InputTokenCount { get; set; }
     public int? OutputTokenCount { get; set; }
     public string? ModelId { get; set; }
+    public double? EstimatedCostUsd { get; set; }
     public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
 }

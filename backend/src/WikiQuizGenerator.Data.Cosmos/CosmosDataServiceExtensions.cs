@@ -23,7 +23,18 @@ public static class CosmosDataServiceExtensions
             {
                 throw new InvalidOperationException("Cosmos DB connection string is not configured.");
             }
-            return new CosmosClient(cosmosOptions.ConnectionString);
+
+            // Configure Cosmos client options
+            var clientOptions = new CosmosClientOptions
+            {
+                SerializerOptions = new CosmosSerializationOptions
+                {
+                    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase,
+                    IgnoreNullValues = true
+                }
+            };
+
+            return new CosmosClient(cosmosOptions.ConnectionString, clientOptions);
         });
 
         // Register CosmosDbContext

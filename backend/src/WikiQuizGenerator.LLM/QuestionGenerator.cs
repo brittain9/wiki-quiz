@@ -9,7 +9,9 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel.Services;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
+using WikiQuizGenerator.Core.Utilities;
+using WikiQuizGenerator.Core.Services;
 
 namespace WikiQuizGenerator.LLM;
 
@@ -42,9 +44,9 @@ public class QuestionGenerator : IQuestionGenerator
         _kernel = kernelBuilder.Build();
     }
 
-    public async Task<AIResponse> GenerateQuestionsAsync(WikipediaPage page, string content, Languages language, int numQuestions, int numOptions, CancellationToken cancellationToken)
+    public async Task<QuestionGenerationResult> GenerateQuestionsAsync(string content, Languages language, int numQuestions, int numOptions, CancellationToken cancellationToken)
     {
-        _logger.LogTrace($"Generating {numQuestions} questions on page '{page.Title}' in '{language.GetWikipediaLanguageCode()}' with {numOptions} options and {content.Length} content length");
+        _logger.LogTrace($"Generating {numQuestions} questions in '{language.GetWikipediaLanguageCode()}' with {numOptions} options and {content.Length} content length");
         
         var quizFunction = _promptManager.GetPromptFunction("Default", language.GetWikipediaLanguageCode());
         
@@ -83,7 +85,7 @@ public class QuestionGenerator : IQuestionGenerator
 
         if (generationAttempts >= 3)
         {
-            return null;
+            return new QuestionGenerationResult { Questions = new List<Question>(), ResponseTimeMs = sw.ElapsedMilliseconds };
         }
 
         var modelInfo = _aiServiceManager.AiServices
@@ -94,27 +96,21 @@ public class QuestionGenerator : IQuestionGenerator
         {
             throw new InvalidOperationException("Selected model information could not be found.");
         }
-
-        AIResponse aiResponse = new()
+        var response = new QuestionGenerationResult
         {
             Questions = questions,
-            WikipediaPageId = page.Id,
-            WikipediaPage = page,
-            ModelConfigId = modelInfo.Id,
-            ResponseTime = sw.ElapsedMilliseconds,
+            ResponseTimeMs = sw.ElapsedMilliseconds,
+            ModelId = modelInfo.ModelId
         };
 
-        // Add OpenAI usage info if available
-        // TODO: In the future, we can look into input token caching to potentially reduce costs for the prompt templates
         if (result.Metadata.TryGetValue("Usage", out object? usageObj) && usageObj is OpenAI.Chat.ChatTokenUsage usage)
         {
-            aiResponse.InputTokenCount = usage.InputTokenCount;
-            aiResponse.OutputTokenCount = usage.OutputTokenCount;
-
+            response.InputTokenCount = usage.InputTokenCount;
+            response.OutputTokenCount = usage.OutputTokenCount;
             _logger.LogInformation($"Token Usage - Input: {usage.InputTokenCount}, Output: {usage.OutputTokenCount}");
         }
 
-        return aiResponse;
+        return response;
     }
 
     public static string CleanJsonString(string input)
@@ -156,37 +152,18 @@ public class QuestionGenerator : IQuestionGenerator
             {
                 var question = new Question
                 {
-                    Text = jsonQuestion.GetProperty("Text").GetString(),
-                    Option1 = "",
-                    Option2 = "",
-                    CorrectOptionNumber = jsonQuestion.GetProperty("CorrectAnswerIndex").GetInt32() + 1 // 0 based index for the options array turned to the option number
+                    Text = jsonQuestion.GetProperty("Text").GetString() ?? string.Empty,
+                    Options = new List<string>(),
+                    CorrectAnswerIndex = jsonQuestion.GetProperty("CorrectAnswerIndex").GetInt32()
                 };
 
                 var jsonOptions = jsonQuestion.GetProperty("Options").EnumerateArray();
-                int optionCount = 0;
                 foreach (var jsonOption in jsonOptions)
                 {
-                    optionCount++;
-                    switch (optionCount)
+                    var opt = jsonOption.GetString();
+                    if (!string.IsNullOrEmpty(opt))
                     {
-                        case 1:
-                            question.Option1 = jsonOption.GetString();
-                            break;
-                        case 2:
-                            question.Option2 = jsonOption.GetString();
-                            break;
-                        case 3:
-                            question.Option3 = jsonOption.GetString();
-                            break;
-                        case 4:
-                            question.Option4 = jsonOption.GetString();
-                            break;
-                        case 5:
-                            question.Option5 = jsonOption.GetString();
-                            break;
-                        default:
-                            // Ignore additional options if more than 5
-                            break;
+                        question.Options.Add(opt);
                     }
                 }
 

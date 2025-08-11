@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WikiQuizGenerator.Core.Options;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 
 namespace WikiQuizGenerator.Core.Processors;
 
@@ -71,22 +71,16 @@ public class AuthTokenProcessor : IAuthTokenProcessor
             throw new InvalidOperationException("HttpContext is not available");
         }
 
-        // Configure cookie options for better cross-domain compatibility
+        // Configure cookie options for cross-domain compatibility
         var cookieOptions = new CookieOptions
         {
-            HttpOnly = true,       // Prevent JavaScript access for security
-            Expires = expiration,  // Set cookie expiration time
-            IsEssential = true,    // Mark as essential for GDPR compliance
-            
-            // In development, we might not use HTTPS, but in production it should be secure
-            Secure = context.Request.IsHttps, 
-            
-            // For cross-origin requests, SameSite=None is needed, but requires Secure=true
-            // SameSite=Lax is a reasonable fallback for non-HTTPS development environments
-            SameSite = context.Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
-            
-            // Ensure cookie is sent to all paths
+            HttpOnly = true,
+            Expires = expiration,
+            IsEssential = true,
+            Secure = false,        // Set to false for HTTP development
+            SameSite = SameSiteMode.Lax,  // Use Lax for HTTP cross-origin
             Path = "/",
+            Domain = null          // Don't set domain for localhost
         };
 
         // If the token is empty, it means we're clearing the cookie (logout)

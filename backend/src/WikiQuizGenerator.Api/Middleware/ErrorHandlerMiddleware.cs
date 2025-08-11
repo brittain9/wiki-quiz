@@ -1,10 +1,17 @@
 ﻿using System.Net;
 using System.Net.Mime;
 using System.Text.Json;
-using WikiQuizGenerator.Core.Models;
 using WikiQuizGenerator.Core.Exceptions;
 
 namespace WikiQuizGenerator.Middleware;
+
+public class ErrorModel
+{
+    public int StatusCode { get; set; }
+    public string? Message { get; set; }
+    public string? ErrorType { get; set; }
+}
+ 
 
 public class ErrorHandlerMiddleware
 {
@@ -45,10 +52,6 @@ public class ErrorHandlerMiddleware
                 context.Response.StatusCode = StatusCodes.Status504GatewayTimeout;
                 response.Message = "The request was canceled due to a timeout. Please try again with simpler parameters or try later.";
                 _logger.LogWarning(ex, "Request was canceled or timed out: {Path}", context.Request.Path);
-                break;
-            case LanguageException langEx:
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                response.Message = $"Invalid language code: {langEx.Message}";
                 break;
 
             case ArgumentException argEx when argEx.Message.Contains("Wikipedia page"):

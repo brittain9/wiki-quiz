@@ -1,4 +1,4 @@
-﻿using WikiQuizGenerator.Core.Models;
+﻿using System.Collections.Generic;
 namespace WikiQuizGenerator.Core.DTOs;
 
 // This is received from frontend when user submits a quiz

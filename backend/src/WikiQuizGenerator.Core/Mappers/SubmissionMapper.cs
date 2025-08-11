@@ -9,7 +9,7 @@ public static class SubmissionMapper
     {
         return new Submission
         {
-            UserId = Guid.Empty, // This will be set by the controller from ClaimsPrincipal
+            UserId = Guid.Empty,
             Answers = dto.QuestionAnswers.Select(a => a.SelectedOptionNumber).ToList(),
             SubmissionTime = DateTime.UtcNow
         };
@@ -19,9 +19,9 @@ public static class SubmissionMapper
     {
         SubmissionResponseDto dto = new SubmissionResponseDto()
         {
-            Id = 1, // Simplified ID
+            Id = 1,
             Score = submission.Score,
-            PointsEarned = 0, // Calculate based on score if needed
+            PointsEarned = submission.PointsEarned,
             Title = "", // Will need to be set by the caller if needed
             UserId = submission.UserId,
             SubmissionTime = submission.SubmissionTime

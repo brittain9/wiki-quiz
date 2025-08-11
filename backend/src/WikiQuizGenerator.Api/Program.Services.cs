@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using System.Threading.RateLimiting;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Models;
+using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.Services;
 using WikiQuizGenerator.Data.Cosmos;
 using WikiQuizGenerator.LLM;
@@ -113,7 +113,7 @@ public partial class Program
         services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
         services.AddScoped<IPointsService, PointsService>();
 
-        services.AddScoped<IWikipediaContentProvider, WikipediaContentService>();
+        services.AddScoped<IWikipediaContentService, WikipediaContentService>();
         
         services.AddSingleton<IModelConfigService, ModelConfigService>();
         

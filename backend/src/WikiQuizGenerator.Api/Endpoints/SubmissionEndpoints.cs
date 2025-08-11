@@ -37,8 +37,8 @@ public static class SubmissionEndpoints
         var submission = await quizRepository.GetUserSubmissionByIdAsync(id, userId);
         if (submission == null) return Results.NotFound();
 
-        // We need to get the quiz separately since Submission no longer has Quiz navigation property
-        var quiz = await quizRepository.GetByIdAsync(submission.QuizId, CancellationToken.None);
+        // In domain model, fetch quiz by id (assumes id supplied is quiz id when fetching result)
+        var quiz = await quizRepository.GetByIdAsync(id, CancellationToken.None);
         if (quiz == null) return Results.NotFound("Associated quiz not found.");
 
         return Results.Ok(QuizResultMapper.ToDto(submission, quiz));

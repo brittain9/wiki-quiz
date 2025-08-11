@@ -9,6 +9,7 @@ public interface IPointsService
     int CalculateLevel(int totalPoints);
     int GetPointsRequiredForLevel(int level);
     int GetPointsRequiredForNextLevel(int currentLevel);
+    (int scorePercent, int pointsEarned) CalculateScoreAndPoints(IEnumerable<Question> questions, IEnumerable<QuestionAnswerDto> answers);
 }
 
 public class PointsService : IPointsService
@@ -21,17 +22,39 @@ public class PointsService : IPointsService
         if (questions == null || answers == null) return 0;
 
         int totalPoints = 0;
-        
+        int index = 0;
         foreach (var question in questions)
         {
-            var answer = answers.FirstOrDefault(a => a.QuestionId == question.Id);
-            if (answer != null && answer.SelectedOptionNumber == question.CorrectOptionNumber)
+            var answer = answers.FirstOrDefault(a => a.QuestionId == index + 1);
+            if (answer != null && answer.SelectedOptionNumber == (question.CorrectAnswerIndex + 1))
             {
-                totalPoints += question.PointValue;
+                totalPoints += 1; // 1 point per correct answer for now
             }
+            index++;
         }
 
         return totalPoints;
+    }
+
+    public (int scorePercent, int pointsEarned) CalculateScoreAndPoints(IEnumerable<Question> questions, IEnumerable<QuestionAnswerDto> answers)
+    {
+        if (questions == null || answers == null) return (0, 0);
+        var questionList = questions.ToList();
+        if (questionList.Count == 0) return (0, 0);
+
+        int correct = 0;
+        for (int i = 0; i < questionList.Count; i++)
+        {
+            var q = questionList[i];
+            var a = answers.FirstOrDefault(x => x.QuestionId == i + 1);
+            if (a != null && (a.SelectedOptionNumber - 1) == q.CorrectAnswerIndex)
+            {
+                correct++;
+            }
+        }
+        int scorePercent = (int)Math.Round((double)correct / questionList.Count * 100);
+        int pointsEarned = correct; // 1 point per correct for now
+        return (scorePercent, pointsEarned);
     }
 
     public int CalculateLevel(int totalPoints)

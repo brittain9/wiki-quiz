@@ -2,8 +2,9 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.DomainObjects;
-using CosmosUser = WikiQuizGenerator.Data.Cosmos.Models.User;
+using UserCore = WikiQuizGenerator.Core.DomainObjects.User;
+using CosmosUser = WikiQuizGenerator.Data.Cosmos.Entities.UserDocument;
+using WikiQuizGenerator.Data.Cosmos.Entities;
 
 namespace WikiQuizGenerator.Data.Cosmos.Repositories;
 
@@ -18,7 +19,7 @@ public class CosmosUserRepository : IUserRepository
         _logger = logger;
     }
 
-    public async Task<User?> GetUserByRefreshTokenAsync(string refreshToken)
+    public async Task<UserCore?> GetUserByRefreshTokenAsync(string refreshToken)
     {
         try
         {
@@ -39,7 +40,7 @@ public class CosmosUserRepository : IUserRepository
         }
     }
 
-    public async Task<User?> GetUserByIdAsync(Guid userId)
+    public async Task<UserCore?> GetUserByIdAsync(Guid userId)
     {
         try
         {
@@ -60,7 +61,7 @@ public class CosmosUserRepository : IUserRepository
         }
     }
 
-    public async Task<User?> GetUserByEmailAsync(string email)
+    public async Task<UserCore?> GetUserByEmailAsync(string email)
     {
         try
         {
@@ -81,7 +82,7 @@ public class CosmosUserRepository : IUserRepository
         }
     }
 
-    public async Task<User> CreateUserAsync(User user)
+    public async Task<UserCore> CreateUserAsync(UserCore user)
     {
         try
         {
@@ -98,7 +99,7 @@ public class CosmosUserRepository : IUserRepository
         }
     }
 
-    public async Task<User> UpdateUserAsync(User user)
+    public async Task<UserCore> UpdateUserAsync(UserCore user)
     {
         try
         {
@@ -124,7 +125,7 @@ public class CosmosUserRepository : IUserRepository
         try
         {
             var user = await GetUserByIdAsync(userId);
-            return user?.WeeklyCost ?? 0.0;
+            return user?.TotalCost ?? 0.0;
         }
         catch (Exception ex)
         {
@@ -152,9 +153,9 @@ public class CosmosUserRepository : IUserRepository
         }
     }
 
-    private static User MapFromCosmos(CosmosUser cosmosUser)
+    private static UserCore MapFromCosmos(CosmosUser cosmosUser)
     {
-        return new User
+        return new UserCore
         {
             Id = Guid.Parse(cosmosUser.Id),
             UserName = cosmosUser.UserName,
@@ -163,31 +164,32 @@ public class CosmosUserRepository : IUserRepository
             LastName = cosmosUser.LastName,
             RefreshToken = cosmosUser.RefreshToken,
             RefreshTokenExpiresAtUtc = cosmosUser.RefreshTokenExpiresAtUtc,
-            isPremium = cosmosUser.IsPremium,
+            IsPremium = cosmosUser.IsPremium,
             TotalCost = cosmosUser.TotalCost,
-            WeeklyCost = cosmosUser.WeeklyCost,
             TotalPoints = cosmosUser.TotalPoints,
             Level = cosmosUser.Level,
             EmailConfirmed = true
         };
     }
 
-    private static CosmosUser MapToCosmos(User coreUser)
+    private static CosmosUser MapToCosmos(UserCore coreUser)
     {
         return new CosmosUser
         {
             Id = coreUser.Id.ToString(),
+            PartitionKey = coreUser.Id.ToString(),
             UserName = coreUser.UserName,
             Email = coreUser.Email,
             FirstName = coreUser.FirstName,
             LastName = coreUser.LastName,
             RefreshToken = coreUser.RefreshToken,
             RefreshTokenExpiresAtUtc = coreUser.RefreshTokenExpiresAtUtc,
-            IsPremium = coreUser.isPremium,
+            IsPremium = coreUser.IsPremium,
             TotalCost = coreUser.TotalCost,
-            WeeklyCost = coreUser.WeeklyCost,
             TotalPoints = coreUser.TotalPoints,
             Level = coreUser.Level
         };
     }
+
+    // moved to Entities
 }

@@ -28,7 +28,7 @@ public static class QuizResultMapper
 
             resultOptions.Add(new ResultOptionDto
             {
-                QuestionId = i + 1, // 1-based ID for DTOs
+                QuestionId = i + 1,
                 CorrectAnswerChoice = question.CorrectAnswerIndex,
                 SelectedAnswerChoice = selectedAnswer
             });

@@ -7,10 +7,9 @@ public static class QuizMapper
 {
     public static QuizDto ToDto(this Quiz quiz)
     {
-        // Create a single AIResponse DTO from the simplified quiz structure
         var aiResponseDto = new AIResponseDto
         {
-            Id = 1, // Simple ID since we have one response per quiz
+            Id = 1,
             ResponseTopic = quiz.WikipediaReference?.Title ?? string.Empty,
             TopicUrl = quiz.WikipediaReference?.Url ?? string.Empty,
             Questions = quiz.Questions.Select((question, index) => question.ToDto(index + 1)).ToList()
@@ -18,7 +17,7 @@ public static class QuizMapper
 
         return new QuizDto
         {
-            Id = 1, // Simplified ID
+            Id = quiz.Id,
             Title = quiz.Title,
             CreatedAt = quiz.CreatedAt,
             AIResponses = new List<AIResponseDto> { aiResponseDto }

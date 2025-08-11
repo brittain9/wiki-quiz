@@ -2,7 +2,6 @@
 using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Mappers;
-using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -108,7 +107,6 @@ public static class QuizEndpoints
             userId,
             cancellationToken);
 
-        // TODO add null type pattern where we have NullQuiz object
         if (quiz == null)
         {
             return TypedResults.NotFound("Could not generate quiz content for the given topic.");
@@ -144,18 +142,14 @@ public static class QuizEndpoints
             return TypedResults.Unauthorized();
         }
 
-        // TODO: test this
         var existingSubmission = await quizRepository.GetUserSubmissionByQuizIdAsync(submissionDto.QuizId, userId, cancellationToken);
         if (existingSubmission != null)
         {
             return TypedResults.Conflict("You have already submitted this quiz. Only one submission per quiz is allowed.");
         }
 
-        // Get all questions from the quiz
-        var allQuestions = quiz.AIResponses.SelectMany(r => r.Questions ?? Enumerable.Empty<Question>()).ToList();
-        
-        // Calculate points and score
-        var pointsEarned = pointsService.CalculatePointsEarned(allQuestions, submissionDto.QuestionAnswers);
+        var allQuestions = quiz.Questions.ToList();
+        var (scorePercent, pointsEarned) = pointsService.CalculateScoreAndPoints(allQuestions, submissionDto.QuestionAnswers);
         
         // Get current user to calculate new level
         var user = await userRepository.GetUserByIdAsync(userId);
@@ -169,18 +163,17 @@ public static class QuizEndpoints
 
         var submission = SubmissionMapper.ToModel(submissionDto);
         submission.UserId = userId;
-        submission.Score = CalculateScore(submissionDto, quiz);
+        submission.Score = scorePercent;
         submission.PointsEarned = pointsEarned;
         submission.SubmissionTime = DateTime.UtcNow;
 
         // Save submission and update user points/level
-        await quizRepository.AddSubmissionAsync(submission, cancellationToken);
+        await quizRepository.AddSubmissionAsync(submissionDto.QuizId, submission, cancellationToken);
         await userRepository.UpdateUserPointsAndLevelAsync(userId, pointsEarned, newLevel);
 
         var resultDto = SubmissionMapper.ToDto(submission);
 
-        var submissionUri = $"/api/quiz-submissions/{submission.Id}";
-        return TypedResults.Created(submissionUri, resultDto);
+        return TypedResults.Created((string?)null, resultDto);
     }
 
     private static async Task<IResult> HandleValidateAnswer(
@@ -200,43 +193,13 @@ public static class QuizEndpoints
             return TypedResults.Unauthorized();
         }
 
-        // Find the question by ID
-        var question = await quizRepository.GetQuestionByIdAsync(answerValidation.QuestionId, cancellationToken);
-        if (question == null)
-        {
-            return TypedResults.NotFound($"Question with ID {answerValidation.QuestionId} not found.");
-        }
+        // This endpoint requires a way to locate a question; not supported with current domain (no question IDs).
+        return TypedResults.BadRequest("Per-question validation is not supported in the current model.");
 
-        // Validate the answer
-        var isCorrect = answerValidation.SelectedOptionNumber == question.CorrectOptionNumber;
-        var pointsEarned = isCorrect ? question.PointValue : 0;
-
-        // Get the correct answer text
-        var correctAnswerText = GetOptionText(question, question.CorrectOptionNumber);
-
-        var response = new AnswerValidationResponseDto
-        {
-            IsCorrect = isCorrect,
-            CorrectOptionNumber = question.CorrectOptionNumber,
-            PointsEarned = pointsEarned,
-            CorrectAnswerText = correctAnswerText
-        };
-
-        return TypedResults.Ok(response);
+        // Unreachable with current model constraints; kept here for future support
     }
 
-    private static string GetOptionText(Question question, int optionNumber)
-    {
-        return optionNumber switch
-        {
-            1 => question.Option1,
-            2 => question.Option2,
-            3 => question.Option3 ?? "",
-            4 => question.Option4 ?? "",
-            5 => question.Option5 ?? "",
-            _ => ""
-        };
-    }
+    
 
     private static Guid GetUserIdFromClaims(ClaimsPrincipal claimsPrincipal)
     {
@@ -253,7 +216,7 @@ public static class QuizEndpoints
         }
 
         // Premium users have unlimited usage
-        if (user.isPremium)
+        if (user.IsPremium)
         {
             return null; // No limit applied, allow request to proceed
         }
@@ -298,22 +261,4 @@ public static class QuizEndpoints
             throw new ArgumentException("Topic contains invalid characters.");
     }
 
-    private static int CalculateScore(SubmissionDto submissionDto, Quiz quiz)
-    {
-        if (quiz?.AIResponses == null || submissionDto?.QuestionAnswers == null) return 0;
-        var allQuestions = quiz.AIResponses.SelectMany(r => r.Questions ?? Enumerable.Empty<Question>()).ToList();
-        int totalQuestions = allQuestions.Count;
-        if (totalQuestions == 0) return 0;
-        int correctAnswers = 0;
-        foreach (var question in allQuestions)
-        {
-            var answer = submissionDto.QuestionAnswers.FirstOrDefault(a => a.QuestionId == question.Id);
-            if (answer != null && answer.SelectedOptionNumber == question.CorrectOptionNumber)
-            {
-                correctAnswers++;
-            }
-        }
-        // Avoid division by zero if totalQuestions is somehow zero after checks
-        return totalQuestions > 0 ? (int)Math.Round((double)correctAnswers / totalQuestions * 100) : 0;
-    }
 }

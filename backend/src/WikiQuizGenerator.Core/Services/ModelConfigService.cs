@@ -70,7 +70,7 @@ public class ModelConfigService : IModelConfigService
 
     public Task<ModelConfig?> GetByIdAsync(int id)
     {
-        var config = _modelConfigs.FirstOrDefault(m => m.Id == id);
+        var config = _modelConfigs.Skip(id).FirstOrDefault();
         return Task.FromResult(config);
     }
 

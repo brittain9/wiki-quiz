@@ -11,4 +11,5 @@ public class Submission
     public DateTime SubmissionTime { get; set; }
     public List<int> Answers { get; set; } = new(); // 0-based indices corresponding to question order and selected options
     public int Score { get; set; }
+    public int PointsEarned { get; set; }
 }
