@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using WikiQuizGenerator.Core.Interfaces;
-using WikiQuizGenerator.Core.Requests;
 using System.Security.Claims;
 
 namespace WikiQuizGenerator.Api.Endpoints;
@@ -13,36 +12,6 @@ public static class AuthEndpoints
     {
         var group = app.MapGroup("/api/auth")
             .WithTags("Authenication");
-
-        group.MapPost("/register", async (RegisterRequest registerRequest, IAccountService accountService) =>
-            {
-                await accountService.RegisterAsync(registerRequest);
-                return Results.Ok();
-            })
-            .AllowAnonymous();
-
-        group.MapPost("/login", async (LoginRequest loginRequest, IAccountService accountService) =>
-            {
-                await accountService.LoginAsync(loginRequest);
-                return Results.Ok();
-            })
-            .AllowAnonymous();
-
-        group.MapPost("/refresh", async (HttpContext httpContext, IAccountService accountService) =>
-            {
-                // Extract refresh token from cookie
-                var refreshToken = httpContext.Request.Cookies["REFRESH_TOKEN"];
-
-                // Check if the token exists before calling the service
-                if (string.IsNullOrEmpty(refreshToken))
-                {
-                    return Results.Unauthorized();
-                }
-
-                await accountService.RefreshTokenAsync(refreshToken);
-                return Results.Ok();
-            })
-            .AllowAnonymous();
 
         group.MapGet("/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator,
                 HttpContext context, ILogger<Program> logger) =>

@@ -17,8 +17,8 @@ public static class QuizEndpoints
         var group = app.MapGroup("/api/quiz")
                        .WithTags("Quiz");
 
-        group.MapPost("/basicquiz", HandleGetBasicQuiz)
-             .WithName("GenerateBasicQuiz")
+        group.MapPost("/generate", HandleGenerateQuiz)
+             .WithName("GenerateQuiz")
              .RequireRateLimiting("QuizLimit")
              .WithOpenApi(operation => new(operation)
              {
@@ -34,7 +34,7 @@ public static class QuizEndpoints
              .ProducesProblem(StatusCodes.Status500InternalServerError)
              .RequireAuthorization();
 
-        group.MapPost("/submitquiz", HandleSubmitQuiz)
+        group.MapPost("/submit", HandleSubmitQuiz)
              .WithName("SubmitQuiz")
              .RequireRateLimiting("QuizLimit")
              .WithOpenApi(operation => new(operation)
@@ -50,7 +50,7 @@ public static class QuizEndpoints
              .ProducesProblem(StatusCodes.Status500InternalServerError)
              .RequireAuthorization();
 
-        group.MapPost("/validateanswer", HandleValidateAnswer)
+        group.MapPost("/validate", HandleValidateAnswer)
              .WithName("ValidateAnswer")
              .WithOpenApi(operation => new(operation)
              {
@@ -64,7 +64,7 @@ public static class QuizEndpoints
              .RequireAuthorization();
     }
 
-    private static async Task<IResult> HandleGetBasicQuiz(
+    private static async Task<IResult> HandleGenerateQuiz(
         [FromServices] IQuizGenerator quizGenerator,
         [FromServices] IUserRepository userRepository,
         ClaimsPrincipal user,
@@ -130,16 +130,16 @@ public static class QuizEndpoints
             return TypedResults.BadRequest("Invalid submission data provided.");
         }
 
-        var quiz = await quizRepository.GetByIdAsync(submissionDto.QuizId, cancellationToken);
-        if (quiz is null)
-        {
-            return TypedResults.NotFound($"Quiz with ID {submissionDto.QuizId} not found.");
-        }
-
         var userId = GetUserIdFromClaims(claimsPrincipal);
         if (userId == Guid.Empty)
         {
             return TypedResults.Unauthorized();
+        }
+
+        var quiz = await quizRepository.GetByIdForUserAsync(submissionDto.QuizId, userId, cancellationToken);
+        if (quiz is null)
+        {
+            return TypedResults.NotFound($"Quiz with ID {submissionDto.QuizId} not found.");
         }
 
         var existingSubmission = await quizRepository.GetUserSubmissionByQuizIdAsync(submissionDto.QuizId, userId, cancellationToken);
@@ -182,6 +182,8 @@ public static class QuizEndpoints
     private static async Task<IResult> HandleValidateAnswer(
         AnswerValidationDto answerValidation,
         IQuizRepository quizRepository,
+        IPointsService pointsService,
+        IUserRepository userRepository,
         ClaimsPrincipal claimsPrincipal,
         CancellationToken cancellationToken)
     {
@@ -197,7 +199,7 @@ public static class QuizEndpoints
         }
 
         // Load quiz and question
-        var quiz = await quizRepository.GetByIdAsync(answerValidation.QuizId, cancellationToken);
+        var quiz = await quizRepository.GetByIdForUserAsync(answerValidation.QuizId, userId, cancellationToken);
         if (quiz is null)
         {
             return TypedResults.NotFound($"Quiz with ID {answerValidation.QuizId} not found.");
@@ -211,16 +213,19 @@ public static class QuizEndpoints
 
         var question = quiz.Questions[questionIndex];
         var isCorrect = (answerValidation.SelectedOptionNumber - 1) == question.CorrectAnswerIndex;
-        var pointsEarned = isCorrect ? 1 : 0; // simple rule: 1 point per correct answer
+        var pointsEarned = isCorrect ? 1000 : 0; // align with PointsService
 
+        // Accumulate points locally for current quiz context if needed (stateless endpoint)
+        // We return total so far as a hint for UI, but do not persist until submission
         var response = new AnswerValidationResponseDto
         {
             IsCorrect = isCorrect,
             CorrectOptionNumber = question.CorrectAnswerIndex + 1,
-            PointsEarned = isCorrect ? 1000 : 0,
+            PointsEarned = pointsEarned,
             CorrectAnswerText = (question.CorrectAnswerIndex >= 0 && question.CorrectAnswerIndex < question.Options.Count)
                 ? question.Options[question.CorrectAnswerIndex]
-                : null
+                : null,
+            TotalPointsSoFar = 0
         };
 
         return TypedResults.Ok(response);

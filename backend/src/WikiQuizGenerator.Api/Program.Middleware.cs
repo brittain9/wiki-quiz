@@ -42,7 +42,7 @@ public partial class Program
         app.MapAuthEndpoints();
         app.MapQuizEndpoints();
         app.MapAiEndpoints();
-        app.MapSubmissionEndpoints();
+        app.MapUserEndpoints();
         
         // Add health check endpoints
         app.MapHealthChecks("/health", new HealthCheckOptions

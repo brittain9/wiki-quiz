@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using WikiQuizGenerator.Core.Options;
-using WikiQuizGenerator.Core.Processors;
+using WikiQuizGenerator.Core.Services;
 using Serilog;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -110,7 +110,7 @@ public partial class Program
 
         services.AddCosmosDataServices(configuration);
         
-        services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
+        services.AddScoped<IAuthTokenService, AuthTokenService>();
         services.AddScoped<IPointsService, PointsService>();
 
         services.AddScoped<IWikipediaContentService, WikipediaContentService>();
