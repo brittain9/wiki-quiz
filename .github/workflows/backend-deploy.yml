@@ -1,0 +1,78 @@
+name: Deploy Backend to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-deploy.yml'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/src/WikiQuizGenerator.Api/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Update Container App
+        uses: azure/CLI@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            # Extract the image tag (commit SHA)
+            IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | grep -E 'main-[a-f0-9]{7}' | head -1 | cut -d':' -f2)
+            
+            if [ -z "$IMAGE_TAG" ]; then
+              echo "Could not extract image tag, using latest"
+              IMAGE_TAG="latest"
+            fi
+            
+            echo "Updating Container App with image tag: $IMAGE_TAG"
+            
+            # Update the Container App with the new image
+            az containerapp update \
+              --name wikiquiz-api-prd \
+              --resource-group rg-wikiquiz-prd \
+              --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG \
+              --revision-suffix $IMAGE_TAG

@@ -12,6 +12,7 @@ public class MyStack : Stack
 {
     [Output] public Output<string> ApiUrl { get; private set; }
     [Output] public Output<string> FrontendUrl { get; private set; }
+    [Output] public Output<string> StaticWebAppUrl { get; private set; }
     [Output] public Output<string> ApplicationInsightsConnectionString { get; private set; }
     [Output] public Output<string> LogAnalyticsWorkspaceId { get; private set; }
 
@@ -41,6 +42,8 @@ public class MyStack : Stack
         // Allow overriding the image tag via config for CI/CD (e.g., commit SHA). Defaults to "prd".
         var imageTag = config.Get("imageTag") ?? "prd";
         var containerImage = Output.Format($"ghcr.io/{ghcrUsername}/wiki-quiz:{imageTag}");
+
+        // Static Web App will be deployed via GitHub Actions using deployment token.
         
         var resourceGroup = new ResourceGroup("rg", new ResourceGroupArgs
         {
@@ -305,9 +308,29 @@ public class MyStack : Stack
             }
         });
 
+        // Create Static Web App for frontend
+        var staticWebApp = new Pulumi.AzureNative.Web.StaticSite("frontend", new Pulumi.AzureNative.Web.StaticSiteArgs
+        {
+            Name = $"wikiquiz-frontend-prd",
+            ResourceGroupName = resourceGroup.Name,
+            Location = "Central US", // Static Web Apps have limited region availability
+            Sku = new Pulumi.AzureNative.Web.Inputs.SkuDescriptionArgs
+            {
+                Name = "Free",
+                Tier = "Free"
+            },
+            BuildProperties = new Pulumi.AzureNative.Web.Inputs.StaticSiteBuildPropertiesArgs
+            {
+                AppLocation = "/frontend",
+                OutputLocation = "dist"
+            },
+            Tags = { { "Project", "WikiQuiz" }, { "Environment", "prd" } }
+        });
+
         // Use null-forgiving operator as Fqdn is expected to be non-null when ingress is external
         ApiUrl = containerApp.Configuration.Apply(config => $"https://{config!.Ingress!.Fqdn!}"); 
         FrontendUrl = Output.Create(frontendUri);
+        StaticWebAppUrl = staticWebApp.DefaultHostname.Apply(hostname => $"https://{hostname}");
         ApplicationInsightsConnectionString = appInsightsConnectionString;
         LogAnalyticsWorkspaceId = logAnalyticsWorkspace.Id;
     }

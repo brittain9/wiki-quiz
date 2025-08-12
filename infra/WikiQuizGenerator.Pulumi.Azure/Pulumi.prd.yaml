@@ -13,4 +13,9 @@ config:
     secure: AAABAISWKcRMFCxnCqH8IrCtq+YpWkrq0sT6PeBH6yXxtKymXC0GJz843fCb/oAXzuBUESthzgso0pV7CAGPl+xXoEVTMwIeL7f/MlANIj2lO/mjVfT5Qmfm/bAIl/Z6eEg6GH6+70c9O/6V0AvyelmuZEKgmMK2sfnAXmxIfvHzgZ5cbqDllXP/5ZZRsb+GEI/NW4ZUqbm20L2Ccmiacb+E3qsWWTJXBBTJw3DiZgvgf2tshCG21YtmKcGQTOLJRLUayw==
   wikiquiz:ghcrPassword:
     secure: AAABAI6GuDYgPGmeaiwpSHK8FFRFNjFK3UdFtKgUp7SitFn2wosn2AJcu4ekktEpyyZYiVjtn6aOQVDllmmU68IKlwTob29F
-  wikiquiz:imageTag: 7dc27ec
+  wikiquiz:imageTag: latest
+  wikiquiz:githubRepo: brittain9/wiki-quiz
+  wikiquiz:githubBranch: main
+  wikiquiz:githubToken:
+    secure: "AAABAPcy5UKC3F3KClEfPjaFGxJVQoqNlgSEV1OVzXgAi8pYLIgfw7RK2EYJ53i3VoqYv/5L4HRW/iARLR33Bc1uhkVq8iiX" # You need to set this with: pulumi config set --secret wikiquiz:githubToken <your-github-token>
+  azure-native:useAzureCLI: "true"

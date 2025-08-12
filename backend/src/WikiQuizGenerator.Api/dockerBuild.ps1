@@ -18,23 +18,23 @@ $ContextDir = Join-Path $RepoRoot "backend/src"
 if (-not (Test-Path $Dockerfile)) { throw "Dockerfile not found: $Dockerfile" }
 if (-not (Test-Path $ContextDir)) { throw "Build context not found: $ContextDir" }
 
-# Login to GHCR (PAT in $env:GHCR_TOKEN)
+# Login to GHCR (PAT in $env:GHCR_TOKEN). Fix later for security
 if (-not $SkipLogin) {
   if (-not $env:GHCR_TOKEN) { throw "Please set GHCR_TOKEN environment variable to a GHCR PAT with write:packages scope." }
-  [System.Text.Encoding]::UTF8.GetBytes($env:GHCR_TOKEN) | docker login ghcr.io -u $OWNER --password-stdin
+  docker login ghcr.io -u $OWNER -p $env:GHCR_TOKEN
 }
 
 # Build (Linux image for Azure). Add --platform if your Docker is not using Linux engine.
 docker build `
   -f $Dockerfile `
-  -t "$IMAGE:latest" `
-  -t "$IMAGE:$COMMIT_TAG" `
-  -t "$IMAGE:$PRD_TAG" `
+  -t "${IMAGE}:latest" `
+  -t "${IMAGE}:${COMMIT_TAG}" `
+  -t "${IMAGE}:${PRD_TAG}" `
   --platform linux/amd64 `
   $ContextDir
 
 # Optional: test locally
-# docker run --rm -p 8080:8080 $IMAGE:$PRD_TAG
+# docker run --rm -p 8080:8080 ${IMAGE}:${PRD_TAG}
 
 # Push all tags (Pulumi references :prd)
 docker push $IMAGE --all-tags
