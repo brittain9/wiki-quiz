@@ -1,11 +1,11 @@
+import CancelIcon from '@mui/icons-material/Cancel';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Fade from '@mui/material/Fade';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
-import Fade from '@mui/material/Fade';
 import Zoom from '@mui/material/Zoom';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -49,7 +49,7 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
   const handleOptionClick = (optionIndex: number) => {
     if (showResult) return; // Prevent clicking after answer is shown
-    
+
     onAnswerSelected(optionIndex); // 0-based index
   };
 
@@ -67,12 +67,14 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
       textAlign: 'left' as const,
       fontSize: '1rem',
       fontWeight: 500,
-      '&:hover': showResult ? {} : {
-        backgroundColor: 'var(--main-color-10)',
-        border: '2px solid var(--main-color)',
-        transform: 'translateY(-2px)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-      },
+      '&:hover': showResult
+        ? {}
+        : {
+            backgroundColor: 'var(--main-color-10)',
+            border: '2px solid var(--main-color)',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          },
     };
 
     if (!showResult) {
@@ -109,7 +111,7 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
   const getOptionIcon = (optionIndex: number) => {
     if (!showResult) return null;
-    
+
     const isSelected = selectedOption === optionIndex;
     const isCorrect = optionIndex === correctAnswer;
 
@@ -155,12 +157,16 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
               <Typography
                 variant="h4"
                 sx={{
-                  color: pointsEarned > 0 ? 'var(--success-color)' : 'var(--error-color)',
+                  color:
+                    pointsEarned > 0
+                      ? 'var(--success-color)'
+                      : 'var(--error-color)',
                   fontWeight: 'bold',
                   textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                 }}
               >
-                {pointsEarned > 0 ? `+${pointsEarned.toLocaleString()}` : '0'} {t('quiz.points')}!
+                {pointsEarned > 0 ? `+${pointsEarned.toLocaleString()}` : '0'}{' '}
+                {t('quiz.points')}!
               </Typography>
             </Zoom>
           </Box>
@@ -209,7 +215,10 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
             <Typography
               variant="h6"
               sx={{
-                color: pointsEarned > 0 ? 'var(--success-color)' : 'var(--error-color)',
+                color:
+                  pointsEarned > 0
+                    ? 'var(--success-color)'
+                    : 'var(--error-color)',
                 fontWeight: 600,
               }}
             >
@@ -220,7 +229,8 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
                 variant="body1"
                 sx={{ color: 'var(--sub-color)', mt: 1 }}
               >
-                The correct answer was: {correctAnswerText || currentQuestion.options[correctAnswer]}
+                The correct answer was:{' '}
+                {correctAnswerText || currentQuestion.options[correctAnswer]}
               </Typography>
             )}
           </Box>

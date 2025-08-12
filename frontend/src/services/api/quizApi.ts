@@ -83,10 +83,7 @@ export const quizApi = {
     correctAnswerText?: string;
   }> {
     try {
-      return await apiPost(
-        QUIZ_ENDPOINTS.VALIDATE_ANSWER,
-        params,
-      );
+      return await apiPost(QUIZ_ENDPOINTS.VALIDATE_ANSWER, params);
     } catch (error) {
       console.error(`Failed to validate answer: ${parseApiError(error)}`);
       throw error;

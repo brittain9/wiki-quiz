@@ -2,6 +2,11 @@
   "button": {
     "close": "Schließen"
   },
+  "quiz": {
+    "totalScore": "Gesamtpunktzahl: {{score}}",
+    "points": "Punkte",
+    "score": "Punktzahl"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "Höhepunkte"
@@ -48,12 +53,15 @@
     "title": "Theme auswählen"
   },
   "recentSubmissions": {
-    "title": "Letzte Einreichungen"
+    "title": "Neueste Einsendungen",
+    "noSubmissions": "Noch keine Einsendungen",
+    "clear": "Löschen"
   },
   "quizresultoverlay": {
     "title": "Quiz-Ergebnisse",
     "score": "Punktzahl",
-    "question": "Frage"
+    "question": "Frage",
+    "close": "Schließen"
   },
   "highlights": {
     "title": "Höhepunkte",

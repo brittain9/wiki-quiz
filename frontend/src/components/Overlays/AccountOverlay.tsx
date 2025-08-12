@@ -170,7 +170,7 @@ const AccountOverlay: React.FC = () => {
               <Typography variant="body1" sx={{ opacity: 0.8 }}>
                 {userInfo.email}
               </Typography>
-              
+
               {/* Points and Level Display */}
               <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 1 }}>
                 <Chip
@@ -192,7 +192,7 @@ const AccountOverlay: React.FC = () => {
                   }}
                 />
               </Box>
-              
+
               {/* Cost usage progress bar */}
               <Box sx={{ width: '100%', mt: 3 }}>
                 {loadingCost ? (

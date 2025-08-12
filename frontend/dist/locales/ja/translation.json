@@ -2,6 +2,11 @@
   "button": {
     "close": "閉じる"
   },
+  "quiz": {
+    "totalScore": "合計スコア: {{score}}",
+    "points": "ポイント",
+    "score": "スコア"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "ハイライト"
@@ -48,12 +53,15 @@
     "title": "テーマを選択"
   },
   "recentSubmissions": {
-    "title": "最近の投稿"
+    "title": "最近の投稿",
+    "noSubmissions": "まだ提出はありません",
+    "clear": "クリア"
   },
   "quizresultoverlay": {
     "title": "クイズ結果",
     "score": "スコア",
-    "question": "質問"
+    "question": "質問",
+    "close": "閉じる"
   },
   "highlights": {
     "title": "ハイライト",

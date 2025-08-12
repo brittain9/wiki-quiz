@@ -296,8 +296,10 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
                   >
                     {question.options.map((optionText, optionIndex) => {
                       // Determine option appearance based on correctness
-                      const isCorrect = optionIndex === result.correctAnswerChoice;
-                      const isSelected = optionIndex === result.selectedAnswerChoice;
+                      const isCorrect =
+                        optionIndex === result.correctAnswerChoice;
+                      const isSelected =
+                        optionIndex === result.selectedAnswerChoice;
 
                       // Style by case
                       let optionColor = 'var(--text-color)';

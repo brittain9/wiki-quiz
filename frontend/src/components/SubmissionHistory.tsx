@@ -229,7 +229,14 @@ const SubmissionHistory: React.FC = React.memo(() => {
             },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 3,
+            }}
+          >
             <Typography
               variant="h5"
               gutterBottom
@@ -264,7 +271,10 @@ const SubmissionHistory: React.FC = React.memo(() => {
                 sx={{
                   borderColor: 'var(--error-color)',
                   color: 'var(--error-color)',
-                  '&:hover': { borderColor: 'var(--error-color)', backgroundColor: 'var(--error-color-10)' },
+                  '&:hover': {
+                    borderColor: 'var(--error-color)',
+                    backgroundColor: 'var(--error-color-10)',
+                  },
                 }}
               >
                 {t('recentSubmissions.clear') || 'Clear'}

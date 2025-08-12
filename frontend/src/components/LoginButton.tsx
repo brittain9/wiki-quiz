@@ -132,7 +132,7 @@ const LoginButton = memo(() => {
             aria-controls={open ? 'account-menu' : undefined}
             aria-haspopup="true"
             aria-expanded={open ? 'true' : undefined}
-            sx={{ 
+            sx={{
               ml: 0,
               transition: 'transform 0.2s ease-in-out',
               '&:hover': {

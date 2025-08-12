@@ -2,6 +2,11 @@
   "button": {
     "close": "Закрыть"
   },
+  "quiz": {
+    "totalScore": "Итоговый счёт: {{score}}",
+    "points": "баллов",
+    "score": "Счёт"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "Основные моменты"
@@ -48,12 +53,15 @@
     "title": "Выбрать тему"
   },
   "recentSubmissions": {
-    "title": "Последние работы"
+    "title": "Недавние отправки",
+    "noSubmissions": "Пока нет отправок",
+    "clear": "Очистить"
   },
   "quizresultoverlay": {
     "title": "Результаты викторины",
     "score": "Счёт",
-    "question": "Вопрос"
+    "question": "Вопрос",
+    "close": "Закрыть"
   },
   "highlights": {
     "title": "Основные моменты",

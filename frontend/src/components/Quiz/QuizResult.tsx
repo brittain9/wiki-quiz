@@ -1,11 +1,11 @@
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import React, { useCallback } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useTranslation } from 'react-i18next';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 import { useOverlay } from '../../context';
 import { Quiz, SubmissionResponse } from '../../types';

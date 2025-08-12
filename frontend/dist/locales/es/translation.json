@@ -2,6 +2,11 @@
   "button": {
     "close": "Cerrar"
   },
+  "quiz": {
+    "totalScore": "Puntuación total: {{score}}",
+    "points": "puntos",
+    "score": "Puntuación"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "Destacados"
@@ -48,12 +53,15 @@
     "title": "Seleccionar Tema"
   },
   "recentSubmissions": {
-    "title": "Envíos recientes"
+    "title": "Envíos recientes",
+    "noSubmissions": "Aún no hay envíos",
+    "clear": "Borrar"
   },
   "quizresultoverlay": {
     "title": "Resultados del cuestionario",
     "score": "Puntuación",
-    "question": "Pregunta"
+    "question": "Pregunta",
+    "close": "Cerrar"
   },
   "highlights": {
     "title": "Destacados",

@@ -1,6 +1,10 @@
 import { apiGet, apiDelete, parseApiError } from '../apiService';
 
-import type { SubmissionResponse, SubmissionDetail, PaginatedResponse } from '../../types';
+import type {
+  SubmissionResponse,
+  SubmissionDetail,
+  PaginatedResponse,
+} from '../../types';
 
 // User API endpoints (renamed from Submission)
 const USER_ENDPOINTS = {
@@ -40,7 +44,9 @@ export const submissionApi = {
   async getMySubmissions(): Promise<SubmissionResponse[]> {
     try {
       // Backend returns a paginated response, not a plain array. Fetch first page.
-      const response = await apiGet<PaginatedResponse<SubmissionResponse>>(USER_ENDPOINTS.MY_SUBMISSIONS + `?page=1&pageSize=10`);
+      const response = await apiGet<PaginatedResponse<SubmissionResponse>>(
+        USER_ENDPOINTS.MY_SUBMISSIONS + `?page=1&pageSize=10`,
+      );
       return response.items ?? [];
     } catch (error) {
       console.error(`Failed to get user submissions: ${parseApiError(error)}`);
@@ -77,7 +83,14 @@ export const submissionApi = {
     }
   },
 
-  async getUsage(): Promise<{ userId: string; isPremium: boolean; currentCost: number; weeklyCostLimit: number; remaining: number; periodDays: number; }> {
+  async getUsage(): Promise<{
+    userId: string;
+    isPremium: boolean;
+    currentCost: number;
+    weeklyCostLimit: number;
+    remaining: number;
+    periodDays: number;
+  }> {
     try {
       return await apiGet(USER_ENDPOINTS.USAGE);
     } catch (error) {
@@ -86,7 +99,14 @@ export const submissionApi = {
     }
   },
 
-  async getStats(): Promise<{ userId: string; totalPoints: number; level: number; nextLevel: number; pointsRequiredForNextLevel: number; pointsToNextLevel: number; }> {
+  async getStats(): Promise<{
+    userId: string;
+    totalPoints: number;
+    level: number;
+    nextLevel: number;
+    pointsRequiredForNextLevel: number;
+    pointsToNextLevel: number;
+  }> {
     try {
       return await apiGet(USER_ENDPOINTS.STATS);
     } catch (error) {
@@ -100,7 +120,9 @@ export const submissionApi = {
    */
   async clearUserSubmissions(): Promise<{ deleted: number }> {
     try {
-      return await apiDelete<{ deleted: number }>(USER_ENDPOINTS.MY_SUBMISSIONS);
+      return await apiDelete<{ deleted: number }>(
+        USER_ENDPOINTS.MY_SUBMISSIONS,
+      );
     } catch (error) {
       console.error(`Failed to clear submissions: ${parseApiError(error)}`);
       throw error;
