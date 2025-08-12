@@ -44,7 +44,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: ./backend/src
           file: ./backend/src/WikiQuizGenerator.Api/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
