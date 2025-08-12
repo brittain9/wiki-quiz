@@ -205,14 +205,14 @@ public static class QuizEndpoints
             return TypedResults.NotFound($"Quiz with ID {answerValidation.QuizId} not found.");
         }
 
-        var questionIndex = answerValidation.QuestionId - 1; // frontend uses 1-based ids
+        var questionIndex = answerValidation.QuestionId - 1; // QuestionId remains 1-based for display/order
         if (questionIndex < 0 || questionIndex >= quiz.Questions.Count)
         {
             return TypedResults.NotFound($"Question with ID {answerValidation.QuestionId} not found.");
         }
 
         var question = quiz.Questions[questionIndex];
-        var isCorrect = (answerValidation.SelectedOptionNumber - 1) == question.CorrectAnswerIndex;
+        var isCorrect = answerValidation.SelectedOptionNumber == question.CorrectAnswerIndex;
         var pointsEarned = isCorrect ? 1000 : 0; // align with PointsService
 
         // Accumulate points locally for current quiz context if needed (stateless endpoint)
@@ -220,7 +220,7 @@ public static class QuizEndpoints
         var response = new AnswerValidationResponseDto
         {
             IsCorrect = isCorrect,
-            CorrectOptionNumber = question.CorrectAnswerIndex + 1,
+            CorrectOptionNumber = question.CorrectAnswerIndex,
             PointsEarned = pointsEarned,
             CorrectAnswerText = (question.CorrectAnswerIndex >= 0 && question.CorrectAnswerIndex < question.Options.Count)
                 ? question.Options[question.CorrectAnswerIndex]

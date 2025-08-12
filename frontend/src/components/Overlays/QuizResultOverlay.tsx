@@ -22,10 +22,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useOverlay } from '../../context/OverlayContext/OverlayContext';
 import { submissionApi } from '../../services';
 import { Question, QuizResult, ResultOption } from '../../types';
-import {
-  SubmissionDetail,
-  QuestionAnswer,
-} from '../../types/quizSubmission.types';
+import { SubmissionDetail } from '../../types/quizSubmission.types';
 
 interface QuizResultOverlayProps {
   quizResult?: QuizResult | null;
@@ -36,27 +33,10 @@ interface QuizResultOverlayProps {
 
 // Helper to map SubmissionDetail to QuizResult
 function mapSubmissionDetailToQuizResult(detail: SubmissionDetail): QuizResult {
-  // The API response might already be in the QuizResult format with 'answers' property
-  if ('answers' in detail) {
-    return detail as unknown as QuizResult;
-  }
-
-  // Build a map of correct answers from quiz object
-  const correctAnswers: Record<number, number> = {};
-  detail.quiz.aiResponses.forEach((aiResp) => {
-    aiResp.questions.forEach((q) => {
-      // Assume correct answer is always the first option (index 0) unless you have a better way
-      correctAnswers[q.id] = 0;
-    });
-  });
-
+  // Backend returns QuizResultDto shape with 'answers' already populated.
   return {
     quiz: detail.quiz,
-    answers: detail.questionAnswers.map((qa) => ({
-      questionId: qa.questionId,
-      correctAnswerChoice: correctAnswers[qa.questionId] ?? 0,
-      selectedAnswerChoice: qa.selectedOptionNumber,
-    })),
+    answers: detail.answers,
     submissionTime: detail.submissionTime,
     score: detail.score,
   };
@@ -316,12 +296,8 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
                   >
                     {question.options.map((optionText, optionIndex) => {
                       // Determine option appearance based on correctness
-                      // Option indexes are 0-based, but answer choices are 1-based
-                      const optionNumber = optionIndex + 1;
-                      const isCorrect =
-                        optionNumber === result.correctAnswerChoice;
-                      const isSelected =
-                        optionNumber === result.selectedAnswerChoice;
+                      const isCorrect = optionIndex === result.correctAnswerChoice;
+                      const isSelected = optionIndex === result.selectedAnswerChoice;
 
                       // Style by case
                       let optionColor = 'var(--text-color)';
@@ -346,8 +322,8 @@ const QuizResultOverlay: React.FC<QuizResultOverlayProps> = (props) => {
 
                       return (
                         <FormControlLabel
-                          key={optionNumber}
-                          value={optionNumber}
+                          key={optionIndex}
+                          value={optionIndex}
                           disabled
                           control={
                             <Radio

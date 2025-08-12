@@ -50,7 +50,7 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
   const handleOptionClick = (optionIndex: number) => {
     if (showResult) return; // Prevent clicking after answer is shown
     
-    onAnswerSelected(optionIndex + 1);
+    onAnswerSelected(optionIndex); // 0-based index
   };
 
   const getOptionStyle = (optionIndex: number) => {
@@ -80,8 +80,8 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
     }
 
     // Show results
-    const isSelected = selectedOption === optionIndex + 1;
-    const isCorrect = optionIndex + 1 === correctAnswer;
+    const isSelected = selectedOption === optionIndex;
+    const isCorrect = optionIndex === correctAnswer;
 
     if (isCorrect) {
       return {
@@ -110,8 +110,8 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
   const getOptionIcon = (optionIndex: number) => {
     if (!showResult) return null;
     
-    const isSelected = selectedOption === optionIndex + 1;
-    const isCorrect = optionIndex + 1 === correctAnswer;
+    const isSelected = selectedOption === optionIndex;
+    const isCorrect = optionIndex === correctAnswer;
 
     if (isCorrect) {
       return <CheckCircleIcon sx={{ ml: 1, color: 'white' }} />;
@@ -215,12 +215,12 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
             >
               {pointsEarned > 0 ? 'Correct!' : 'Incorrect!'}
             </Typography>
-            {pointsEarned === 0 && correctAnswer && (
+            {pointsEarned === 0 && correctAnswer !== undefined && (
               <Typography
                 variant="body1"
                 sx={{ color: 'var(--sub-color)', mt: 1 }}
               >
-                The correct answer was: {correctAnswerText || currentQuestion.options[correctAnswer - 1]}
+                The correct answer was: {correctAnswerText || currentQuestion.options[correctAnswer]}
               </Typography>
             )}
           </Box>

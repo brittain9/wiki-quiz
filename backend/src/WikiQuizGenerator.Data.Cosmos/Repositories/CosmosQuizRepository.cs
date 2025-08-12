@@ -99,7 +99,12 @@ public class CosmosQuizRepository : IQuizRepository
             {
                 if (quiz.Submission != null)
                 {
-                    submissions.Add(MapSubmissionFromDocument(quiz.Submission));
+                    var s = MapSubmissionFromDocument(quiz.Submission);
+                    if (string.IsNullOrWhiteSpace(s.Title))
+                    {
+                        s.Title = quiz.Title;
+                    }
+                    submissions.Add(s);
                 }
             }
         }
@@ -200,7 +205,8 @@ public class CosmosQuizRepository : IQuizRepository
             SubmissionTime = core.SubmissionTime,
             Score = core.Score,
             PointsEarned = core.PointsEarned,
-            Answers = core.Answers.ToList()
+            Answers = core.Answers.ToList(),
+            Title = core.Title
         };
     }
 
@@ -213,7 +219,8 @@ public class CosmosQuizRepository : IQuizRepository
             SubmissionTime = doc.SubmissionTime,
             Score = doc.Score,
             PointsEarned = doc.PointsEarned,
-            Answers = doc.Answers.ToList()
+            Answers = doc.Answers.ToList(),
+            Title = doc.Title ?? string.Empty
         };
     }
 
@@ -238,7 +245,12 @@ public class CosmosQuizRepository : IQuizRepository
             {
                 if (quiz.Submission != null)
                 {
-                    submissions.Add(MapSubmissionFromDocument(quiz.Submission));
+                    var s = MapSubmissionFromDocument(quiz.Submission);
+                    if (string.IsNullOrWhiteSpace(s.Title))
+                    {
+                        s.Title = quiz.Title;
+                    }
+                    submissions.Add(s);
                 }
             }
         }

@@ -26,7 +26,7 @@ public class PointsService : IPointsService
         foreach (var question in questions)
         {
             var answer = answers.FirstOrDefault(a => a.QuestionId == index + 1);
-            if (answer != null && answer.SelectedOptionNumber == (question.CorrectAnswerIndex + 1))
+            if (answer != null && answer.SelectedOptionNumber == question.CorrectAnswerIndex)
             {
                     totalPoints += 1000; // 1000 points per correct answer
             }
@@ -47,7 +47,7 @@ public class PointsService : IPointsService
         {
             var q = questionList[i];
             var a = answers.FirstOrDefault(x => x.QuestionId == i + 1);
-            if (a != null && (a.SelectedOptionNumber - 1) == q.CorrectAnswerIndex)
+            if (a != null && a.SelectedOptionNumber == q.CorrectAnswerIndex)
             {
                 correct++;
             }

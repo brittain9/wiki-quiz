@@ -8,6 +8,7 @@ public sealed class SubmissionDocument
     public int Score { get; set; }
     public int PointsEarned { get; set; }
     public List<int> Answers { get; set; } = new();
+    public string? Title { get; set; }
 }
 
 

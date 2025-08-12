@@ -47,8 +47,7 @@ const QuizContainer: React.FC = React.memo(() => {
 
   // Computed values
   const flatQuestions = useMemo(
-    () =>
-      currentQuiz?.aiResponses.flatMap((response) => response.questions) || [],
+    () => currentQuiz?.aiResponses[0]?.questions || [],
     [currentQuiz],
   );
 
@@ -71,38 +70,42 @@ const QuizContainer: React.FC = React.memo(() => {
 
   // Handle answer selection
   const handleAnswerSelected = useCallback(
-    async (selectedOptionNumber: number) => {
+    async (selectedOptionIndex: number) => {
       try {
         // Call the backend to validate the answer via API client (respects VITE_API_BASE_URL)
         const result = await quizApi.validateAnswer({
           quizId: currentQuiz!.id,
           questionId: currentQuestion.id,
-          selectedOptionNumber,
+          selectedOptionNumber: selectedOptionIndex,
         });
 
-        setSelectedOption(selectedOptionNumber);
+        setSelectedOption(selectedOptionIndex);
         setCurrentQuestionPoints(result.pointsEarned);
         setTotalPoints((prev) => prev + result.pointsEarned);
         setCorrectAnswer(result.correctOptionNumber);
         setCorrectAnswerText(result.correctAnswerText);
         setShowResult(true);
 
-        // Add to user answers
+        // Add to user answers and compute final list synchronously
+        let finalAnswers: QuestionAnswer[] = [];
         setUserAnswers((prev) => {
           const existingAnswerIndex = prev.findIndex(
             (a) => a.questionId === currentQuestion.id,
           );
           const newAnswer = {
             questionId: currentQuestion.id,
-            selectedOptionNumber,
+            selectedOptionNumber: selectedOptionIndex,
           };
 
           if (existingAnswerIndex > -1) {
             const newAnswers = [...prev];
             newAnswers[existingAnswerIndex] = newAnswer;
+            finalAnswers = newAnswers;
             return newAnswers;
           } else {
-            return [...prev, newAnswer];
+            const newAnswers = [...prev, newAnswer];
+            finalAnswers = newAnswers;
+            return newAnswers;
           }
         });
 
@@ -116,8 +119,8 @@ const QuizContainer: React.FC = React.memo(() => {
             setCorrectAnswer(undefined);
             setCorrectAnswerText(undefined);
           } else {
-            // Last question - submit quiz
-            handleSubmit();
+            // Last question - submit quiz using the most up-to-date answers
+            handleSubmit(finalAnswers);
           }
         }, 3000); // Show result for 3 seconds
       } catch (error) {
@@ -128,23 +131,27 @@ const QuizContainer: React.FC = React.memo(() => {
     [currentQuestion, currentQuestionIndex, totalQuestions],
   );
 
-  const handleSubmit = useCallback(async () => {
-    if (!currentQuiz) return;
+  const handleSubmit = useCallback(
+    async (answersOverride?: QuestionAnswer[]) => {
+      if (!currentQuiz) return;
 
-    try {
-      const quizSubmission: QuizSubmission = {
-        quizId: currentQuiz.id,
-        questionAnswers: userAnswers,
-      };
-      const result = await quizApi.submitQuiz(quizSubmission);
-      setCurrentSubmission(result);
-      addSubmissionToHistory(result);
-      setQuizSubmitted(true);
-      setScore(result.score);
-    } catch (error) {
-      console.error('Failed to submit quiz:', error);
-    }
-  }, [currentQuiz, userAnswers, setCurrentSubmission, addSubmissionToHistory]);
+      try {
+        const answers = answersOverride ?? userAnswers;
+        const quizSubmission: QuizSubmission = {
+          quizId: currentQuiz.id,
+          questionAnswers: answers,
+        };
+        const result = await quizApi.submitQuiz(quizSubmission);
+        setCurrentSubmission(result);
+        addSubmissionToHistory(result);
+        setQuizSubmitted(true);
+        setScore(result.score);
+      } catch (error) {
+        console.error('Failed to submit quiz:', error);
+      }
+    },
+    [currentQuiz, userAnswers, setCurrentSubmission, addSubmissionToHistory],
+  );
 
   // Loading state
   if (isGenerating) {

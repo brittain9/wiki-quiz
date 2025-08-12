@@ -1,4 +1,5 @@
 import { Quiz } from './quiz.types';
+import { ResultOption } from './quizResult.types';
 
 export interface QuizSubmission {
   quizId: number;
@@ -20,9 +21,10 @@ export interface SubmissionResponse {
 
 export interface SubmissionDetail {
   quiz: Quiz;
-  questionAnswers: QuestionAnswer[];
+  answers: ResultOption[];
   score: number;
   submissionTime: Date;
+  userId?: string;
 }
 
 export interface PaginatedResponse<T> {

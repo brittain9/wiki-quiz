@@ -39,9 +39,9 @@ export const submissionApi = {
    */
   async getMySubmissions(): Promise<SubmissionResponse[]> {
     try {
-      const response = await apiGet<SubmissionResponse[]>(USER_ENDPOINTS.MY_SUBMISSIONS);
-      // Ensure we always return an array
-      return Array.isArray(response) ? response : [];
+      // Backend returns a paginated response, not a plain array. Fetch first page.
+      const response = await apiGet<PaginatedResponse<SubmissionResponse>>(USER_ENDPOINTS.MY_SUBMISSIONS + `?page=1&pageSize=10`);
+      return response.items ?? [];
     } catch (error) {
       console.error(`Failed to get user submissions: ${parseApiError(error)}`);
       // Return empty array on error instead of throwing
