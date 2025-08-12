@@ -5,9 +5,9 @@ import axios, {
   AxiosError,
   AxiosRequestConfig,
 } from 'axios';
+import { API_BASE_URL } from '../config';
 
-// Use environment variables for API URLs
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Use validated environment variable from config
 console.log('API Base URL:', API_BASE_URL);
 
 // Interfaces for error handling

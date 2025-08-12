@@ -1,10 +1,9 @@
 import axios, { AxiosError } from 'axios';
 
 import { apiGet, apiPost, parseApiError } from '../apiService';
+import { API_BASE_URL, APP_BASE_URL } from '../../config';
 
-// Environment variables with fallback values for safety
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL;
+// Validated environment variables
 
 const AUTH_ENDPOINTS = {
   LOGIN_GOOGLE: '/auth/login/google',

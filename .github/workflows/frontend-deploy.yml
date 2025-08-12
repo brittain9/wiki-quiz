@@ -23,6 +23,15 @@ jobs:
         with:
           submodules: true
           lfs: false
+
+      - name: Resolve API and App base URLs from Pulumi config
+        run: |
+          API_URL=$(awk '/wikiquiz:apiBaseUrl:/ {print $2}' infra/WikiQuizGenerator.Pulumi.Azure/Pulumi.prd.yaml)
+          APP_URL=$(awk '/wikiquiz:appBaseUrl:/ {print $2}' infra/WikiQuizGenerator.Pulumi.Azure/Pulumi.prd.yaml)
+          if [ -n "$API_URL" ]; then echo "VITE_API_BASE_URL=$API_URL" >> $GITHUB_ENV; fi
+          if [ -n "$APP_URL" ]; then echo "VITE_APP_BASE_URL=$APP_URL" >> $GITHUB_ENV; fi
+          echo "Resolved VITE_API_BASE_URL=$API_URL"
+          echo "Resolved VITE_APP_BASE_URL=$APP_URL"
       
       - name: Build And Deploy
         id: builddeploy
@@ -40,6 +49,8 @@ jobs:
         env:
           # Override the default build command to ensure dependencies are installed
           PRE_BUILD_COMMAND: "npm ci"
+          VITE_API_BASE_URL: ${{ env.VITE_API_BASE_URL }}
+          VITE_APP_BASE_URL: ${{ env.VITE_APP_BASE_URL }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

@@ -15,6 +15,7 @@ public class MyStack : Stack
     [Output] public Output<string> StaticWebAppUrl { get; private set; }
     [Output] public Output<string> ApplicationInsightsConnectionString { get; private set; }
     [Output] public Output<string> LogAnalyticsWorkspaceId { get; private set; }
+    [Output] public Output<string> FrontendApiBaseUrl { get; private set; }
 
     public MyStack()
     {
@@ -28,6 +29,7 @@ public class MyStack : Stack
         var logAnalyticsRetention = 30;
         
         var frontendUri = config.Require("frontendUri");
+        var frontendApiBaseUrl = config.Get("apiBaseUrl");
         var jwtIssuer = config.Get("jwtIssuer"); // Can be null if not set
         var jwtAudience = config.Get("jwtAudience"); // Can be null if not set
         
@@ -331,6 +333,7 @@ public class MyStack : Stack
         ApiUrl = containerApp.Configuration.Apply(config => $"https://{config!.Ingress!.Fqdn!}"); 
         FrontendUrl = Output.Create(frontendUri);
         StaticWebAppUrl = staticWebApp.DefaultHostname.Apply(hostname => $"https://{hostname}");
+        FrontendApiBaseUrl = Output.Create(frontendApiBaseUrl ?? "");
         ApplicationInsightsConnectionString = appInsightsConnectionString;
         LogAnalyticsWorkspaceId = logAnalyticsWorkspace.Id;
     }

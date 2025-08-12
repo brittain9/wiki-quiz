@@ -14,6 +14,8 @@ config:
   wikiquiz:ghcrPassword:
     secure: AAABAI6GuDYgPGmeaiwpSHK8FFRFNjFK3UdFtKgUp7SitFn2wosn2AJcu4ekktEpyyZYiVjtn6aOQVDllmmU68IKlwTob29F
   wikiquiz:imageTag: latest
+  wikiquiz:apiBaseUrl: https://quizapi.alexanderbrittain.com
+  wikiquiz:appBaseUrl: https://quiz.alexanderbrittain.com
   wikiquiz:githubRepo: brittain9/wiki-quiz
   wikiquiz:githubBranch: main
   wikiquiz:githubToken:
