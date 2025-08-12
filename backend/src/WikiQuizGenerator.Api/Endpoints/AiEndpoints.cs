@@ -14,6 +14,7 @@ public static class AiEndpoints
         group.MapGet("/services", (IAiServiceManager aiServiceManager)
             => Results.Ok(aiServiceManager.GetAvailableAiServices()))
         .WithName("GetAiServices")
+        .RequireAuthorization()
         .WithOpenApi(operation =>
         {
             operation.Summary = "Get the available AI services.";
@@ -25,6 +26,7 @@ public static class AiEndpoints
         group.MapGet("/models", (IAiServiceManager aiServiceManager, string aiServiceId)
             => Results.Ok(aiServiceManager.GetModels(aiServiceId)))
         .WithName("GetAiModels")
+        .RequireAuthorization()
         .WithOpenApi(operation =>
         {
             operation.Summary = "Get the available models based on the AI service ID.";

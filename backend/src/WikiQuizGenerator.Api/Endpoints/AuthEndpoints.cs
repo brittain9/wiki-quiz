@@ -22,7 +22,7 @@ public static class AuthEndpoints
                 var scheme = context.Request.Scheme;
                 var host = context.Request.Host.Value;
 
-                var callbackUrl = $"{scheme}://{host}{callbackPath}?returnUrl={returnUrl}";
+                var callbackUrl = $"{scheme}://{host}{callbackPath}?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}";
                 logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
                 
                 var properties = new AuthenticationProperties
@@ -35,7 +35,7 @@ public static class AuthEndpoints
             .AllowAnonymous();
 
         group.MapGet("/login/google/callback", async ([FromQuery] string returnUrl,
-                HttpContext context, IAccountService accountService) =>
+                HttpContext context, IAccountService accountService, IConfiguration configuration) =>
             {
                 var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
@@ -46,7 +46,15 @@ public static class AuthEndpoints
 
                 await accountService.LoginWithGoogleAsync(result.Principal);
 
-                return Results.Redirect(returnUrl);
+                // Safe redirect handling
+                var target = GetSafeReturnUrl(returnUrl, context, configuration);
+                if (target.IsAbsoluteUri)
+                {
+                    // Allowed absolute URL (whitelisted frontend)
+                    return Results.Redirect(target.ToString());
+                }
+                // Safe relative path on this host
+                return Results.LocalRedirect(target.ToString());
             })
             .WithName("GoogleLoginCallback")
             .AllowAnonymous();
@@ -76,5 +84,36 @@ public static class AuthEndpoints
                 return Results.Ok(userInfo);
             })
             .RequireAuthorization();
+
+        static Uri GetSafeReturnUrl(string? url, HttpContext ctx, IConfiguration config)
+        {
+            // 1) Allow only whitelisted absolute frontend URL
+            var frontend = config["wikiquizapp:FrontendUri"];
+            if (!string.IsNullOrWhiteSpace(url) && !string.IsNullOrWhiteSpace(frontend))
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out var abs) && Uri.TryCreate(frontend, UriKind.Absolute, out var fe))
+                {
+                    if (string.Equals(abs.Scheme, fe.Scheme, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(abs.Host, fe.Host, StringComparison.OrdinalIgnoreCase)
+                        && abs.Port == fe.Port)
+                    {
+                        // Absolute URL matches configured frontend origin
+                        return abs;
+                    }
+                }
+            }
+
+            // 2) Otherwise allow only safe relative paths on this host
+            var fallback = "/";
+            if (!string.IsNullOrWhiteSpace(url) && Uri.TryCreate(url, UriKind.Relative, out var rel))
+            {
+                var s = url;
+                if (s.StartsWith('/') && !s.StartsWith("//") && !s.StartsWith(@"/\\"))
+                {
+                    return new Uri(s, UriKind.Relative);
+                }
+            }
+            return new Uri(fallback, UriKind.Relative);
+        }
     }
 }

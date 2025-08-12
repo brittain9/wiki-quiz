@@ -12,13 +12,16 @@ public partial class Program
     {
         app.UseSerilogRequestLogging();
 
-        app.UseForwardedHeaders(new ForwardedHeadersOptions
+        // Enable forwarded headers only when explicitly configured (prevents spoofing in uncontrolled proxies)
+        if (string.Equals(Environment.GetEnvironmentVariable("ENABLE_FORWARDED_HEADERS"), "true", StringComparison.OrdinalIgnoreCase))
         {
-            // TODO: See if this is even needed
-            ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost,
-            KnownNetworks = { },
-            KnownProxies = { }
-        });
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost,
+                KnownNetworks = { },
+                KnownProxies = { }
+            });
+        }
 
         if (!string.Equals(Environment.GetEnvironmentVariable("SKIP_APP_CONFIG"), "true", StringComparison.OrdinalIgnoreCase))
         {
