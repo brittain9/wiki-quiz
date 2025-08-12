@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+**/secrets.json
+**/*.user
+**/.env*
+.vscode/
+.vs/
+**/*.suo
+**/*.userprefs
+**/*.DS_Store
+**/Thumbs.db
+.git/
+.gitignore
+**/logs/
+**/*.log
+**/node_modules/
+**/.docker/

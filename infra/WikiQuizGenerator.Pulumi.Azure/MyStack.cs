@@ -38,7 +38,9 @@ public class MyStack : Stack
         var ghcrUsername = config.Require("ghcrUsername");
         var ghcrPassword = config.RequireSecret("ghcrPassword"); 
 
-        var containerImage = Output.Format($"ghcr.io/{ghcrUsername}/wiki-quiz:prd");
+        // Allow overriding the image tag via config for CI/CD (e.g., commit SHA). Defaults to "prd".
+        var imageTag = config.Get("imageTag") ?? "prd";
+        var containerImage = Output.Format($"ghcr.io/{ghcrUsername}/wiki-quiz:{imageTag}");
         
         var resourceGroup = new ResourceGroup("rg", new ResourceGroupArgs
         {
@@ -242,6 +244,8 @@ public class MyStack : Stack
             },
             Template = new TemplateArgs
             {
+                // Force a new revision name per deploy so ACA rolls even if image caching occurs
+                RevisionSuffix = imageTag,
                 Scale = new ScaleArgs
                 {
                     MinReplicas = 0,
