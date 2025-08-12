@@ -7,6 +7,7 @@ import Zoom from '@mui/material/Zoom';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Question } from '../../types';
 
@@ -34,6 +35,7 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
   correctAnswerText,
 }) => {
   const [animatePoints, setAnimatePoints] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (showResult && pointsEarned > 0) {
@@ -158,7 +160,7 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
                   textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                 }}
               >
-                {pointsEarned > 0 ? `+${pointsEarned.toLocaleString()}` : '0'} Points!
+                {pointsEarned > 0 ? `+${pointsEarned.toLocaleString()}` : '0'} {t('quiz.points')}!
               </Typography>
             </Zoom>
           </Box>

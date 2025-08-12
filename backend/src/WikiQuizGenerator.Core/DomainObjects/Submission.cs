@@ -7,9 +7,11 @@ namespace WikiQuizGenerator.Core.DomainObjects;
 /// </summary>
 public class Submission
 {
+    public int QuizId { get; set; }
     public Guid UserId { get; set; }
     public DateTime SubmissionTime { get; set; }
     public List<int> Answers { get; set; } = new(); // 0-based indices corresponding to question order and selected options
     public int Score { get; set; }
     public int PointsEarned { get; set; }
+    public string Title { get; set; } = string.Empty;
 }

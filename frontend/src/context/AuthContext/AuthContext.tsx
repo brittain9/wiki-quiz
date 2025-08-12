@@ -27,19 +27,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
   const clearError = useCallback(() => setError(null), []);
 
-  // Refresh token periodically to maintain the session
-  // This is typically called when the app loads and then at regular intervals
-  const refreshToken = useCallback(async () => {
-    if (!isLoggedIn) return;
-
-    try {
-      await authApi.refreshToken();
-    } catch (err) {
-      console.error('Token refresh failed, logging out user', err);
-      setIsLoggedIn(false);
-      setUserInfo(null);
-    }
-  }, [isLoggedIn]);
+  // Token refresh removed; JWT is sent via HttpOnly cookie, session ends on expiry
+  const refreshToken = useCallback(async () => {}, []);
 
   // Check if user is logged in by fetching their profile
   const checkLoginStatus = useCallback(async () => {
@@ -117,12 +106,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({
 
   // Set up token refresh interval when logged in
   useEffect(() => {
-    if (isLoggedIn) {
-      // Refresh token every 15 minutes (900000ms)
-      const refreshInterval = setInterval(refreshToken, 900000);
-      return () => clearInterval(refreshInterval);
-    }
-  }, [isLoggedIn, refreshToken]);
+    // No periodic refresh; rely on server cookie lifetime
+  }, []);
 
   // Initialize Google OAuth login flow
   const loginWithGoogle = useCallback(() => {

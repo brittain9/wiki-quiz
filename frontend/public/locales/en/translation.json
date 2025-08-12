@@ -2,6 +2,11 @@
   "button": {
     "close": "Close"
   },
+  "quiz": {
+    "totalScore": "Total Score: {{score}}",
+    "points": "points",
+    "score": "Score"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "Highlights"
@@ -48,12 +53,15 @@
     "title": "Select Theme"
   },
   "recentSubmissions": {
-    "title": "Recent Submissions"
+    "title": "Recent Submissions",
+    "noSubmissions": "No submissions yet",
+    "clear": "Clear"
   },
   "quizresultoverlay": {
     "title": "Quiz Results",
     "score": "Score",
-    "question": "Question"
+    "question": "Question",
+    "close": "Close"
   },
   "highlights": {
     "title": "Highlights",

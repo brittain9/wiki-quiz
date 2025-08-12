@@ -1,296 +1,94 @@
-# WikiQuiz Infrastructure (Ultra Cost-Optimized & Scalable)
+# WikiQuiz Infrastructure (Pay-as-you-go, Scale-to-zero)
 
-This infrastructure setup is designed for **absolute minimum cost** with **smart auto-scaling capabilities**. Every resource is configured for the cheapest possible tier with built-in scaling options.
+This infrastructure provisions a minimal-cost, usage-based backend using only production resources:
 
-## 🏗️ What Gets Created (Cost-Optimized)
+- Azure Container Apps for the API with scale-to-zero (consumption pricing)
+- Azure Cosmos DB (Serverless) as the data store (pure pay-per-use)
+- Log Analytics workspace for Container Apps logs
+- Azure Application Insights for telemetry
 
-- **Resource Group** - Container for all resources
-- **PostgreSQL Flexible Server** - Burstable B1ms (1 vCore, 2GB RAM, auto-scaling storage)
-- **Azure Container Instances** - Minimal CPU/RAM with burst limits for scaling
-- **Static Web App** - Free tier for frontend hosting
+You develop locally against the Cosmos Emulator; no hosted dev environment is provisioned.
 
-## 💰 Cost Breakdown (Estimated Monthly)
+## What gets created
 
-### Development Environment
+- `Resource Group`: `rg-wikiquiz-prd`
+- `Log Analytics Workspace`: Container Apps logging (low retention)
+- `Container Apps Environment`: hosting for the API
+- `Container App`: pulls image from GitHub Container Registry (GHCR), scales to zero
+- `Cosmos DB Account`: Serverless (SQL/Core API), session consistency
+- `Cosmos DB Database`: `WikiQuizDb`
+- `Application Insights`: telemetry with connection string exposed to the app
 
-- **PostgreSQL Flexible Server B1ms**: ~$12-15/month
-- **Container Instances (0.5 CPU, 1.5GB)**: ~$8-12/month
-- **Static Web App**: FREE
-- **Total**: ~$20-27/month
+## Configuration
 
-### Production Environment (Same specs)
+Pulumi config keys (set per stack):
 
-- **Total**: ~$20-27/month per environment
+- `wikiquiz:location` (e.g., `Central US`)
+- `wikiquiz:frontendUri` (CORS)
+- `wikiquiz:ghcrUsername` (GitHub handle)
+- `wikiquiz:ghcrPassword` (secret; token with `read:packages`)
+- `wikiquiz:openAiApiKey` (secret)
+- `wikiquiz:googleClientId` (secret)
+- `wikiquiz:googleClientSecret` (secret)
+- `wikiquiz:jwtSecret` (secret)
 
-## 🚀 Auto-Scaling Features
-
-### PostgreSQL Database
-
-- **Storage Auto-Grow**: Starts at 32GB, expands automatically
-- **Burstable Performance**: CPU credits for handling traffic spikes
-- **Backup**: 7-day retention (minimum cost)
-
-### Container Instances
-
-- **CPU Bursting**: 0.5 → 1.0 CPU when needed
-- **Memory Bursting**: 1.5GB → 2.0GB when needed
-- **Auto-Restart**: Automatic restart on failures
-- **Health Checks**: Built-in liveness probes
-
-## 🐳 Container Strategy
-
-This setup uses **GitHub Container Registry (GHCR)** with environment-specific tags:
-
-- **Development**: `ghcr.io/brittain9/wiki-quiz:dev`
-- **Production**: `ghcr.io/brittain9/wiki-quiz:prd`
-
-## ⚙️ Configuration Note
-
-**You don't need to edit any YAML files manually!**
-
-- `Pulumi.yaml` = Project documentation (optional)
-- `Pulumi.dev.yaml` & `Pulumi.prd.yaml` = Auto-created when you run `pulumi config set`
-
-Just use the CLI commands below, and Pulumi handles the files automatically.
-
-## 🚀 Complete Setup Guide
-
-### Step 1: Prerequisites
+Example (production only):
 
 ```bash
-# Install required tools
-az login
-pulumi login
-
-# Navigate to this directory
-cd infra/WikiQuizGenerator.Pulumi.Azure
-```
-
-### Step 2: Configure via CLI (No Manual File Editing!)
-
-```bash
-# Select dev environment
-pulumi stack select dev
-
-# Set your GitHub username (this determines your container registry URL)
-pulumi config set githubUsername your-actual-github-username
-
-# Set encrypted secrets (Pulumi encrypts these automatically)
-pulumi config set --secret postgresPassword "YourSecurePassword123!"
-pulumi config set --secret openAiApiKey "sk-your-openai-key-here"
-pulumi config set --secret googleClientId "your-google-client-id"
-pulumi config set --secret googleClientSecret "your-google-client-secret"
-pulumi config set --secret jwtSecret "your-super-secret-jwt-key-32-chars-min"
-```
-
-### Step 3: Setup GitHub Container Registry
-
-#### A. Generate GitHub Personal Access Token
-
-1. Go to **GitHub** → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
-2. Click **"Generate new token (classic)"**
-3. Select scopes:
-   - ✅ `write:packages` (to push containers)
-   - ✅ `read:packages` (to pull containers)
-4. Copy the token (you'll need it for authentication)
-
-#### B. Login to GitHub Container Registry
-
-```bash
-# Login to GHCR with your GitHub username and token
-echo YOUR_GITHUB_TOKEN | docker login ghcr.io -u your-github-username --password-stdin
-```
-
-### Step 4: Build and Push Container Images
-
-#### Option A: Manual Build (Quick Start)
-
-```bash
-# From project root
-cd backend
-
-# Build and tag for development
-docker build -t ghcr.io/your-github-username/wiki-quiz:dev .
-docker push ghcr.io/your-github-username/wiki-quiz:dev
-```
-
-#### Option B: Automated Build Pipeline (Recommended)
-
-Create `.github/workflows/build-and-deploy.yml` in your repository root:
-
-This workflow automatically:
-
-- ✅ **Builds on every push** to main/develop branches
-- ✅ **Tags images appropriately** (`:prd` for main, `:dev` for develop)
-- ✅ **Uses GitHub secrets** for authentication
-- ✅ **Only builds when backend changes**
-
-### Step 5: Deploy Infrastructure
-
-```bash
-# Preview what will be created (should show 7+ resources including database)
-pulumi preview
-
-# Deploy everything
-pulumi up
-
-# Get your URLs and connection info
-pulumi stack output
-```
-
-### Step 6: Setup Frontend Deployment
-
-After the infrastructure is deployed, you need to connect your frontend to the Static Web App:
-
-#### Option A: GitHub Integration (Recommended)
-
-1. Go to **Azure Portal** → **Resource Groups** → **rg-wikiquiz-dev** → **wikiquiz-frontend-dev**
-2. Click **"Manage deployment"** → **"GitHub"**
-3. Connect your GitHub repository
-4. Configure build settings:
-   - **Source**: GitHub
-   - **Repository**: your-username/wiki-quiz
-   - **Branch**: main (or your default branch)
-   - **Build presets**: Custom
-   - **App location**: `/frontend`
-   - **Output location**: `dist`
-
-## 📊 After Deployment
-
-You'll get these outputs:
-
-```bash
-pulumi stack output
-```
-
-- **ApiUrl**: `http://20.XXX.XXX.XXX` (your backend API)
-- **FrontendUrl**: `https://wikiquiz-frontend-dev-XXXXX.azurestaticapps.net` (your frontend)
-- **DatabaseHost**: `wikiquiz-db-dev-XXXXXX.postgres.database.azure.com` (your database)
-- **DatabaseConnectionString**: Full connection string for manual access
-
-## 🔧 Cost Optimization Features
-
-### Automatic Cost Savings
-
-1. **Burstable Database**: Only pay for CPU credits when you use them
-2. **Minimal Storage**: Starts small, grows only when needed
-3. **Single-Region Backup**: No geo-redundancy costs
-4. **Container Bursting**: Scale up only during traffic spikes
-5. **Health Monitoring**: Prevent unnecessary resource waste
-
-### Manual Cost Controls
-
-```bash
-# Stop containers during downtime (dev environment)
-az container stop --resource-group rg-wikiquiz-dev --name wikiquiz-api-dev
-
-# Restart when needed
-az container start --resource-group rg-wikiquiz-dev --name wikiquiz-api-dev
-
-# Scale database down (if supported by Azure)
-# Note: Burstable tier is already the cheapest option
-```
-
-## 🌍 Multiple Environments
-
-### Development Environment
-
-```bash
-# Deploy to dev (uses Pulumi.dev.yaml)
-pulumi stack select dev
-pulumi config set githubUsername your-github-username
-pulumi up
-
-# Uses container: ghcr.io/your-github-username/wiki-quiz:dev
-```
-
-### Production Environment
-
-```bash
-# Deploy to production (uses Pulumi.prd.yaml)
 pulumi stack select prd
-pulumi config set githubUsername your-github-username
+pulumi config set wikiquiz:location "Central US"
+pulumi config set wikiquiz:frontendUri "https://quiz.alexanderbrittain.com"
+pulumi config set wikiquiz:ghcrUsername brittain9
+pulumi config set --secret wikiquiz:ghcrPassword <GHCR_TOKEN_WITH_READ_PACKAGES>
+pulumi config set --secret wikiquiz:openAiApiKey <OPENAI_KEY>
+pulumi config set --secret wikiquiz:googleClientId <CLIENT_ID>
+pulumi config set --secret wikiquiz:googleClientSecret <CLIENT_SECRET>
+pulumi config set --secret wikiquiz:jwtSecret <JWT_SECRET>
+```
 
-# Set production secrets
-pulumi config set --secret postgresPassword [prod-password]
-pulumi config set --secret openAiApiKey [prod-openai-key]
-# ... etc
+## Image source
 
+The API container is expected at:
+
+```
+ghcr.io/<ghcrUsername>/wiki-quiz:<environment>
+```
+
+Tag used: `ghcr.io/brittain9/wiki-quiz:prd`.
+
+## Environment variables provided to the API
+
+- `CosmosDb__ConnectionString` (secret)
+- `CosmosDb__DatabaseName` = `WikiQuizDb`
+- `CosmosDb__QuizContainerName` = `Quizzes`
+- `CosmosDb__UserContainerName` = `Users`
+- `APPLICATIONINSIGHTS_CONNECTION_STRING` (secret)
+- `wikiquizapp__OpenAIApiKey`, `wikiquizapp__GoogleOAuthClientId`, `wikiquizapp__GoogleOAuthClientSecret`, `wikiquizapp__JwtSecret`
+- `ASPNETCORE_ENVIRONMENT` = `Production`
+- `ASPNETCORE_URLS` = `http://+:8080`
+
+## Notes
+
+- The Container App is configured with `MinReplicas = 0` and an HTTP scale rule, so it scales to zero when idle.
+- Cosmos DB Free Tier is enabled at the account level and should be sufficient for initial production.
+- Application Insights is provisioned; the app can opt-in to telemetry by reading `APPLICATIONINSIGHTS_CONNECTION_STRING`.
+- All secrets are stored and injected by Pulumi.
+
+## Deploy
+
+```bash
+pulumi preview
 pulumi up
-
-# Uses container: ghcr.io/your-github-username/wiki-quiz:prd
+pulumi stack output
 ```
 
-## 🔄 Deployment Workflow
+Key outputs:
 
-### Automated (With GitHub Actions)
+- `ApiUrl`: Public endpoint of the API
+- `ApplicationInsightsConnectionString`: App Insights connection string
+- `LogAnalyticsWorkspaceId`: Workspace resource id
 
-1. **Push to `develop` branch** → Builds `:dev` image → Deploy to dev environment
-2. **Push to `main` branch** → Builds `:prd` image → Deploy to production environment
+## Local development
 
-### Manual
-
-```bash
-# 1. Build and push new version
-cd backend
-docker build -t ghcr.io/your-username/wiki-quiz:dev .
-docker push ghcr.io/your-username/wiki-quiz:dev
-
-# 2. Deploy infrastructure update (if image tag is already correct, this is instant)
-cd infra/WikiQuizGenerator.Pulumi.Azure
-pulumi up
-
-# 3. Restart container to pull new image
-az container restart --resource-group rg-wikiquiz-dev --name wikiquiz-api-dev
-```
-
-### Monitor Resources
-
-```bash
-# View container logs
-az container logs --resource-group rg-wikiquiz-dev --name wikiquiz-api-dev
-
-# Check database connectivity
-psql "$(pulumi stack output DatabaseConnectionString)"
-
-# Monitor costs in Azure Portal
-az account show --query tenantId
-```
-
-## 📈 Scaling Strategies
-
-### Vertical Scaling (More Power)
-
-If you need more performance, you can upgrade to higher tiers:
-
-```bash
-# Upgrade database to Standard_B2s (2 vCores, 4GB RAM)
-# Update MyStack.cs and change sku Name to "Standard_B2s"
-pulumi up
-
-# Container scaling is automatic within burst limits
-```
-
-### Horizontal Scaling (More Instances)
-
-For true horizontal scaling, consider upgrading to:
-
-- **Azure Container Apps** (better auto-scaling)
-- **Azure App Service** (multiple instances)
-- **Azure Database for PostgreSQL** with read replicas
-
-## 🧹 Cleanup
-
-To destroy everything and stop costs:
-
-```bash
-pulumi destroy
-```
-
-## 🚨 Cost Alerts
-
-Set up cost alerts in Azure Portal:
-
-1. Go to **Cost Management + Billing**
-2. Create budget alert for your resource group
-3. Set threshold at $30/month for safety
+- Use the Cosmos DB Emulator locally; no cloud dev infra is required.
+- Build and push your API image to GHCR as part of your CI/CD; infra will pull latest tag you reference in config.

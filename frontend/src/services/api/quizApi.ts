@@ -4,8 +4,9 @@ import type { Quiz, QuizSubmission, SubmissionResponse } from '../../types';
 
 // Quiz API endpoints
 const QUIZ_ENDPOINTS = {
-  BASIC_QUIZ: '/quiz/basicquiz',
-  SUBMIT_QUIZ: '/quiz/submitquiz',
+  GENERATE: '/quiz/generate',
+  SUBMIT_QUIZ: '/quiz/submit',
+  VALIDATE_ANSWER: '/quiz/validate',
 } as const;
 
 /**
@@ -45,7 +46,7 @@ export const quizApi = {
         `&numQuestions=${numQuestions}` +
         `&numOptions=${numOptions}` +
         `&extractLength=${extractLength}`;
-      return await apiPost<Quiz>(`${QUIZ_ENDPOINTS.BASIC_QUIZ}${query}`);
+      return await apiPost<Quiz>(`${QUIZ_ENDPOINTS.GENERATE}${query}`);
     } catch (error) {
       console.error(`Failed to generate basic quiz: ${parseApiError(error)}`);
       throw error;
@@ -64,6 +65,30 @@ export const quizApi = {
       );
     } catch (error) {
       console.error(`Failed to submit quiz: ${parseApiError(error)}`);
+      throw error;
+    }
+  },
+
+  /**
+   * Validate a single question answer
+   */
+  async validateAnswer(params: {
+    quizId: number;
+    questionId: number;
+    selectedOptionNumber: number;
+  }): Promise<{
+    isCorrect: boolean;
+    correctOptionNumber: number;
+    pointsEarned: number;
+    correctAnswerText?: string;
+  }> {
+    try {
+      return await apiPost(
+        QUIZ_ENDPOINTS.VALIDATE_ANSWER,
+        params,
+      );
+    } catch (error) {
+      console.error(`Failed to validate answer: ${parseApiError(error)}`);
       throw error;
     }
   },

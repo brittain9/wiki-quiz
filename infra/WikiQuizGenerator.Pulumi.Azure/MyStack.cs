@@ -2,42 +2,34 @@ using Pulumi;
 using Pulumi.AzureNative.Resources;
 using Pulumi.AzureNative.App;
 using Pulumi.AzureNative.App.Inputs;
-// We now EXCLUSIVELY use the V20221201 API version for all PostgreSQL resources.
-using Pulumi.AzureNative.DBforPostgreSQL.V20221201;
-using Pulumi.AzureNative.DBforPostgreSQL.V20221201.Inputs;
 using Pulumi.AzureNative.OperationalInsights;
+using Pulumi.AzureNative.DocumentDB;
+using Pulumi.AzureNative.DocumentDB.Inputs;
+using Pulumi.AzureNative.Insights;
+using Pulumi.AzureNative.Insights.Inputs;
 
 public class MyStack : Stack
 {
     [Output] public Output<string> ApiUrl { get; private set; }
     [Output] public Output<string> FrontendUrl { get; private set; }
-    [Output] public Output<string> DatabaseHost { get; private set; }
-    [Output] public Output<string> DatabaseConnectionString { get; private set; }
+    [Output] public Output<string> ApplicationInsightsConnectionString { get; private set; }
     [Output] public Output<string> LogAnalyticsWorkspaceId { get; private set; }
 
     public MyStack()
     {
         var config = new Config("wikiquiz");
-        
-        // Use config.Require for values that must be present
-        var environment = config.Require("environment");
+
         var location = config.Require("location");
-        
-        // Environment-specific optimizations
-        var isDevelopment = environment == "dev";
-        var isProduction = environment == "prd";
-        
-        // Optimize for development costs
-        var postgresSkuName = isDevelopment ? "Standard_B1ms" : "Standard_B2ms";
-        var containerCpu = isDevelopment ? 0.25 : 0.5;
-        var containerMemory = isDevelopment ? "0.5Gi" : "1Gi";
-        var logAnalyticsRetention = isDevelopment ? 30 : 90;
+
+        // Container resources (small footprint; scale-to-zero handles idle time)
+        var containerCpu = 0.25;
+        var containerMemory = "0.5Gi";
+        var logAnalyticsRetention = 30;
         
         var frontendUri = config.Require("frontendUri");
         var jwtIssuer = config.Get("jwtIssuer"); // Can be null if not set
         var jwtAudience = config.Get("jwtAudience"); // Can be null if not set
         
-        var postgresPassword = config.RequireSecret("postgresPassword");
         var openAiApiKey = config.RequireSecret("openAiApiKey");
         var googleClientId = config.RequireSecret("googleClientId");
         var googleClientSecret = config.RequireSecret("googleClientSecret");
@@ -46,18 +38,18 @@ public class MyStack : Stack
         var ghcrUsername = config.Require("ghcrUsername");
         var ghcrPassword = config.RequireSecret("ghcrPassword"); 
 
-        var containerImage = $"ghcr.io/brittain9/wiki-quiz:{environment}";
+        var containerImage = Output.Format($"ghcr.io/{ghcrUsername}/wiki-quiz:prd");
         
         var resourceGroup = new ResourceGroup("rg", new ResourceGroupArgs
         {
-            ResourceGroupName = $"rg-wikiquiz-{environment}",
+            ResourceGroupName = $"rg-wikiquiz-prd",
             Location = location,
         });
 
-        // Create Log Analytics Workspace for Container Apps logging (optimized for cost)
+        // Create Log Analytics Workspace for Container Apps logging
         var logAnalyticsWorkspace = new Workspace("log-analytics", new WorkspaceArgs
         {
-            WorkspaceName = $"wikiquiz-logs-{environment}",
+            WorkspaceName = $"wikiquiz-logs-prd",
             ResourceGroupName = resourceGroup.Name,
             Location = resourceGroup.Location,
             Sku = new Pulumi.AzureNative.OperationalInsights.Inputs.WorkspaceSkuArgs
@@ -65,12 +57,7 @@ public class MyStack : Stack
                 Name = "PerGB2018" // Most cost-effective for low volume
             },
             RetentionInDays = logAnalyticsRetention, // Minimum retention for PerGB2018 SKU
-            Tags = 
-            {
-                { "Environment", environment },
-                { "Project", "WikiQuiz" },
-                { "CostCenter", "Development" }
-            }
+            Tags = { { "Project", "WikiQuiz" }, { "Environment", "prd" } }
         });
 
         // Get the shared keys for the Log Analytics workspace
@@ -80,10 +67,10 @@ public class MyStack : Stack
             WorkspaceName = logAnalyticsWorkspace.Name
         });
 
-        // Create Container Apps Environment  
+        // Create Container Apps Environment (required; logs routed to Log Analytics)
         var containerEnvironment = new ManagedEnvironment("env", new ManagedEnvironmentArgs
         {
-            EnvironmentName = $"wikiquiz-env-{environment}",
+            EnvironmentName = $"wikiquiz-env-prd",
             ResourceGroupName = resourceGroup.Name,
             Location = resourceGroup.Location,
             AppLogsConfiguration = new AppLogsConfigurationArgs
@@ -98,10 +85,113 @@ public class MyStack : Stack
             }
         });
 
-        // Create Container App with simplified configuration
+        // Cosmos DB account (Free Tier) and SQL database
+        var cosmosAccount = new DatabaseAccount("cosmos", new DatabaseAccountArgs
+        {
+            AccountName = $"cosmos-wikiquiz-prd",
+            ResourceGroupName = resourceGroup.Name,
+            Location = resourceGroup.Location,
+            Kind = DatabaseAccountKind.GlobalDocumentDB,
+            DatabaseAccountOfferType = DatabaseAccountOfferType.Standard,
+            Capabilities =
+            {
+                new CapabilityArgs { Name = "EnableServerless" }
+            },
+            ConsistencyPolicy = new ConsistencyPolicyArgs
+            {
+                DefaultConsistencyLevel = DefaultConsistencyLevel.Session,
+            },
+            Locations =
+            {
+                new LocationArgs
+                {
+                    FailoverPriority = 0,
+                    LocationName = resourceGroup.Location,
+                }
+            },
+            Tags = { { "Project", "WikiQuiz" }, { "Environment", "prd" } }
+        });
+
+        var cosmosDatabase = new SqlResourceSqlDatabase("cosmos-db", new SqlResourceSqlDatabaseArgs
+        {
+            AccountName = cosmosAccount.Name,
+            ResourceGroupName = resourceGroup.Name,
+            DatabaseName = "WikiQuizDb",
+            Resource = new SqlDatabaseResourceArgs
+            {
+                Id = "WikiQuizDb"
+            }
+        });
+
+        // Create containers expected by the app with correct partition keys
+        var quizzesContainer = new SqlResourceSqlContainer("cosmos-quizzes", new SqlResourceSqlContainerArgs
+        {
+            AccountName = cosmosAccount.Name,
+            ResourceGroupName = resourceGroup.Name,
+            DatabaseName = cosmosDatabase.Name,
+            ContainerName = "Quizzes",
+            Resource = new SqlContainerResourceArgs
+            {
+                Id = "Quizzes",
+                PartitionKey = new ContainerPartitionKeyArgs
+                {
+                    Paths = { "/partitionKey" },
+                    Kind = "Hash"
+                }
+            }
+        });
+
+        var usersContainer = new SqlResourceSqlContainer("cosmos-users", new SqlResourceSqlContainerArgs
+        {
+            AccountName = cosmosAccount.Name,
+            ResourceGroupName = resourceGroup.Name,
+            DatabaseName = cosmosDatabase.Name,
+            ContainerName = "Users",
+            Resource = new SqlContainerResourceArgs
+            {
+                Id = "Users",
+                PartitionKey = new ContainerPartitionKeyArgs
+                {
+                    Paths = { "/partitionKey" },
+                    Kind = "Hash"
+                },
+                UniqueKeyPolicy = new UniqueKeyPolicyArgs
+                {
+                    UniqueKeys =
+                    {
+                        new UniqueKeyArgs { Paths = { "/email" } }
+                    }
+                }
+            }
+        });
+
+        // Get Cosmos connection string
+        var cosmosConnectionStrings = ListDatabaseAccountConnectionStrings.Invoke(new ListDatabaseAccountConnectionStringsInvokeArgs
+        {
+            AccountName = cosmosAccount.Name,
+            ResourceGroupName = resourceGroup.Name
+        });
+
+        var cosmosConnectionString = cosmosConnectionStrings.Apply(r => r.ConnectionStrings[0].ConnectionString);
+
+        // Application Insights (for telemetry)
+        var appInsights = new Component("appinsights", new ComponentArgs
+        {
+            ResourceName = $"wikiquiz-ai-prd",
+            ResourceGroupName = resourceGroup.Name,
+            ApplicationType = ApplicationType.Web,
+            Kind = "web",
+            IngestionMode = IngestionMode.LogAnalytics,
+            WorkspaceResourceId = logAnalyticsWorkspace.Id,
+            Tags = { { "Project", "WikiQuiz" }, { "Environment", "prd" } }
+        });
+
+        var appInsightsConnectionString = appInsights.ConnectionString;
+
+        // Create Container App (scale-to-zero)
         var containerApp = new ContainerApp("api", new ContainerAppArgs
         {
-            ContainerAppName = $"wikiquiz-api-{environment}",
+            ContainerAppName = $"wikiquiz-api-prd",
             ResourceGroupName = resourceGroup.Name,
             Location = resourceGroup.Location,
             ManagedEnvironmentId = containerEnvironment.Id,
@@ -112,7 +202,7 @@ public class MyStack : Stack
                     External = true,
                     TargetPort = 8080,
                     Transport = IngressTransportMethod.Http,
-                    CorsPolicy = new CorsPolicyArgs
+                    CorsPolicy = new Pulumi.AzureNative.App.Inputs.CorsPolicyArgs
                     {
                         AllowCredentials = true,
                         // Ensure frontendUri is non-nullable by using config.Require
@@ -142,7 +232,8 @@ public class MyStack : Stack
                 Secrets = new[]
                 {
                     new SecretArgs { Name = "ghcr-password", Value = ghcrPassword },
-                    new SecretArgs { Name = "postgres-password", Value = postgresPassword }, // For containerized PostgreSQL
+                    new SecretArgs { Name = "cosmos-connection", Value = cosmosConnectionString },
+                    new SecretArgs { Name = "appinsights-connection", Value = appInsightsConnectionString },
                     new SecretArgs { Name = "openai-key", Value = openAiApiKey },
                     new SecretArgs { Name = "google-client-id", Value = googleClientId },
                     new SecretArgs { Name = "google-client-secret", Value = googleClientSecret },
@@ -157,7 +248,7 @@ public class MyStack : Stack
                     MaxReplicas = 10,
                     Rules = new[]
                     {
-                        new ScaleRuleArgs
+                        new Pulumi.AzureNative.App.Inputs.ScaleRuleArgs
                         {
                             Name = "http-rule",
                             Http = new HttpScaleRuleArgs
@@ -183,12 +274,15 @@ public class MyStack : Stack
                         },
                         Env = new[]
                         {
-                            // Connection string components - we'll build this in the app code
-                            new EnvironmentVarArgs { Name = "wikiquizapp__DatabaseHost", Value = "localhost" },
-                            new EnvironmentVarArgs { Name = "wikiquizapp__DatabaseName", Value = "wikiquiz" },
-                            new EnvironmentVarArgs { Name = "wikiquizapp__DatabaseUser", Value = "wikiquizadmin" },
-                            new EnvironmentVarArgs { Name = "wikiquizapp__DatabasePassword", SecretRef = "postgres-password" },
-                            new EnvironmentVarArgs { Name = "wikiquizapp__DatabasePort", Value = "5432" },
+                            // Cosmos DB configuration
+                            new EnvironmentVarArgs { Name = "CosmosDb__ConnectionString", SecretRef = "cosmos-connection" },
+                            new EnvironmentVarArgs { Name = "CosmosDb__DatabaseName", Value = "WikiQuizDb" },
+                            new EnvironmentVarArgs { Name = "CosmosDb__QuizContainerName", Value = "Quizzes" },
+                            new EnvironmentVarArgs { Name = "CosmosDb__UserContainerName", Value = "Users" },
+                            // Application Insights connection (the app can enable later)
+                            new EnvironmentVarArgs { Name = "APPLICATIONINSIGHTS_CONNECTION_STRING", SecretRef = "appinsights-connection" },
+                            // App secrets
+                             new EnvironmentVarArgs { Name = "wikiquizapp__FrontendUri", Value = frontendUri },
                             new EnvironmentVarArgs { Name = "wikiquizapp__OpenAIApiKey", SecretRef = "openai-key" },
                             new EnvironmentVarArgs { Name = "wikiquizapp__GoogleOAuthClientId", SecretRef = "google-client-id" },
                             new EnvironmentVarArgs { Name = "wikiquizapp__GoogleOAuthClientSecret", SecretRef = "google-client-secret" },
@@ -196,28 +290,12 @@ public class MyStack : Stack
                             new EnvironmentVarArgs { Name = "ASPNETCORE_ENVIRONMENT", Value = "Production" },
                             new EnvironmentVarArgs { Name = "ASPNETCORE_URLS", Value = "http://+:8080" }
                         }
-                    },
-                    new ContainerArgs
-                    {
-                        Name = "postgres",
-                        Image = "postgres:15-alpine",
-                        Resources = new ContainerResourcesArgs
-                        {
-                            Cpu = 0.25,
-                            Memory = "0.5Gi"
-                        },
-                        Env = new[]
-                        {
-                            new EnvironmentVarArgs { Name = "POSTGRES_DB", Value = "wikiquiz" },
-                            new EnvironmentVarArgs { Name = "POSTGRES_USER", Value = "wikiquizadmin" },
-                            new EnvironmentVarArgs { Name = "POSTGRES_PASSWORD", SecretRef = "postgres-password" }
-                        }
                     }
                 }
             },
             Tags = 
             {
-                { "Environment", environment },
+                { "Environment", "prd" },
                 { "Project", "WikiQuiz" },
                 { "CostCenter", "Development" }
             }
@@ -225,9 +303,8 @@ public class MyStack : Stack
 
         // Use null-forgiving operator as Fqdn is expected to be non-null when ingress is external
         ApiUrl = containerApp.Configuration.Apply(config => $"https://{config!.Ingress!.Fqdn!}"); 
-        FrontendUrl = Output.Create("https://frontend-placeholder.com"); // Placeholder until Static Web App is configured
-        DatabaseHost = Output.Create("localhost"); // PostgreSQL runs in sidecar container
-        DatabaseConnectionString = Output.Create("Server=localhost;Database=wikiquiz;Username=wikiquizadmin;Port=5432;"); // Password managed separately
+        FrontendUrl = Output.Create(frontendUri);
+        ApplicationInsightsConnectionString = appInsightsConnectionString;
         LogAnalyticsWorkspaceId = logAnalyticsWorkspace.Id;
     }
 }

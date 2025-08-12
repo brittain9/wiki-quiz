@@ -17,18 +17,18 @@ public class PointsService : IPointsService
     private const int BasePointsPerLevel = 5000; // Points needed for level 2
     private const double LevelMultiplier = 1.5; // Each level requires 50% more points than the previous
 
-    public int CalculatePointsEarned(IEnumerable<Question> questions, IEnumerable<QuestionAnswerDto> answers)
+        public int CalculatePointsEarned(IEnumerable<Question> questions, IEnumerable<QuestionAnswerDto> answers)
     {
         if (questions == null || answers == null) return 0;
 
-        int totalPoints = 0;
+            int totalPoints = 0;
         int index = 0;
         foreach (var question in questions)
         {
             var answer = answers.FirstOrDefault(a => a.QuestionId == index + 1);
             if (answer != null && answer.SelectedOptionNumber == (question.CorrectAnswerIndex + 1))
             {
-                totalPoints += 1; // 1 point per correct answer for now
+                    totalPoints += 1000; // 1000 points per correct answer
             }
             index++;
         }
@@ -36,13 +36,13 @@ public class PointsService : IPointsService
         return totalPoints;
     }
 
-    public (int scorePercent, int pointsEarned) CalculateScoreAndPoints(IEnumerable<Question> questions, IEnumerable<QuestionAnswerDto> answers)
+        public (int scorePercent, int pointsEarned) CalculateScoreAndPoints(IEnumerable<Question> questions, IEnumerable<QuestionAnswerDto> answers)
     {
         if (questions == null || answers == null) return (0, 0);
         var questionList = questions.ToList();
         if (questionList.Count == 0) return (0, 0);
 
-        int correct = 0;
+            int correct = 0;
         for (int i = 0; i < questionList.Count; i++)
         {
             var q = questionList[i];
@@ -53,7 +53,7 @@ public class PointsService : IPointsService
             }
         }
         int scorePercent = (int)Math.Round((double)correct / questionList.Count * 100);
-        int pointsEarned = correct; // 1 point per correct for now
+            int pointsEarned = correct * 1000; // 1000 points per correct answer
         return (scorePercent, pointsEarned);
     }
 

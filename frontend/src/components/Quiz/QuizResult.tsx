@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import React, { useCallback } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import { useTranslation } from 'react-i18next';
 
 import { useOverlay } from '../../context';
 import { Quiz, SubmissionResponse } from '../../types';
@@ -23,6 +24,7 @@ const QuizResult: React.FC<QuizResultProps> = ({
   totalQuestions,
 }) => {
   const { showOverlay } = useOverlay();
+  const { t } = useTranslation();
 
   // Handlers
   const handleViewDetailedSubmission = useCallback(() => {
@@ -71,7 +73,7 @@ const QuizResult: React.FC<QuizResultProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
           <Chip
             icon={<EmojiEventsIcon />}
-            label={`+${currentSubmission.pointsEarned.toLocaleString()} points earned!`}
+            label={`+${currentSubmission.pointsEarned.toLocaleString()} ${t('quiz.points')}!`}
             sx={{
               bgcolor: 'var(--success-color)',
               color: 'white',

@@ -10,7 +10,6 @@ const AUTH_ENDPOINTS = {
   LOGIN_GOOGLE: '/auth/login/google',
   LOGOUT: '/auth/logout',
   USER_INFO: '/auth/user',
-  REFRESH_TOKEN: '/auth/refresh',
 } as const;
 
 export interface UserInfo {
@@ -88,20 +87,7 @@ export const authApi = {
     }
   },
 
-  /**
-   * Refreshes the authentication token
-   * Used to extend the session without requiring re-login
-   */
-  async refreshToken(): Promise<void> {
-    try {
-      console.log('Refreshing authentication token');
-      await apiPost<void>(AUTH_ENDPOINTS.REFRESH_TOKEN);
-      console.log('Token successfully refreshed');
-    } catch (error) {
-      console.error(`Failed to refresh token: ${parseApiError(error)}`);
-      throw error;
-    }
-  },
+  // Token refresh removed; rely on Google OAuth + JWT cookie only
 };
 
 export default authApi;

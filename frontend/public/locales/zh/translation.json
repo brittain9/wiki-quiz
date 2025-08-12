@@ -2,6 +2,11 @@
   "button": {
     "close": "关闭"
   },
+  "quiz": {
+    "totalScore": "总分：{{score}}",
+    "points": "分",
+    "score": "分数"
+  },
   "appBar": {
     "title": "Wiki Quiz App",
     "highlights": "亮点"
@@ -48,12 +53,15 @@
     "title": "选择主题"
   },
   "recentSubmissions": {
-    "title": "最近提交的内容"
+    "title": "最近提交",
+    "noSubmissions": "尚无提交",
+    "clear": "清除"
   },
   "quizresultoverlay": {
     "title": "测验结果",
     "score": "分数",
-    "question": "问题"
+    "question": "问题",
+    "close": "关闭"
   },
   "highlights": {
     "title": "亮点",

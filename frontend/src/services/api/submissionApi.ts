@@ -1,12 +1,13 @@
-import { apiGet, parseApiError } from '../apiService';
+import { apiGet, apiDelete, parseApiError } from '../apiService';
 
 import type { SubmissionResponse, SubmissionDetail, PaginatedResponse } from '../../types';
 
-// Submission API endpoints
-const SUBMISSION_ENDPOINTS = {
-  QUIZ_SUBMISSION: (id: number) => `/submission/quizsubmission/${id}`,
-  RECENT: '/submission/quizsubmission/recent',
-  MY_SUBMISSIONS: '/submission/my-submissions',
+// User API endpoints (renamed from Submission)
+const USER_ENDPOINTS = {
+  QUIZ_SUBMISSION: (quizId: number) => `/user/submissions/${quizId}`,
+  MY_SUBMISSIONS: '/user/submissions',
+  USAGE: '/user/usage',
+  STATS: '/user/stats',
 } as const;
 
 /**
@@ -18,9 +19,7 @@ export const submissionApi = {
    */
   async getQuizSubmissionById(id: number): Promise<SubmissionDetail> {
     try {
-      return await apiGet<SubmissionDetail>(
-        SUBMISSION_ENDPOINTS.QUIZ_SUBMISSION(id),
-      );
+      return await apiGet<SubmissionDetail>(USER_ENDPOINTS.QUIZ_SUBMISSION(id));
     } catch (error) {
       console.error(
         `Failed to get quiz submission by ID: ${parseApiError(error)}`,
@@ -33,30 +32,14 @@ export const submissionApi = {
    * Get the 10 most recent submissions for the current user
    * Always returns an array, even if the API returns null or undefined
    */
-  async getRecentSubmissions(): Promise<SubmissionResponse[]> {
-    try {
-      const response = await apiGet<SubmissionResponse[]>(
-        SUBMISSION_ENDPOINTS.RECENT,
-      );
-      // Ensure we always return an array
-      return Array.isArray(response) ? response : [];
-    } catch (error) {
-      console.error(
-        `Failed to get recent submissions: ${parseApiError(error)}`,
-      );
-      // Return empty array on error instead of throwing
-      return [];
-    }
-  },
+  // recent submissions endpoint removed in new design; can be re-added if needed
 
   /**
    * Get all submissions for the current user
    */
   async getMySubmissions(): Promise<SubmissionResponse[]> {
     try {
-      const response = await apiGet<SubmissionResponse[]>(
-        SUBMISSION_ENDPOINTS.MY_SUBMISSIONS,
-      );
+      const response = await apiGet<SubmissionResponse[]>(USER_ENDPOINTS.MY_SUBMISSIONS);
       // Ensure we always return an array
       return Array.isArray(response) ? response : [];
     } catch (error) {
@@ -74,7 +57,7 @@ export const submissionApi = {
     pageSize: number = 10,
   ): Promise<PaginatedResponse<SubmissionResponse>> {
     try {
-      const url = `${SUBMISSION_ENDPOINTS.MY_SUBMISSIONS}?page=${page}&pageSize=${pageSize}`;
+      const url = `${USER_ENDPOINTS.MY_SUBMISSIONS}?page=${page}&pageSize=${pageSize}`;
       const response = await apiGet<PaginatedResponse<SubmissionResponse>>(url);
       return response;
     } catch (error) {
@@ -91,6 +74,36 @@ export const submissionApi = {
         hasNextPage: false,
         hasPreviousPage: false,
       };
+    }
+  },
+
+  async getUsage(): Promise<{ userId: string; isPremium: boolean; currentCost: number; weeklyCostLimit: number; remaining: number; periodDays: number; }> {
+    try {
+      return await apiGet(USER_ENDPOINTS.USAGE);
+    } catch (error) {
+      console.error(`Failed to get usage: ${parseApiError(error)}`);
+      throw error;
+    }
+  },
+
+  async getStats(): Promise<{ userId: string; totalPoints: number; level: number; nextLevel: number; pointsRequiredForNextLevel: number; pointsToNextLevel: number; }> {
+    try {
+      return await apiGet(USER_ENDPOINTS.STATS);
+    } catch (error) {
+      console.error(`Failed to get stats: ${parseApiError(error)}`);
+      throw error;
+    }
+  },
+
+  /**
+   * Clear all submitted quizzes for current user
+   */
+  async clearUserSubmissions(): Promise<{ deleted: number }> {
+    try {
+      return await apiDelete<{ deleted: number }>(USER_ENDPOINTS.MY_SUBMISSIONS);
+    } catch (error) {
+      console.error(`Failed to clear submissions: ${parseApiError(error)}`);
+      throw error;
     }
   },
 };

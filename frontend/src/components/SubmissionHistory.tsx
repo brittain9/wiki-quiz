@@ -229,17 +229,48 @@ const SubmissionHistory: React.FC = React.memo(() => {
             },
           }}
         >
-          <Typography
-            variant="h5"
-            gutterBottom
-            sx={{
-              color: 'var(--main-color)',
-              fontWeight: 600,
-              mb: 3,
-            }}
-          >
-            {t('recentSubmissions.title')}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{
+                color: 'var(--main-color)',
+                fontWeight: 600,
+                mb: 0,
+              }}
+            >
+              {t('recentSubmissions.title')}
+            </Typography>
+            {paginatedData.items.length > 0 && (
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={async () => {
+                  try {
+                    await submissionApi.clearUserSubmissions();
+                    // reset local state
+                    setPaginatedData((prev) => ({
+                      ...prev,
+                      items: [],
+                      totalCount: 0,
+                      totalPages: 0,
+                      page: 1,
+                    }));
+                    setCurrentPage(1);
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                sx={{
+                  borderColor: 'var(--error-color)',
+                  color: 'var(--error-color)',
+                  '&:hover': { borderColor: 'var(--error-color)', backgroundColor: 'var(--error-color-10)' },
+                }}
+              >
+                {t('recentSubmissions.clear') || 'Clear'}
+              </Button>
+            )}
+          </Box>
 
           {/* Page size selector */}
           <Box

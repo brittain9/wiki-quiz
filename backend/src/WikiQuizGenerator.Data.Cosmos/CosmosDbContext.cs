@@ -24,17 +24,23 @@ public class CosmosDbContext
     public async Task EnsureContainersExistAsync()
     {
         var database = await _cosmosClient.CreateDatabaseIfNotExistsAsync(_options.DatabaseName);
-        
-        // Quiz container partitioned by CreatedBy (user ID) for optimal query patterns
-        await database.Database.CreateContainerIfNotExistsAsync(
-            _options.QuizContainerName, 
-            "/partitionKey",
-            throughput: 400); // Start with minimal throughput
-        
-        // User container partitioned by id
-        await database.Database.CreateContainerIfNotExistsAsync(
-            _options.UserContainerName, 
-            "/partitionKey",
-            throughput: 400);
+
+        // Quiz container partitioned by partitionKey (matches serverless; no provisioned throughput)
+        await database.Database.CreateContainerIfNotExistsAsync(new ContainerProperties
+        {
+            Id = _options.QuizContainerName,
+            PartitionKeyPath = "/partitionKey"
+        });
+
+        // User container partitioned by partitionKey with unique key on email (serverless; no throughput)
+        await database.Database.CreateContainerIfNotExistsAsync(new ContainerProperties
+        {
+            Id = _options.UserContainerName,
+            PartitionKeyPath = "/partitionKey",
+            UniqueKeyPolicy = new UniqueKeyPolicy
+            {
+                UniqueKeys = { new UniqueKey { Paths = { "/email" } } }
+            }
+        });
     }
 }

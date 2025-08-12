@@ -9,14 +9,14 @@ using WikiQuizGenerator.Core.Options;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.DomainObjects;
 
-namespace WikiQuizGenerator.Core.Processors;
+namespace WikiQuizGenerator.Core.Services;
 
-public class AuthTokenProcessor : IAuthTokenProcessor
+public class AuthTokenService : IAuthTokenService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JwtOptions _jwtOptions;
     
-    public AuthTokenProcessor(IOptions<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
+    public AuthTokenService(IOptions<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
         _jwtOptions = jwtOptions.Value;
@@ -36,7 +36,7 @@ public class AuthTokenProcessor : IAuthTokenProcessor
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.NameIdentifier, user.ToString())
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
         var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMinutes);
@@ -64,33 +64,30 @@ public class AuthTokenProcessor : IAuthTokenProcessor
     public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token,
         DateTime expiration)
     {
-        // Get the current HTTP context - required for cookie operations
         var context = _httpContextAccessor.HttpContext;
         if (context == null)
         {
             throw new InvalidOperationException("HttpContext is not available");
         }
 
-        // Configure cookie options for cross-domain compatibility
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Expires = expiration,
             IsEssential = true,
-            Secure = false,        // Set to false for HTTP development
-            SameSite = SameSiteMode.Lax,  // Use Lax for HTTP cross-origin
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
             Path = "/",
-            Domain = null          // Don't set domain for localhost
+            Domain = null
         };
 
-        // If the token is empty, it means we're clearing the cookie (logout)
         if (string.IsNullOrEmpty(token))
         {
-            // For cookie deletion, we need to expire it in the past
             cookieOptions.Expires = DateTime.UtcNow.AddDays(-1);
         }
 
-        // Set the cookie in the response
         context.Response.Cookies.Append(cookieName, token, cookieOptions);
     }
 }
+
+

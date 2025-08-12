@@ -17,8 +17,17 @@ public class CosmosQuizRepository : IQuizRepository
 
     public async Task<Quiz> AddAsync(Quiz coreQuiz)
     {
-        // Generate a simple integer ID using time-based approach (placeholder)
-        coreQuiz.Id = (int)(DateTime.UtcNow.Ticks % int.MaxValue);
+        // Generate a robust unique integer ID using GUID hash to reduce collisions
+        if (coreQuiz.Id == 0)
+        {
+            unchecked
+            {
+                var guid = Guid.NewGuid();
+                int hash = guid.GetHashCode();
+                if (hash == int.MinValue) hash = int.MaxValue; // avoid edge case
+                coreQuiz.Id = Math.Abs(hash);
+            }
+        }
         var doc = MapToDocument(coreQuiz);
         var response = await _context.QuizContainer.CreateItemAsync(doc, new PartitionKey(doc.PartitionKey));
         return MapFromDocument(response.Resource);
@@ -26,15 +35,29 @@ public class CosmosQuizRepository : IQuizRepository
 
     public async Task<Quiz?> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
+        // Fallback to cross-partition query when user context is not available
+        var iterator = _context.QuizContainer
+            .GetItemLinqQueryable<QuizDocument>(allowSynchronousQueryExecution: false, requestOptions: new QueryRequestOptions { MaxItemCount = 1 })
+            .Where(q => q.Id == id.ToString())
+            .ToFeedIterator();
+
+        if (iterator.HasMoreResults)
+        {
+            var page = await iterator.ReadNextAsync(cancellationToken);
+            var doc = page.FirstOrDefault();
+            return doc != null ? MapFromDocument(doc) : null;
+        }
+        return null;
+    }
+
+    public async Task<Quiz?> GetByIdForUserAsync(int id, Guid userId, CancellationToken cancellationToken)
+    {
+        // Optimized point-read using partition key
         try
         {
-            var query = _context.QuizContainer.GetItemLinqQueryable<QuizDocument>()
-                .Where(q => q.Id == id.ToString())
-                .ToFeedIterator();
-
-            var results = await query.ReadNextAsync(cancellationToken);
-            var quiz = results.FirstOrDefault();
-            return quiz != null ? MapFromDocument(quiz) : null;
+            var response = await _context.QuizContainer.ReadItemAsync<QuizDocument>(
+                id.ToString(), new PartitionKey(userId.ToString()), cancellationToken: cancellationToken);
+            return MapFromDocument(response.Resource);
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -45,7 +68,7 @@ public class CosmosQuizRepository : IQuizRepository
     public async Task<IEnumerable<Quiz>> GetAllAsync()
     {
         var iterator = _context.QuizContainer
-            .GetItemLinqQueryable<QuizDocument>()
+            .GetItemLinqQueryable<QuizDocument>(allowSynchronousQueryExecution: false, requestOptions: new QueryRequestOptions { MaxItemCount = 100 })
             .ToFeedIterator();
 
         var quizzes = new List<Quiz>();
@@ -62,7 +85,7 @@ public class CosmosQuizRepository : IQuizRepository
     public async Task<IEnumerable<Submission>> GetRecentQuizSubmissionsAsync(int count = 10)
     {
         var iterator = _context.QuizContainer
-            .GetItemLinqQueryable<QuizDocument>()
+            .GetItemLinqQueryable<QuizDocument>(allowSynchronousQueryExecution: false, requestOptions: new QueryRequestOptions { MaxItemCount = count })
             .Where(q => q.Submission != null)
             .OrderByDescending(q => q.Submission!.SubmissionTime)
             .Take(count)
@@ -103,6 +126,8 @@ public class CosmosQuizRepository : IQuizRepository
         if (quiz == null) return null;
 
         var doc = MapToDocument(quiz);
+        submission.QuizId = quiz.Id;
+        submission.Title = quiz.Title;
         doc.Submission = MapSubmissionToDocument(submission);
 
         var response = await _context.QuizContainer.ReplaceItemAsync(
@@ -170,7 +195,7 @@ public class CosmosQuizRepository : IQuizRepository
     {
         return new SubmissionDocument
         {
-            Id = 1,
+            Id = core.QuizId,
             UserId = core.UserId,
             SubmissionTime = core.SubmissionTime,
             Score = core.Score,
@@ -183,6 +208,7 @@ public class CosmosQuizRepository : IQuizRepository
     {
         return new Submission
         {
+            QuizId = doc.Id,
             UserId = doc.UserId,
             SubmissionTime = doc.SubmissionTime,
             Score = doc.Score,
@@ -195,14 +221,93 @@ public class CosmosQuizRepository : IQuizRepository
     public Task DeleteSubmissionAsync(int submissionId) => throw new NotImplementedException();
     public Task<Submission> GetSubmissionByIdAsync(int submissionId) => throw new NotImplementedException();
     public Task<IEnumerable<Submission>> GetAllSubmissionsAsync() => throw new NotImplementedException();
-    public Task<IEnumerable<Submission>> GetSubmissionsByUserIdAsync(Guid userId) => throw new NotImplementedException();
-    public Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsByUserIdPaginatedAsync(Guid userId, int page, int pageSize)
+
+    public async Task<IEnumerable<Submission>> GetSubmissionsByUserIdAsync(Guid userId)
     {
-        // TODO: Implement proper Cosmos DB submission querying
-        // For now, return empty result to prevent crashes
-        return Task.FromResult((Enumerable.Empty<Submission>(), 0));
+        var iterator = _context.QuizContainer
+            .GetItemLinqQueryable<QuizDocument>(allowSynchronousQueryExecution: false, requestOptions: new QueryRequestOptions { MaxItemCount = 100, PartitionKey = new PartitionKey(userId.ToString()) })
+            .Where(q => q.Submission != null && q.Submission!.UserId == userId)
+            .OrderByDescending(q => q.Submission!.SubmissionTime)
+            .ToFeedIterator();
+
+        var submissions = new List<Submission>();
+        while (iterator.HasMoreResults)
+        {
+            var response = await iterator.ReadNextAsync();
+            foreach (var quiz in response)
+            {
+                if (quiz.Submission != null)
+                {
+                    submissions.Add(MapSubmissionFromDocument(quiz.Submission));
+                }
+            }
+        }
+
+        return submissions;
     }
-    public Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId) => throw new NotImplementedException();
-    public Task<Submission?> GetUserSubmissionByQuizIdAsync(int quizId, Guid userId, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    public async Task<(IEnumerable<Submission> submissions, int totalCount)> GetSubmissionsByUserIdPaginatedAsync(Guid userId, int page, int pageSize)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+
+        // Fetch all matching submissions (could be optimized with continuation tokens and COUNT queries)
+        var allSubmissions = await GetSubmissionsByUserIdAsync(userId);
+        var ordered = allSubmissions.OrderByDescending(s => s.SubmissionTime).ToList();
+        var totalCount = ordered.Count;
+        var skip = (page - 1) * pageSize;
+        var pageItems = ordered.Skip(skip).Take(pageSize).ToList();
+        return (pageItems, totalCount);
+    }
+
+    public async Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId)
+    {
+        // Treat submissionId as quizId, since submission is nested in the quiz document
+        var quiz = await GetByIdAsync(submissionId, CancellationToken.None);
+        if (quiz == null || quiz.Submission == null)
+        {
+            return null;
+        }
+        return quiz.Submission.UserId == userId ? quiz.Submission : null;
+    }
+    public async Task<Submission?> GetUserSubmissionByQuizIdAsync(int quizId, Guid userId, CancellationToken cancellationToken)
+    {
+        var quiz = await GetByIdAsync(quizId, cancellationToken);
+        if (quiz == null || quiz.Submission == null)
+        {
+            return null;
+        }
+        return quiz.Submission.UserId == userId ? quiz.Submission : null;
+    }
     public Task<Question?> GetQuestionByIdAsync(int questionId, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    public async Task<int> DeleteAllSubmittedQuizzesForUserAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        // Query all quizzes in user's partition that have a submission
+        var iterator = _context.QuizContainer
+            .GetItemLinqQueryable<QuizDocument>(allowSynchronousQueryExecution: false, requestOptions: new QueryRequestOptions { PartitionKey = new PartitionKey(userId.ToString()) })
+            .Where(q => q.Submission != null && q.Submission.UserId == userId)
+            .Select(q => new { q.Id })
+            .ToFeedIterator();
+
+        int deleteCount = 0;
+        while (iterator.HasMoreResults)
+        {
+            var page = await iterator.ReadNextAsync(cancellationToken);
+            foreach (var item in page)
+            {
+                try
+                {
+                    await _context.QuizContainer.DeleteItemAsync<QuizDocument>(item.Id, new PartitionKey(userId.ToString()), cancellationToken: cancellationToken);
+                    deleteCount++;
+                }
+                catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    // Ignore
+                }
+            }
+        }
+
+        return deleteCount;
+    }
 }

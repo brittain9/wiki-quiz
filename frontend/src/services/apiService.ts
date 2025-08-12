@@ -110,4 +110,13 @@ export const apiPost = async <T, D = unknown>(
   return response.data;
 };
 
+export const apiDelete = async <T = void>(
+  url: string,
+  config?: AxiosRequestConfig,
+): Promise<T> => {
+  const response = await apiClient.delete<T>(url, config);
+  // for void responses, response.data may be undefined, which is fine
+  return response.data as T;
+};
+
 export default apiClient;

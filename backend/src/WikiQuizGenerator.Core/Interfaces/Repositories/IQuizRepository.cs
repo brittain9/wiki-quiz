@@ -5,6 +5,7 @@ namespace WikiQuizGenerator.Core.Interfaces;
 public interface IQuizRepository
 {
     Task<Quiz?> GetByIdAsync(int id, CancellationToken cancellationToken);
+    Task<Quiz?> GetByIdForUserAsync(int id, Guid userId, CancellationToken cancellationToken);
     Task<IEnumerable<Quiz>> GetAllAsync();
     Task<IEnumerable<Submission>> GetRecentQuizSubmissionsAsync(int count = 10);
 
@@ -20,5 +21,6 @@ public interface IQuizRepository
     Task<Submission?> GetUserSubmissionByIdAsync(int submissionId, Guid userId);
     Task<Submission?> GetUserSubmissionByQuizIdAsync(int quizId, Guid userId, CancellationToken cancellationToken);
     Task<Question?> GetQuestionByIdAsync(int questionId, CancellationToken cancellationToken);
+    Task<int> DeleteAllSubmittedQuizzesForUserAsync(Guid userId, CancellationToken cancellationToken);
 
 }

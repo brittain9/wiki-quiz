@@ -48,8 +48,6 @@ public static class CosmosDataServiceExtensions
         // Register Cosmos-based Account Service
         services.AddScoped<IAccountService, CosmosAccountService>();
         
-        // Note: IWikipediaPageRepository is no longer needed since we don't store Wikipedia pages
-
         return services;
     }
 }

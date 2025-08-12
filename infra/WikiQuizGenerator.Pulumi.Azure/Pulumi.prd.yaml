@@ -1,4 +1,15 @@
 config:
-  # Environment settings
-  wikiquiz:environment: prd
-  wikiquiz:location: Central US
+  wikiquiz:frontendUri:
+    secure: AAABANrRNtdx8YGc8rW5sfuqclFphAIrXmCYrl4032UCmFQTHBYgSESRLB60uMNCa1mr7cxCogJzBdY9bTelm9Cq
+  wikiquiz:ghcrUsername:
+    secure: AAABAIH8iCPyhkab+F47hXzaiaSyZIbWbo0ZIHRjBNCIEW66rSgkZgM=
+  wikiquiz:googleClientId:
+    secure: AAABALXdUD6xtbOGCUaPM9Gi2LkoTMoS2thf4mAThuu+27z2C7LVSH2AGKDhYxZFoXQcZrDOpaFzV29Hcfu7u6m910rKDGKG5TDxYFlwroa03GaReG0LqJQQGEv09uQx9MAcl0vc5pQ=
+  wikiquiz:googleClientSecret:
+    secure: AAABADQCtXHejpMBZuJ6p7h5P046Ah88/UdX10M85l3V56ksHuWh3IjD1p17Lg2jhbAorj7WHxsO75qZXweciV3vuw==
+  wikiquiz:jwtSecret:
+    secure: AAABAIBzvwfyqxJu/C1EuzzrmTzUDerVekQcVLO0ZOkVOlOR5bkTGqXsxV+dGdYeybH7lGk4U3miEQijHu/JMVAlxFZZbX7fglkKjw==
+  wikiquiz:openAiApiKey:
+    secure: AAABAISWKcRMFCxnCqH8IrCtq+YpWkrq0sT6PeBH6yXxtKymXC0GJz843fCb/oAXzuBUESthzgso0pV7CAGPl+xXoEVTMwIeL7f/MlANIj2lO/mjVfT5Qmfm/bAIl/Z6eEg6GH6+70c9O/6V0AvyelmuZEKgmMK2sfnAXmxIfvHzgZ5cbqDllXP/5ZZRsb+GEI/NW4ZUqbm20L2Ccmiacb+E3qsWWTJXBBTJw3DiZgvgf2tshCG21YtmKcGQTOLJRLUayw==
+  wikiquiz:ghcrPassword:
+    secure: AAABAI6GuDYgPGmeaiwpSHK8FFRFNjFK3UdFtKgUp7SitFn2wosn2AJcu4ekktEpyyZYiVjtn6aOQVDllmmU68IKlwTob29F

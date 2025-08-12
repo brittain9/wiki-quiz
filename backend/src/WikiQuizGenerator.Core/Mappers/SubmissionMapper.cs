@@ -9,6 +9,7 @@ public static class SubmissionMapper
     {
         return new Submission
         {
+            QuizId = dto.QuizId,
             UserId = Guid.Empty,
             Answers = dto.QuestionAnswers.Select(a => a.SelectedOptionNumber).ToList(),
             SubmissionTime = DateTime.UtcNow
@@ -19,10 +20,10 @@ public static class SubmissionMapper
     {
         SubmissionResponseDto dto = new SubmissionResponseDto()
         {
-            Id = 1,
+            Id = submission.QuizId,
             Score = submission.Score,
             PointsEarned = submission.PointsEarned,
-            Title = "", // Will need to be set by the caller if needed
+            Title = submission.Title,
             UserId = submission.UserId,
             SubmissionTime = submission.SubmissionTime
         };

@@ -9,6 +9,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import QuizQuestion from './QuizQuestion';
 import QuizResult from './QuizResult';
@@ -26,6 +27,7 @@ const QuizContainer: React.FC = React.memo(() => {
   } = useQuizState();
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   // State
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -71,24 +73,12 @@ const QuizContainer: React.FC = React.memo(() => {
   const handleAnswerSelected = useCallback(
     async (selectedOptionNumber: number) => {
       try {
-        // Call the backend to validate the answer
-        const response = await fetch('/api/quiz/validateanswer', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add authorization header if needed
-          },
-          body: JSON.stringify({
-            questionId: currentQuestion.id,
-            selectedOptionNumber,
-          }),
+        // Call the backend to validate the answer via API client (respects VITE_API_BASE_URL)
+        const result = await quizApi.validateAnswer({
+          quizId: currentQuiz!.id,
+          questionId: currentQuestion.id,
+          selectedOptionNumber,
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to validate answer');
-        }
-
-        const result = await response.json();
 
         setSelectedOption(selectedOptionNumber);
         setCurrentQuestionPoints(result.pointsEarned);
@@ -229,7 +219,8 @@ const QuizContainer: React.FC = React.memo(() => {
                   fontWeight: 'bold',
                 }}
               >
-                Total Points: {totalPoints.toLocaleString()}
+                {/* i18n: Total Score */}
+                {t('quiz.totalScore', { score: totalPoints.toLocaleString() })}
               </Typography>
             </Box>
 

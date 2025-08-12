@@ -4,7 +4,6 @@ using WikiQuizGenerator.Core.DTOs;
 using WikiQuizGenerator.Core.Exceptions;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.DomainObjects;
-using WikiQuizGenerator.Core.Requests;
 using WikiQuizGenerator.Data.Cosmos.Repositories;
 using Microsoft.Extensions.Logging;
 
@@ -12,12 +11,12 @@ namespace WikiQuizGenerator.Data.Cosmos.Services;
 
 public class CosmosAccountService : IAccountService
 {
-    private readonly IAuthTokenProcessor _authTokenProcessor;
+    private readonly IAuthTokenService _authTokenProcessor;
     private readonly CosmosUserRepository _userRepository;
     private readonly ILogger<CosmosAccountService> _logger;
 
     public CosmosAccountService(
-        IAuthTokenProcessor authTokenProcessor, 
+        IAuthTokenService authTokenProcessor, 
         CosmosUserRepository userRepository,
         ILogger<CosmosAccountService> logger)
     {
@@ -26,93 +25,7 @@ public class CosmosAccountService : IAccountService
         _logger = logger;
     }
 
-    public async Task RegisterAsync(RegisterRequest registerRequest)
-    {
-        var existingUser = await _userRepository.GetUserByEmailAsync(registerRequest.Email);
-
-        if (existingUser != null)
-        {
-            throw new UserAlreadyExistsException(email: registerRequest.Email);
-        }
-
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = registerRequest.Email,
-            FirstName = registerRequest.FirstName,
-            LastName = registerRequest.LastName,
-            UserName = registerRequest.Email
-        };
-
-        try
-        {
-            // Ensure id/partition key will be set in repository
-            user.Id = user.Id == Guid.Empty ? Guid.NewGuid() : user.Id;
-            await _userRepository.CreateUserAsync(user);
-            _logger.LogInformation("Successfully registered user {Email}", registerRequest.Email);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to register user {Email}", registerRequest.Email);
-            throw new RegistrationFailedException(new[] { "Failed to create user account" });
-        }
-    }
-
-    public async Task LoginAsync(LoginRequest loginRequest)
-    {
-        var user = await _userRepository.GetUserByEmailAsync(loginRequest.Email);
-
-        if (user == null)
-        {
-            throw new LoginFailedException(loginRequest.Email);
-        }
-
-        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-        var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
-
-        var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
-
-        user.RefreshToken = refreshTokenValue;
-        user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
-
-        await _userRepository.UpdateUserAsync(user);
-        
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
-    }
-
-    public async Task RefreshTokenAsync(string? refreshToken)
-    {
-        if (string.IsNullOrEmpty(refreshToken))
-        {
-            throw new RefreshTokenException("Refresh token is missing.");
-        }
-
-        var user = await _userRepository.GetUserByRefreshTokenAsync(refreshToken);
-
-        if (user == null)
-        {
-            throw new RefreshTokenException("Unable to retrieve user for refresh token");
-        }
-
-        if (user.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
-        {
-            throw new RefreshTokenException("Refresh token is expired.");
-        }
-        
-        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-        var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
-
-        var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
-
-        user.RefreshToken = refreshTokenValue;
-        user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
-
-        await _userRepository.UpdateUserAsync(user);
-        
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
-    }
+    // Username/password and refresh flows removed. Only Google OAuth is supported.
 
     public async Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
     {

@@ -8,10 +8,11 @@ using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.DomainObjects;
 using WikiQuizGenerator.Core.Services;
 using WikiQuizGenerator.Core.Utilities;
+using System.Net.Http;
 
 namespace WikiQuizGenerator.Core.Services;
 
-public class WikipediaContentService : IWikipediaContentService, IDisposable
+public class WikipediaContentService : IWikipediaContentService
 {
     private readonly HttpClient _client;
     private readonly ILogger<WikipediaContentService> _logger;
@@ -21,10 +22,13 @@ public class WikipediaContentService : IWikipediaContentService, IDisposable
 
     public string QueryApiEndpoint => $"{ApiEndpoint}?action=query&format=json&prop=extracts|info&redirects=1&inprop=url|displaytitle&titles=";
 
-    public WikipediaContentService(ILogger<WikipediaContentService> logger)
+    public WikipediaContentService(HttpClient client, ILogger<WikipediaContentService> logger)
     {
         _logger = logger;
-        _client = new HttpClient(); // TODO: change this to be more performant
+        _client = client; // HttpClient provided by HttpClientFactory
+        _client.Timeout = TimeSpan.FromSeconds(20);
+        // Identify ourselves to Wikipedia per their API policy
+        _client.DefaultRequestHeaders.UserAgent.ParseAdd("WikiQuizGenerator/1.0 (+https://example.com)");
         Language = Languages.English;
     }
 
@@ -286,8 +290,5 @@ public class WikipediaContentService : IWikipediaContentService, IDisposable
         return input.Trim();
     }
 
-    public void Dispose()
-    {
-        _client?.Dispose();
-    }
+    // HttpClient lifetime managed by HttpClientFactory
 }
