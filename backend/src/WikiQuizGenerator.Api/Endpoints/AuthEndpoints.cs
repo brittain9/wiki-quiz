@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using WikiQuizGenerator.Core.Interfaces;
 using System.Security.Claims;
@@ -18,25 +19,27 @@ public static class AuthEndpoints
                 var scheme = env.IsDevelopment() ? context.Request.Scheme : "https";
                 var host = context.Request.Host.Value;
 
-                // Use the standard Google OAuth callback path that matches Google Cloud Console
-                var callbackUrl = $"{scheme}://{host}/signin-google?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}";
-                logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
+                // After Google completes the remote callback at /signin-google, it should redirect here for app-specific completion
+                var completionUrl = $"{scheme}://{host}/signin-google/complete?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}";
+                logger.LogInformation("Using post-auth completion URL: {CompletionUrl}", completionUrl);
                 
                 var properties = new AuthenticationProperties
                 {
-                    RedirectUri = callbackUrl
+                    // This is where the Google handler will redirect after it processes the remote callback
+                    RedirectUri = completionUrl
                 };
 
                 return Results.Challenge(properties, ["Google"]);
             })
             .AllowAnonymous();
 
-        // Standard Google OAuth callback endpoint (matches Google Cloud Console redirect URI)
+        // Completion endpoint we control AFTER the Google handler completes the remote callback at /signin-google
         // This needs to be at root level, not under /api/auth
-        app.MapGet("/signin-google", async ([FromQuery] string returnUrl,
+        app.MapGet("/signin-google/complete", async ([FromQuery] string returnUrl,
                 HttpContext context, IAccountService accountService, IConfiguration configuration) =>
             {
-                var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+                // Read the external principal that Google handler signed into the cookie scheme
+                var result = await context.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
                 if (!result.Succeeded)
                 {
@@ -44,6 +47,9 @@ public static class AuthEndpoints
                 }
 
                 await accountService.LoginWithGoogleAsync(result.Principal);
+
+                // Clear temp external cookie
+                await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
                 // Safe redirect handling
                 var target = GetSafeReturnUrl(returnUrl, context, configuration);
@@ -58,8 +64,6 @@ public static class AuthEndpoints
             .WithTags("Authenication")
             .AllowAnonymous();
 
-
-        
         group.MapPost("/logout", async (ClaimsPrincipal user, IAccountService accountService) =>
         {
             // Get user ID from claims

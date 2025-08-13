@@ -226,7 +226,12 @@ public partial class Program
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-        .AddCookie()
+        .AddCookie(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        })
         .AddGoogle(options =>
         {
             var clientId = configuration["wikiquizapp:AuthGoogleClientID"] 
@@ -239,6 +244,9 @@ public partial class Program
             options.ClientSecret = clientSecret;
             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.CallbackPath = "/signin-google";
+            options.SaveTokens = true;
+            options.CorrelationCookie.SameSite = SameSiteMode.None;
+            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
             
             Log.Information("Google OAuth callback path set to: {CallbackPath}", options.CallbackPath);
         })

@@ -70,13 +70,15 @@ public class AuthTokenService : IAuthTokenService
             throw new InvalidOperationException("HttpContext is not available");
         }
 
+        var request = context.Request;
+        var isHttps = string.Equals(request.Scheme, "https", StringComparison.OrdinalIgnoreCase);
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Expires = expiration,
             IsEssential = true,
-            Secure = false,
-            SameSite = SameSiteMode.Lax,
+            Secure = isHttps,
+            SameSite = SameSiteMode.None,
             Path = "/",
             Domain = null
         };
