@@ -13,9 +13,9 @@ public static class AuthEndpoints
         var group = app.MapGroup("/api/auth")
             .WithTags("Authenication");
 
-        group.MapGet("/login/google", ([FromQuery] string returnUrl, HttpContext context, ILogger<Program> logger) =>
+        group.MapGet("/login/google", ([FromQuery] string returnUrl, HttpContext context, ILogger<Program> logger, IHostEnvironment env) =>
             {
-                var scheme = context.Request.Scheme;
+                var scheme = env.IsDevelopment() ? context.Request.Scheme : "https";
                 var host = context.Request.Host.Value;
 
                 // Use the standard Google OAuth callback path that matches Google Cloud Console

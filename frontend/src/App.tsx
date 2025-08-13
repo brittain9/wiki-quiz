@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import React, { lazy, Suspense } from 'react';
 
-import { QuizAppBar, Footer, Hero, OverlayManager } from './components';
+import { QuizAppBar, Footer, Hero, OverlayManager, ApiHealthNotice } from './components';
 import ThemeSelector from './components/ThemeSelector';
 
 // Lazy load components that aren't needed for initial render
@@ -48,6 +48,7 @@ const App: React.FC = React.memo(() => {
         <Footer />
       </Suspense>
       <OverlayManager />
+      <ApiHealthNotice />
 
       {/* Floating theme selector button */}
       <ThemeSelector />

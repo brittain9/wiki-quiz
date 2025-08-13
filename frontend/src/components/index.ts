@@ -18,6 +18,7 @@ export { default as AccountOverlay } from './Overlays/AccountOverlay';
 export { default as LoginOverlay } from './Overlays/LoginOverlay';
 export { default as OverlayManager } from './Overlays/OverlayManager';
 export { default as QuizResultOverlay } from './Overlays/QuizResultOverlay';
+export { default as ApiHealthNotice } from './ApiHealthNotice';
 
 // Quiz components
 export { default as Quiz } from './Quiz/QuizContainer';

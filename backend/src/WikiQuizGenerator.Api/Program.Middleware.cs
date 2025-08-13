@@ -4,12 +4,14 @@ using WikiQuizGenerator.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using System.Text.Json;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+ 
 
 public partial class Program
 {
     private static void ConfigurePipeline(WebApplication app)
     {
+        app.UseForwardedHeaders();
+
         // Keep request logging lightweight to reduce cold-start overhead
         app.UseSerilogRequestLogging(options =>
         {
@@ -17,18 +19,7 @@ public partial class Program
             options.EnrichDiagnosticContext = (diag, httpContext) => { };
         });
 
-        // In non-development environments (e.g., Azure), honor proxy headers for correct scheme/host
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost,
-                KnownNetworks = { },
-                KnownProxies = { }
-            });
-        }
-
-        if (!string.Equals(Environment.GetEnvironmentVariable("SKIP_APP_CONFIG"), "true", StringComparison.OrdinalIgnoreCase))
+        if (app.Environment.IsDevelopment())
         {
             app.UseHttpsRedirection();
             app.UseHsts();
@@ -46,50 +37,21 @@ public partial class Program
         app.UseRequestTimeouts();
         app.UseRateLimiter();
         
-
         app.MapAuthEndpoints();
         app.MapQuizEndpoints();
         app.MapAiEndpoints();
         app.MapUserEndpoints();
         
-        // Add health check endpoints
-        app.MapHealthChecks("/health", new HealthCheckOptions
+        var liveness = (HttpContext ctx) =>
         {
-            ResponseWriter = async (context, report) =>
-            {
-                context.Response.ContentType = "application/json";
-                
-                var result = new
-                {
-                    status = report.Status.ToString(),
-                    checks = report.Entries.Select(x => new
-                    {
-                        name = x.Key,
-                        status = x.Value.Status.ToString(),
-                        exception = x.Value.Exception?.Message,
-                        duration = x.Value.Duration.ToString()
-                    })
-                };
-                
-                await context.Response.WriteAsync(JsonSerializer.Serialize(result));
-            }
-        });
-        
-        app.MapHealthChecks("/health/ready", new HealthCheckOptions
-        {
-            Predicate = check => check.Tags.Contains("ready")
-        });
-        
-        app.MapHealthChecks("/health/live", new HealthCheckOptions
-        {
-            Predicate = check => check.Tags.Contains("live") || check.Name == "self"
-        });
+            ctx.Response.Headers.CacheControl = "no-store";
+            return Results.NoContent();
+        };
 
-        // Check if Swagger should be enabled (either in Development or explicitly via env var)
-        bool enableSwagger = app.Environment.IsDevelopment() || 
-                             string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENABLESWAGGER"), "true", StringComparison.OrdinalIgnoreCase);
-        
-        if (enableSwagger)
+        app.MapGet("/health/live", liveness).AllowAnonymous();
+        app.MapGet("/api/health/live", liveness).AllowAnonymous();
+
+        if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
             app.UseSwaggerUI();

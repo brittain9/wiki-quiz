@@ -10,6 +10,47 @@ import { API_BASE_URL } from '../config';
 // Use validated environment variable from config
 console.log('API Base URL:', API_BASE_URL);
 
+// One-time backend readiness check to avoid wasted calls during cold start/outage
+let backendReady: boolean | null = null;
+let readinessPromise: Promise<void> | null = null;
+
+const HEALTH_PATH = '/health/live';
+
+async function pingHealth(): Promise<boolean> {
+  try {
+    // Use a short timeout; avoid cookies for this probe
+    await axios.get(`${API_BASE_URL}${HEALTH_PATH}`, { timeout: 2000, withCredentials: false });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function waitForApiReady(): Promise<void> {
+  if (backendReady === true) return;
+  if (readinessPromise) return readinessPromise;
+
+  readinessPromise = (async () => {
+    // Try up to 2 fast attempts
+    const ok1 = await pingHealth();
+    if (ok1) {
+      backendReady = true;
+      return;
+    }
+    const ok2 = await pingHealth();
+    backendReady = ok2;
+    if (!backendReady) {
+      throw new Error('API not ready');
+    }
+  })();
+
+  try {
+    await readinessPromise;
+  } finally {
+    readinessPromise = null;
+  }
+}
+
 // Interfaces for error handling
 interface ApiErrorResponse {
   title?: string;
@@ -57,7 +98,10 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor for logging and token handling
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    // Any request pre-processing can go here
+    // Ensure backend is up before making non-health calls
+    if (backendReady === false) {
+      throw new Error('API not ready');
+    }
     return config;
   },
   (error: AxiosError) => {
@@ -93,6 +137,9 @@ export const apiGet = async <T>(
   config?: AxiosRequestConfig,
 ): Promise<T> => {
   try {
+    if (backendReady !== true && !url.startsWith(HEALTH_PATH)) {
+      await waitForApiReady();
+    }
     const response = await apiClient.get<T>(url, config);
     return response.data;
   } catch (error) {
@@ -106,6 +153,9 @@ export const apiPost = async <T, D = unknown>(
   data?: D,
   config?: AxiosRequestConfig,
 ): Promise<T> => {
+  if (backendReady !== true && !url.startsWith(HEALTH_PATH)) {
+    await waitForApiReady();
+  }
   const response = await apiClient.post<T>(url, data, config);
   return response.data;
 };
@@ -114,6 +164,9 @@ export const apiDelete = async <T = void>(
   url: string,
   config?: AxiosRequestConfig,
 ): Promise<T> => {
+  if (backendReady !== true && !url.startsWith(HEALTH_PATH)) {
+    await waitForApiReady();
+  }
   const response = await apiClient.delete<T>(url, config);
   // for void responses, response.data may be undefined, which is fine
   return response.data as T;

@@ -42,9 +42,7 @@ public partial class Program
         
         // Authentication and authorization
         ConfigureAuthentication(services, configuration);
-        
-        // Health checks
-        ConfigureHealthChecks(services, configuration);
+    
     }
     
     /// <summary>
@@ -274,46 +272,6 @@ public partial class Program
         services.AddAuthorization();
     }
     
-    /// <summary>
-    /// Configures health check services for monitoring application status
-    /// </summary>
-    private static void ConfigureHealthChecks(IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddHealthChecks()
-            .AddCheck("self", () => HealthCheckResult.Healthy("API is running"), 
-                tags: new[] { "live" })
-            .AddCheck("cosmosdb", () => 
-            {
-                try
-                {
-                    var cosmosOptions = configuration.GetSection("CosmosDb")
-                        .Get<WikiQuizGenerator.Data.Cosmos.Configuration.CosmosDbOptions>();
-                    
-                    return cosmosOptions?.ConnectionString == null
-                        ? HealthCheckResult.Unhealthy("Cosmos DB connection string is not configured")
-                        : HealthCheckResult.Healthy("Cosmos DB configuration is valid");
-                }
-                catch (Exception ex)
-                {
-                    return HealthCheckResult.Unhealthy("Cosmos DB check failed", ex);
-                }
-            }, tags: new[] { "ready", "database", "cosmosdb" })
-            .AddCheck("openai-config", () => 
-            {
-                var openAiKey = configuration["wikiquizapp:OpenAIApiKey"];
-                return string.IsNullOrWhiteSpace(openAiKey)
-                    ? HealthCheckResult.Unhealthy("OpenAI API key is not configured")
-                    : HealthCheckResult.Healthy("OpenAI configuration is valid");
-            }, tags: new[] { "ready", "configuration", "external" })
-            .AddCheck("jwt-config", () => 
-            {
-                var jwtOptions = configuration.GetSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>();
-                return jwtOptions == null || string.IsNullOrWhiteSpace(jwtOptions.Secret)
-                    ? HealthCheckResult.Unhealthy("JWT configuration is invalid")
-                    : HealthCheckResult.Healthy("JWT configuration is valid");
-            }, tags: new[] { "ready", "configuration" });
-    }
-
     /// <summary>
     /// Generates a partition key for rate limiting based on user authentication status
     /// Uses user ID for authenticated users, IP + browser fingerprint for anonymous users
