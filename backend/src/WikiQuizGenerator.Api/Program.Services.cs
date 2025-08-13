@@ -240,6 +240,7 @@ public partial class Program
             options.ClientId = clientId;
             options.ClientSecret = clientSecret;
             options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.CallbackPath = "/signin-google";
             
             Log.Information("Google OAuth callback path set to: {CallbackPath}", options.CallbackPath);
         })

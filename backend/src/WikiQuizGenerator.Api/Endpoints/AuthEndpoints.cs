@@ -13,16 +13,13 @@ public static class AuthEndpoints
         var group = app.MapGroup("/api/auth")
             .WithTags("Authenication");
 
-        group.MapGet("/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator,
-                HttpContext context, ILogger<Program> logger) =>
+        group.MapGet("/login/google", ([FromQuery] string returnUrl, HttpContext context, ILogger<Program> logger) =>
             {
-                // Get the callback path
-                var callbackPath = linkGenerator.GetPathByName(context, "GoogleLoginCallback");
-                
                 var scheme = context.Request.Scheme;
                 var host = context.Request.Host.Value;
 
-                var callbackUrl = $"{scheme}://{host}{callbackPath}?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}";
+                // Use the standard Google OAuth callback path that matches Google Cloud Console
+                var callbackUrl = $"{scheme}://{host}/signin-google?returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}";
                 logger.LogInformation("Using callback URL: {CallbackUrl}", callbackUrl);
                 
                 var properties = new AuthenticationProperties
@@ -34,7 +31,9 @@ public static class AuthEndpoints
             })
             .AllowAnonymous();
 
-        group.MapGet("/login/google/callback", async ([FromQuery] string returnUrl,
+        // Standard Google OAuth callback endpoint (matches Google Cloud Console redirect URI)
+        // This needs to be at root level, not under /api/auth
+        app.MapGet("/signin-google", async ([FromQuery] string returnUrl,
                 HttpContext context, IAccountService accountService, IConfiguration configuration) =>
             {
                 var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
@@ -56,34 +55,36 @@ public static class AuthEndpoints
                 // Safe relative path on this host
                 return Results.LocalRedirect(target.ToString());
             })
-            .WithName("GoogleLoginCallback")
+            .WithTags("Authenication")
             .AllowAnonymous();
+
+
         
         group.MapPost("/logout", async (ClaimsPrincipal user, IAccountService accountService) =>
+        {
+            // Get user ID from claims
+            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
             {
-                // Get user ID from claims
-                if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                {
-                    return Results.Unauthorized();
-                }
-        
-                await accountService.LogoutAsync(userId);
-                return Results.Ok();
-            })
-            .RequireAuthorization();
+                return Results.Unauthorized();
+            }
+    
+            await accountService.LogoutAsync(userId);
+            return Results.Ok();
+        })
+        .RequireAuthorization();
 
         group.MapGet("/user", async (ClaimsPrincipal user, IAccountService accountService) =>
+        {
+            // Get user ID from claims
+            if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
             {
-                // Get user ID from claims
-                if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-                {
-                    return Results.Unauthorized();
-                }
-        
-                var userInfo = await accountService.GetUserInfoAsync(userId);
-                return Results.Ok(userInfo);
-            })
-            .RequireAuthorization();
+                return Results.Unauthorized();
+            }
+    
+            var userInfo = await accountService.GetUserInfoAsync(userId);
+            return Results.Ok(userInfo);
+        })
+        .RequireAuthorization();
 
         static Uri GetSafeReturnUrl(string? url, HttpContext ctx, IConfiguration config)
         {
