@@ -17,8 +17,8 @@ public class AiServiceManager : IAiServiceManager
     {
         OpenAiApiKey = openAIApiKey;
         IsOpenAiAvailable = !string.IsNullOrEmpty(OpenAiApiKey);
-        // Lazily load AI services to avoid I/O during cold start
-        AiServices = new Dictionary<string, List<ModelConfig>>();
+        // Lazily load AI services to avoid I/O during cold start;
+        AiServices = new Dictionary<string, List<ModelConfig>>(StringComparer.OrdinalIgnoreCase);
     }
 
     private Dictionary<string, List<ModelConfig>> LoadAiServices()
@@ -36,10 +36,12 @@ public class AiServiceManager : IAiServiceManager
             if (rawData == null)
                 throw new InvalidOperationException("The AI services configuration file is empty or invalid.");
 
-            return rawData.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value
-            );
+            var dict = new Dictionary<string, List<ModelConfig>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kvp in rawData)
+            {
+                dict[kvp.Key] = kvp.Value;
+            }
+            return dict;
         }
         catch (JsonException ex)
         {
@@ -49,6 +51,12 @@ public class AiServiceManager : IAiServiceManager
 
     public void SelectAiService(string aiServiceId, string modelName)
     {
+        if (AiServices.Count == 0)
+        {
+            var loaded = LoadAiServices();
+            foreach (var kv in loaded)
+                AiServices[kv.Key] = kv.Value;
+        }
         if (!AiServices.TryGetValue(aiServiceId, out var serviceConfig))
             throw new ArgumentException("Invalid AI service selected.");
 
