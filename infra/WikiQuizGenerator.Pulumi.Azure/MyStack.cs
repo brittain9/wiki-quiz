@@ -32,6 +32,7 @@ public class MyStack : Stack
         var frontendApiBaseUrl = config.Get("apiBaseUrl");
         var jwtIssuer = config.Get("jwtIssuer"); // Can be null if not set
         var jwtAudience = config.Get("jwtAudience"); // Can be null if not set
+        var customDomain = config.Get("customDomain"); // e.g., quizapi.alexanderbrittain.com
         
         var openAiApiKey = config.RequireSecret("openAiApiKey");
         var googleClientId = config.RequireSecret("googleClientId");
@@ -195,6 +196,23 @@ public class MyStack : Stack
 
         var appInsightsConnectionString = appInsights.ConnectionString;
 
+        // Create a managed certificate for the custom domain (environment already has the hostname from prior deploy)
+        Pulumi.AzureNative.App.ManagedCertificate? managedCert = null;
+        if (!string.IsNullOrWhiteSpace(customDomain))
+        {
+            managedCert = new Pulumi.AzureNative.App.ManagedCertificate("custom-domain-cert", new Pulumi.AzureNative.App.ManagedCertificateArgs
+            {
+                EnvironmentName = containerEnvironment.Name,
+                ResourceGroupName = resourceGroup.Name,
+                ManagedCertificateName = "wikiquiz-cert-prd",
+                Properties = new Pulumi.AzureNative.App.Inputs.ManagedCertificatePropertiesArgs
+                {
+                    SubjectName = customDomain,
+                    DomainControlValidation = "CNAME"
+                }
+            });
+        }
+
         // Create Container App (scale-to-zero)
         var containerApp = new ContainerApp("api", new ContainerAppArgs
         {
@@ -209,6 +227,17 @@ public class MyStack : Stack
                     External = true,
                     TargetPort = 8080,
                     Transport = IngressTransportMethod.Http,
+                    CustomDomains = string.IsNullOrWhiteSpace(customDomain)
+                        ? new InputList<Pulumi.AzureNative.App.Inputs.CustomDomainArgs>()
+                        : new InputList<Pulumi.AzureNative.App.Inputs.CustomDomainArgs>
+                        {
+                            new Pulumi.AzureNative.App.Inputs.CustomDomainArgs
+                            {
+                                Name = customDomain!,
+                                BindingType = "SniEnabled",
+                                CertificateId = managedCert!.Id
+                            }
+                        },
                     CorsPolicy = new Pulumi.AzureNative.App.Inputs.CorsPolicyArgs
                     {
                         AllowCredentials = true,
@@ -249,8 +278,6 @@ public class MyStack : Stack
             },
             Template = new TemplateArgs
             {
-                // Force a new revision name per deploy so ACA rolls even if image caching occurs
-                RevisionSuffix = imageTag,
                 Scale = new ScaleArgs
                 {
                     MinReplicas = 0,
@@ -293,9 +320,12 @@ public class MyStack : Stack
                             // App secrets
                              new EnvironmentVarArgs { Name = "wikiquizapp__FrontendUri", Value = frontendUri },
                             new EnvironmentVarArgs { Name = "wikiquizapp__OpenAIApiKey", SecretRef = "openai-key" },
-                            new EnvironmentVarArgs { Name = "wikiquizapp__GoogleOAuthClientId", SecretRef = "google-client-id" },
-                            new EnvironmentVarArgs { Name = "wikiquizapp__GoogleOAuthClientSecret", SecretRef = "google-client-secret" },
-                            new EnvironmentVarArgs { Name = "wikiquizapp__JwtSecret", SecretRef = "jwt-secret" },
+                            new EnvironmentVarArgs { Name = "wikiquizapp__AuthGoogleClientID", SecretRef = "google-client-id" },
+                            new EnvironmentVarArgs { Name = "wikiquizapp__AuthGoogleClientSecret", SecretRef = "google-client-secret" },
+                            // JWT options expected by the API configuration
+                            new EnvironmentVarArgs { Name = "JwtOptions__Secret", SecretRef = "jwt-secret" },
+                            new EnvironmentVarArgs { Name = "JwtOptions__Issuer", Value = jwtIssuer ?? "https://quizapi.alexanderbrittain.com" },
+                            new EnvironmentVarArgs { Name = "JwtOptions__Audience", Value = jwtAudience ?? "https://quiz.alexanderbrittain.com" },
                             new EnvironmentVarArgs { Name = "ASPNETCORE_ENVIRONMENT", Value = "Production" },
                             new EnvironmentVarArgs { Name = "ASPNETCORE_URLS", Value = "http://+:8080" }
                         }

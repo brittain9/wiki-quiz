@@ -21,3 +21,4 @@ config:
   wikiquiz:githubToken:
     secure: "AAABAPcy5UKC3F3KClEfPjaFGxJVQoqNlgSEV1OVzXgAi8pYLIgfw7RK2EYJ53i3VoqYv/5L4HRW/iARLR33Bc1uhkVq8iiX" # You need to set this with: pulumi config set --secret wikiquiz:githubToken <your-github-token>
   azure-native:useAzureCLI: "true"
+  wikiquiz:customDomain: quizapi.alexanderbrittain.com

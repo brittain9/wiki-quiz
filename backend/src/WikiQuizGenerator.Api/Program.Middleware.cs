@@ -12,8 +12,8 @@ public partial class Program
     {
         app.UseSerilogRequestLogging();
 
-        // Enable forwarded headers only when explicitly configured (prevents spoofing in uncontrolled proxies)
-        if (string.Equals(Environment.GetEnvironmentVariable("ENABLE_FORWARDED_HEADERS"), "true", StringComparison.OrdinalIgnoreCase))
+        // In non-development environments (e.g., Azure), honor proxy headers for correct scheme/host
+        if (!app.Environment.IsDevelopment())
         {
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
