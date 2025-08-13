@@ -26,19 +26,23 @@ try
 
     var app = builder.Build();
 
-    using (var scope = app.Services.CreateScope())
+    // In Development, ensure Cosmos DB containers exist; in Production assume they exist
+    if (app.Environment.IsDevelopment())
     {
-        try
+        using (var scope = app.Services.CreateScope())
         {
-            Log.Information("Ensuring Cosmos DB containers exist");
-            await scope.ServiceProvider
-                .GetRequiredService<CosmosDbContext>()
-                .EnsureContainersExistAsync();
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "An error occurred during Cosmos DB initialization");
-            throw;
+            try
+            {
+                Log.Information("Ensuring Cosmos DB containers exist (Development)");
+                await scope.ServiceProvider
+                    .GetRequiredService<CosmosDbContext>()
+                    .EnsureContainersExistAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred during Cosmos DB initialization");
+                throw;
+            }
         }
     }
 

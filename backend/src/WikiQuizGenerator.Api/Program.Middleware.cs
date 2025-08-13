@@ -10,7 +10,12 @@ public partial class Program
 {
     private static void ConfigurePipeline(WebApplication app)
     {
-        app.UseSerilogRequestLogging();
+        // Keep request logging lightweight to reduce cold-start overhead
+        app.UseSerilogRequestLogging(options =>
+        {
+            options.GetLevel = (httpContext, elapsed, ex) => Serilog.Events.LogEventLevel.Information;
+            options.EnrichDiagnosticContext = (diag, httpContext) => { };
+        });
 
         // In non-development environments (e.g., Azure), honor proxy headers for correct scheme/host
         if (!app.Environment.IsDevelopment())
