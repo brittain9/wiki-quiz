@@ -19,6 +19,7 @@ public class QuestionGeneratorFactory : IQuestionGeneratorFactory
         var promptManager = _serviceProvider.GetRequiredService<PromptManager>();
         var logger = _serviceProvider.GetRequiredService<ILogger<QuestionGenerator>>();
 
+        // Defer selection until first use to avoid cold-start overhead
         aiServiceManager.SelectAiService(aiService, model);
         
         // TODO: I dont love the cast here

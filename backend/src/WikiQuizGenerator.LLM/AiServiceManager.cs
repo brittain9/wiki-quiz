@@ -17,7 +17,8 @@ public class AiServiceManager : IAiServiceManager
     {
         OpenAiApiKey = openAIApiKey;
         IsOpenAiAvailable = !string.IsNullOrEmpty(OpenAiApiKey);
-        AiServices = LoadAiServices();
+        // Lazily load AI services to avoid I/O during cold start
+        AiServices = new Dictionary<string, List<ModelConfig>>();
     }
 
     private Dictionary<string, List<ModelConfig>> LoadAiServices()
@@ -61,12 +62,24 @@ public class AiServiceManager : IAiServiceManager
 
     public string[] GetAvailableAiServices()
     {
+        if (AiServices.Count == 0)
+        {
+            var loaded = LoadAiServices();
+            foreach (var kv in loaded)
+                AiServices[kv.Key] = kv.Value;
+        }
         return AiServices.Keys.ToArray();
 
     }
 
     public string[] GetModels(string aiServiceId)
     {
+        if (AiServices.Count == 0)
+        {
+            var loaded = LoadAiServices();
+            foreach (var kv in loaded)
+                AiServices[kv.Key] = kv.Value;
+        }
         if (!AiServices.TryGetValue(aiServiceId, out var serviceConfig))
             return Array.Empty<string>();
 
