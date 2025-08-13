@@ -327,7 +327,9 @@ public class MyStack : Stack
                             new EnvironmentVarArgs { Name = "JwtOptions__Issuer", Value = jwtIssuer ?? "https://quizapi.alexanderbrittain.com" },
                             new EnvironmentVarArgs { Name = "JwtOptions__Audience", Value = jwtAudience ?? "https://quiz.alexanderbrittain.com" },
                             new EnvironmentVarArgs { Name = "ASPNETCORE_ENVIRONMENT", Value = "Production" },
-                            new EnvironmentVarArgs { Name = "ASPNETCORE_URLS", Value = "http://+:8080" }
+                            new EnvironmentVarArgs { Name = "ASPNETCORE_URLS", Value = "http://+:8080" },
+                            // Ensure ASP.NET Core honors X-Forwarded-* headers for correct https scheme
+                            new EnvironmentVarArgs { Name = "ASPNETCORE_FORWARDEDHEADERS_ENABLED", Value = "true" }
                         }
                     }
                 }

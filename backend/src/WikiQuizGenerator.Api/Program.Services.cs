@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Microsoft.AspNetCore.HttpOverrides;
 using WikiQuizGenerator.Core;
 using WikiQuizGenerator.Core.Interfaces;
 using WikiQuizGenerator.Core.Options;
@@ -22,6 +23,7 @@ public partial class Program
     {
         // Core configuration
         ConfigureOptions(services, configuration);
+        ConfigureForwardedHeaders(services);
         
         // Development tools
         ConfigureDevelopmentServices(services, environment);
@@ -51,6 +53,21 @@ public partial class Program
     private static void ConfigureOptions(IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.JwtOptionsKey));
+    }
+    
+    /// <summary>
+    /// Trust and apply X-Forwarded-* headers from Azure ingress so scheme/host are correct
+    /// </summary>
+    private static void ConfigureForwardedHeaders(IServiceCollection services)
+    {
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+            options.RequireHeaderSymmetry = false;
+            options.ForwardLimit = null;
+        });
     }
     
     /// <summary>
