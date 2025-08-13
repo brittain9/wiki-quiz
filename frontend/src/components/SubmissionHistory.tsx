@@ -229,126 +229,125 @@ const SubmissionHistory: React.FC = React.memo(() => {
             },
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 3,
-            }}
-          >
-            <Typography
-              variant="h5"
-              gutterBottom
-              sx={{
-                color: 'var(--main-color)',
-                fontWeight: 600,
-                mb: 0,
-              }}
-            >
-              {t('recentSubmissions.title')}
-            </Typography>
-            {paginatedData.items.length > 0 && (
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={async () => {
-                  try {
-                    await submissionApi.clearUserSubmissions();
-                    // reset local state
-                    setPaginatedData((prev) => ({
-                      ...prev,
-                      items: [],
-                      totalCount: 0,
-                      totalPages: 0,
-                      page: 1,
-                    }));
-                    setCurrentPage(1);
-                  } catch (e) {
-                    console.error(e);
-                  }
-                }}
-                sx={{
-                  borderColor: 'var(--error-color)',
-                  color: 'var(--error-color)',
-                  '&:hover': {
-                    borderColor: 'var(--error-color)',
-                    backgroundColor: 'var(--error-color-10)',
-                  },
-                }}
-              >
-                {t('recentSubmissions.clear') || 'Clear'}
-              </Button>
-            )}
-          </Box>
+				<Box
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+						mb: 2,
+					}}
+				>
+					<Typography
+						variant="h5"
+						gutterBottom
+						sx={{
+							color: 'var(--main-color)',
+							fontWeight: 600,
+							mb: 0,
+						}}
+					>
+						{t('recentSubmissions.title')}
+					</Typography>
+					{paginatedData.items.length > 0 && (
+						<Stack direction="row" spacing={1} alignItems="center">
+							<FormControl size="small" sx={{ minWidth: 90 }}>
+								<InputLabel
+									sx={{
+										color: 'var(--sub-color)',
+										'&.Mui-focused': { color: 'var(--main-color)' },
+									}}
+								>
+									Per Page
+								</InputLabel>
+								<Select
+									value={pageSize}
+									label="Per Page"
+									onChange={handlePageSizeChange}
+									sx={{
+										color: 'var(--text-color)',
+										'& .MuiOutlinedInput-notchedOutline': {
+											borderColor: 'var(--sub-alt-color)',
+										},
+										'&:hover .MuiOutlinedInput-notchedOutline': {
+											borderColor: 'var(--main-color)',
+										},
+										'&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+											borderColor: 'var(--main-color)',
+										},
+										'& .MuiSvgIcon-root': {
+											color: 'var(--text-color)',
+										},
+									}}
+								>
+									{pageSizeOptions.map((option) => (
+										<MenuItem
+											key={option}
+											value={option}
+											sx={{
+												color: 'var(--text-color)',
+												backgroundColor: 'var(--bg-color)',
+												'&:hover': {
+													backgroundColor: 'var(--bg-color-secondary)',
+												},
+											}}
+										>
+											{option}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+							<Button
+								variant="outlined"
+								color="error"
+								size="small"
+								onClick={async () => {
+									try {
+										await submissionApi.clearUserSubmissions();
+										// reset local state
+										setPaginatedData((prev) => ({
+											...prev,
+											items: [],
+											totalCount: 0,
+											totalPages: 0,
+											page: 1,
+										}));
+										setCurrentPage(1);
+									} catch (e) {
+										console.error(e);
+									}
+								}}
+								sx={{
+									borderColor: 'var(--error-color)',
+									color: 'var(--error-color)',
+									px: 1.5,
+									'&:hover': {
+										borderColor: 'var(--error-color)',
+										backgroundColor: 'var(--error-color-10)',
+									},
+								}}
+							>
+								{t('recentSubmissions.clear') || 'Clear'}
+							</Button>
+						</Stack>
+					)}
+				</Box>
 
-          {/* Page size selector */}
-          <Box
-            sx={{
-              mb: 2,
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <Typography variant="body2" sx={{ color: 'var(--sub-color)' }}>
-              {paginatedData.totalCount > 0
-                ? `Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, paginatedData.totalCount)} of ${paginatedData.totalCount} submissions`
-                : 'No submissions found'}
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 120 }}>
-              <InputLabel
-                sx={{
-                  color: 'var(--sub-color)',
-                  '&.Mui-focused': { color: 'var(--main-color)' },
-                }}
-              >
-                Per Page
-              </InputLabel>
-              <Select
-                value={pageSize}
-                label="Per Page"
-                onChange={handlePageSizeChange}
-                sx={{
-                  color: 'var(--text-color)',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'var(--sub-alt-color)',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'var(--main-color)',
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'var(--main-color)',
-                  },
-                  '& .MuiSvgIcon-root': {
-                    color: 'var(--text-color)',
-                  },
-                }}
-              >
-                {pageSizeOptions.map((option) => (
-                  <MenuItem
-                    key={option}
-                    value={option}
-                    sx={{
-                      color: 'var(--text-color)',
-                      backgroundColor: 'var(--bg-color)',
-                      '&:hover': {
-                        backgroundColor: 'var(--bg-color-secondary)',
-                      },
-                    }}
-                  >
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+				{/* Status line (shown only when there are submissions) */}
+				{paginatedData.totalCount > 0 && (
+					<Box sx={{ mb: 2 }}>
+						<Typography variant="body2" sx={{ color: 'var(--sub-color)' }}>
+							{`Showing ${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, paginatedData.totalCount)} of ${paginatedData.totalCount} submissions`}
+						</Typography>
+					</Box>
+				)}
 
-          {paginatedData.items.length === 0 ? (
-            <Typography sx={{ color: 'var(--sub-color)' }}>
-              {t('recentSubmissions.noSubmissions')}
-            </Typography>
-          ) : (
+				{paginatedData.items.length === 0 ? (
+					<Box sx={{ py: 6, display: 'flex', justifyContent: 'center' }}>
+						<Typography sx={{ color: 'var(--sub-color)' }}>
+							{t('recentSubmissions.noSubmissions')}
+						</Typography>
+					</Box>
+				) : (
             <>
               <List
                 sx={{
@@ -433,12 +432,13 @@ const SubmissionHistory: React.FC = React.memo(() => {
 
               {/* Pagination controls */}
               {paginatedData.totalPages > 1 && (
-                <Stack spacing={2} alignItems="center">
+						<Stack spacing={1} alignItems="center">
                   <Pagination
                     count={paginatedData.totalPages}
                     page={currentPage}
                     onChange={handlePageChange}
                     color="primary"
+								size="small"
                     sx={{
                       '& .MuiPaginationItem-root': {
                         color: 'var(--text-color)',
